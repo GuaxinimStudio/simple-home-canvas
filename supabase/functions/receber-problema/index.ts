@@ -17,7 +17,7 @@ interface ProblemaRequest {
   telefone: string;
   descricao: string;
   gabinete_id?: string;
-  foto_base64?: string;  // Nova propriedade para receber a imagem em base64
+  foto_base64?: string;  // Propriedade para receber a imagem em base64
   municipio?: string;
 }
 
@@ -115,6 +115,21 @@ serve(async (req) => {
         const rand = Math.floor(Math.random() * 1000);
         const fileName = `problema-${timestamp}-${rand}.jpg`;
         
+        // Verificar se o bucket existe, caso contrário, criá-lo
+        const { data: bucketData, error: bucketError } = await supabaseClient
+          .storage
+          .getBucket('problema-imagens');
+          
+        if (bucketError && bucketError.message.includes('not found')) {
+          console.log("Bucket não encontrado, criando...");
+          await supabaseClient
+            .storage
+            .createBucket('problema-imagens', {
+              public: true,
+              fileSizeLimit: 5242880 // 5MB
+            });
+        }
+        
         // Fazer o upload da imagem para o bucket
         const { data: uploadData, error: uploadError } = await supabaseClient
           .storage
@@ -135,6 +150,7 @@ serve(async (req) => {
             .getPublicUrl(fileName);
             
           foto_url = publicUrlData.publicUrl;
+          console.log("URL da imagem gerada:", foto_url);
         }
       } catch (uploadErr) {
         console.error("Erro ao processar upload de imagem:", uploadErr);
@@ -152,7 +168,7 @@ serve(async (req) => {
       telefone: problemaData.telefone,
       descricao: problemaData.descricao,
       gabinete_id: gabineteId,
-      foto_url: foto_url,
+      foto_url: foto_url,  // Garantindo que a URL está sendo salva no campo foto_url
       municipio: problemaData.municipio || null,
       status: "Pendente"
     };
