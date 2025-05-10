@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Building, MapPin, Phone, PlusCircle, Eye, UserPlus } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import VerContatosModal from './VerContatosModal';
+import NovoContatoModal from './NovoContatoModal';
 
 interface GabineteCardProps {
   gabinete: {
@@ -17,6 +19,9 @@ interface GabineteCardProps {
 }
 
 const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete }) => {
+  const [isVerContatosModalOpen, setIsVerContatosModalOpen] = useState(false);
+  const [isNovoContatoModalOpen, setIsNovoContatoModalOpen] = useState(false);
+
   return (
     <Card className="bg-white overflow-hidden">
       <CardContent className="p-6">
@@ -50,11 +55,21 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete }) => {
                 </div>
                 
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8"
+                    onClick={() => setIsVerContatosModalOpen(true)}
+                  >
                     <Eye className="h-4 w-4 text-gray-500" />
                   </Button>
                   
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8"
+                    onClick={() => setIsNovoContatoModalOpen(true)}
+                  >
                     <PlusCircle className="h-4 w-4 text-gray-500" />
                   </Button>
                 </div>
@@ -63,6 +78,20 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete }) => {
           </div>
         </div>
       </CardContent>
+
+      <VerContatosModal
+        isOpen={isVerContatosModalOpen}
+        onClose={() => setIsVerContatosModalOpen(false)}
+        gabineteId={gabinete.id}
+        gabineteNome={gabinete.gabinete}
+      />
+
+      <NovoContatoModal
+        isOpen={isNovoContatoModalOpen}
+        onClose={() => setIsNovoContatoModalOpen(false)}
+        gabineteId={gabinete.id}
+        gabineteNome={gabinete.gabinete}
+      />
     </Card>
   );
 };
