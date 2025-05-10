@@ -101,6 +101,29 @@ export const OcorrenciaDetalhes: React.FC<OcorrenciaDetalhesProps> = ({
             <p className="text-gray-700">{problemData.municipio}</p>
           </div>
         )}
+        
+        {/* Seção de detalhes da resolução (quando resolvido) */}
+        {isResolved && problemData.descricao_resolvido && (
+          <div className="mt-4 border-t pt-4">
+            <h3 className="font-medium mb-2 text-green-600">Detalhes da Resolução</h3>
+            <p className="bg-green-50 p-3 rounded text-gray-700 border border-green-100">
+              {problemData.descricao_resolvido}
+            </p>
+            
+            {problemData.imagem_resolvido && (
+              <div className="mt-3">
+                <h4 className="text-sm font-medium mb-2">Comprovação da Resolução</h4>
+                <div className="h-40 rounded-md overflow-hidden">
+                  <img 
+                    src={problemData.imagem_resolvido} 
+                    alt="Comprovação da resolução" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </Card>
   );

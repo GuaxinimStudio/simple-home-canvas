@@ -27,6 +27,7 @@ interface OcorrenciaGerenciamentoProps {
   onDescricaoResolvidoChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   onImagemResolvidoChange: (file: File | null) => void;
   imagemResolvidoPreview: string | null;
+  onEnviarRespostaCidadao?: () => void;
 }
 
 export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = ({
@@ -40,10 +41,14 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
   descricaoResolvido,
   onDescricaoResolvidoChange,
   onImagemResolvidoChange,
-  imagemResolvidoPreview
+  imagemResolvidoPreview,
+  onEnviarRespostaCidadao
 }) => {
   // Verifica se um prazo foi definido
   const isPrazoDefinido = prazoEstimado !== '';
+  
+  // Verifica se o status está resolvido para bloquear os campos
+  const isResolvido = currentStatus === "Resolvido";
   
   // Função para lidar com a alteração do status
   const handleStatusChange = (value: string) => {
@@ -100,7 +105,7 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
           <Select 
             value={currentStatus} 
             onValueChange={handleStatusChange}
-            disabled={!isPrazoDefinido}
+            disabled={!isPrazoDefinido || isResolvido}
           >
             <SelectTrigger className="w-full">
               <SelectValue placeholder="Selecione o status" />
@@ -126,6 +131,7 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
               placeholder="Selecione um prazo"
               value={prazoEstimado}
               onChange={onPrazoChange}
+              disabled={isResolvido}
             />
           </div>
         </div>
@@ -161,6 +167,7 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
                 className="min-h-[120px] w-full"
                 value={descricaoResolvido}
                 onChange={onDescricaoResolvidoChange}
+                disabled={isResolvido}
               />
             </div>
 
@@ -176,13 +183,15 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
                     alt="Imagem de comprovação" 
                     className="w-full h-48 object-cover rounded-md"
                   />
-                  <button 
-                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
-                    onClick={() => onImagemResolvidoChange(null)}
-                    type="button"
-                  >
-                    X
-                  </button>
+                  {!isResolvido && (
+                    <button 
+                      className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
+                      onClick={() => onImagemResolvidoChange(null)}
+                      type="button"
+                    >
+                      X
+                    </button>
+                  )}
                 </div>
               ) : (
                 <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
@@ -192,10 +201,11 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
                     accept="image/*"
                     className="hidden"
                     onChange={handleFileChange}
+                    disabled={isResolvido}
                   />
                   <label 
                     htmlFor="image-upload" 
-                    className="cursor-pointer flex flex-col items-center justify-center"
+                    className={`flex flex-col items-center justify-center ${isResolvido ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
                   >
                     <Upload className="w-8 h-8 text-gray-400 mb-2" />
                     <span className="text-sm text-gray-500">
@@ -211,12 +221,23 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
           </>
         )}
 
-        <Button 
-          onClick={onSalvar}
-          className="w-full bg-green-500 hover:bg-green-600"
-        >
-          Salvar Alterações
-        </Button>
+        {!isResolvido && (
+          <Button 
+            onClick={onSalvar}
+            className="w-full bg-green-500 hover:bg-green-600"
+          >
+            Salvar Alterações
+          </Button>
+        )}
+        
+        {isResolvido && onEnviarRespostaCidadao && (
+          <Button 
+            onClick={onEnviarRespostaCidadao}
+            className="w-full bg-blue-500 hover:bg-blue-600"
+          >
+            Enviar Resposta para o Cidadão
+          </Button>
+        )}
       </div>
     </Card>
   );

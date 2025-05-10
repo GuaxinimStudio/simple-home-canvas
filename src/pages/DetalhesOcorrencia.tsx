@@ -27,7 +27,8 @@ const DetalhesOcorrencia: React.FC = () => {
     handleSalvar,
     setSelectedDepartamento,
     handleDescricaoResolvidoChange,
-    handleImagemResolvidoChange
+    handleImagemResolvidoChange,
+    handleEnviarRespostaCidadao
   } = useOcorrenciaDetails(id);
 
   const handleVoltar = () => {
@@ -117,6 +118,7 @@ const DetalhesOcorrencia: React.FC = () => {
               onDescricaoResolvidoChange={handleDescricaoResolvidoChange}
               onImagemResolvidoChange={handleImagemResolvidoChange}
               imagemResolvidoPreview={imagemResolvidoPreview}
+              onEnviarRespostaCidadao={handleEnviarRespostaCidadao}
             />
           </div>
         </div>
