@@ -42,6 +42,74 @@ export type Database = {
         }
         Relationships: []
       }
+      problemas: {
+        Row: {
+          created_at: string
+          descricao: string
+          descricao_resolvido: string | null
+          dias_atraso_resolucao: number | null
+          foto_url: string | null
+          gabinete_id: string | null
+          id: string
+          imagem_resolvido: string | null
+          municipio: string | null
+          notificado_prazo_estourado: boolean | null
+          prazo_alteracoes: number | null
+          prazo_estimado: string | null
+          resolvido_no_prazo: boolean | null
+          resposta_enviada: boolean | null
+          status: string
+          telefone: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          descricao: string
+          descricao_resolvido?: string | null
+          dias_atraso_resolucao?: number | null
+          foto_url?: string | null
+          gabinete_id?: string | null
+          id?: string
+          imagem_resolvido?: string | null
+          municipio?: string | null
+          notificado_prazo_estourado?: boolean | null
+          prazo_alteracoes?: number | null
+          prazo_estimado?: string | null
+          resolvido_no_prazo?: boolean | null
+          resposta_enviada?: boolean | null
+          status?: string
+          telefone: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          descricao?: string
+          descricao_resolvido?: string | null
+          dias_atraso_resolucao?: number | null
+          foto_url?: string | null
+          gabinete_id?: string | null
+          id?: string
+          imagem_resolvido?: string | null
+          municipio?: string | null
+          notificado_prazo_estourado?: boolean | null
+          prazo_alteracoes?: number | null
+          prazo_estimado?: string | null
+          resolvido_no_prazo?: boolean | null
+          resposta_enviada?: boolean | null
+          status?: string
+          telefone?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "problemas_gabinete_id_fkey"
+            columns: ["gabinete_id"]
+            isOneToOne: false
+            referencedRelation: "gabinetes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           cidade: string | null

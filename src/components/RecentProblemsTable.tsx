@@ -1,8 +1,10 @@
 
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { useNavigate } from 'react-router-dom';
+import { format, formatDistanceToNow } from 'date-fns';
+import { ptBR } from 'date-fns/locale';
 import { 
   Table,
   TableBody,
@@ -11,33 +13,74 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export type ProblemItem = {
-  id: number;
-  description: string;
-  status: 'Resolvido' | 'Pendente' | 'Em andamento' | 'Informações Insuficientes';
-  date: string;
-  secretary: string;
-  timeElapsed: string;
-  dueDate: string;
+  id: string;
+  descricao: string;
+  status: string;
+  created_at: string;
+  telefone: string;
+  prazo_estimado: string | null;
+  municipio: string | null;
+  gabinete: {
+    gabinete: string;
+  } | null;
 };
 
 type RecentProblemsTableProps = {
-  recentActivities: ProblemItem[];
+  limit?: number;
 };
 
-const RecentProblemsTable: React.FC<RecentProblemsTableProps> = ({ recentActivities }) => {
+const RecentProblemsTable: React.FC<RecentProblemsTableProps> = ({ limit = 5 }) => {
   const navigate = useNavigate();
+  const [problems, setProblems] = useState<ProblemItem[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  useEffect(() => {
+    const fetchProblemas = async () => {
+      try {
+        setIsLoading(true);
+        const { data, error } = await supabase
+          .from('problemas')
+          .select(`
+            id,
+            descricao,
+            status,
+            created_at,
+            telefone,
+            prazo_estimado,
+            municipio,
+            gabinete:gabinete_id(gabinete)
+          `)
+          .order('created_at', { ascending: false })
+          .limit(limit);
+          
+        if (error) throw error;
+        setProblems(data || []);
+      } catch (err: any) {
+        console.error('Erro ao buscar problemas:', err);
+        setError(err.message || 'Erro ao carregar problemas');
+        toast.error(`Erro ao carregar problemas: ${err.message}`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    fetchProblemas();
+  }, [limit]);
   
   const getStatusColor = (status: string) => {
-    switch(status) {
-      case 'Resolvido':
+    switch(status.toLowerCase()) {
+      case 'resolvido':
         return "bg-resolve-lightgreen text-resolve-green";
-      case 'Pendente':
+      case 'pendente':
         return "bg-yellow-100 text-yellow-700";
-      case 'Em andamento':
+      case 'em andamento':
         return "bg-blue-100 text-blue-700";
-      case 'Informações Insuficientes':
+      case 'informações insuficientes':
         return "bg-gray-100 text-gray-700";
       default:
         return "bg-gray-100 text-gray-700";
@@ -45,26 +88,26 @@ const RecentProblemsTable: React.FC<RecentProblemsTableProps> = ({ recentActivit
   };
   
   const getStatusIcon = (status: string) => {
-    switch(status) {
-      case 'Resolvido':
+    switch(status.toLowerCase()) {
+      case 'resolvido':
         return (
           <svg className="w-3 h-3 mr-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
           </svg>
         );
-      case 'Pendente':
+      case 'pendente':
         return (
           <svg className="w-3 h-3 mr-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
             <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
           </svg>
         );
-      case 'Em andamento':
+      case 'em andamento':
         return (
           <svg className="w-3 h-3 mr-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M2 6H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
           </svg>
         );
-      case 'Informações Insuficientes':
+      case 'informações insuficientes':
         return (
           <svg className="w-3 h-3 mr-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path d="M6 4V6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -77,9 +120,90 @@ const RecentProblemsTable: React.FC<RecentProblemsTableProps> = ({ recentActivit
     }
   };
   
-  const handleViewProblem = (id: number) => {
+  const handleViewProblem = (id: string) => {
     navigate(`/detalhes-ocorrencia/${id}`);
   };
+  
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), 'dd MMM yyyy, HH:mm', {
+        locale: ptBR
+      });
+    } catch (e) {
+      return dateString;
+    }
+  };
+
+  const calculateTimeElapsed = (dateString: string) => {
+    try {
+      return formatDistanceToNow(new Date(dateString), {
+        locale: ptBR,
+        addSuffix: true
+      });
+    } catch (e) {
+      return 'Data inválida';
+    }
+  };
+  
+  const formatDeadline = (deadline: string | null) => {
+    if (!deadline) return 'Não definido';
+    
+    try {
+      return format(new Date(deadline), 'dd/MM/yy HH:mm', {
+        locale: ptBR
+      });
+    } catch (e) {
+      return 'Data inválida';
+    }
+  };
+  
+  if (isLoading) {
+    return (
+      <div className="bg-white rounded-lg border shadow-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-gray-500" />
+            <h3 className="font-medium text-lg">Problemas Recentes</h3>
+          </div>
+        </div>
+        <div className="w-full text-center py-8">
+          <p className="text-gray-500">Carregando problemas...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (error) {
+    return (
+      <div className="bg-white rounded-lg border shadow-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-gray-500" />
+            <h3 className="font-medium text-lg">Problemas Recentes</h3>
+          </div>
+        </div>
+        <div className="w-full text-center py-8 text-red-500">
+          <p>Erro ao carregar problemas. Tente novamente mais tarde.</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (problems.length === 0) {
+    return (
+      <div className="bg-white rounded-lg border shadow-sm p-6">
+        <div className="flex items-center justify-between mb-4">
+          <div className="flex items-center gap-2">
+            <Clock className="h-5 w-5 text-gray-500" />
+            <h3 className="font-medium text-lg">Problemas Recentes</h3>
+          </div>
+        </div>
+        <div className="w-full text-center py-8">
+          <p className="text-gray-500">Nenhum problema registrado ainda.</p>
+        </div>
+      </div>
+    );
+  }
   
   return (
     <div className="bg-white rounded-lg border shadow-sm p-6">
@@ -88,7 +212,12 @@ const RecentProblemsTable: React.FC<RecentProblemsTableProps> = ({ recentActivit
           <Clock className="h-5 w-5 text-gray-500" />
           <h3 className="font-medium text-lg">Problemas Recentes</h3>
         </div>
-        <button className="text-sm text-resolve-green font-medium">Ver todos</button>
+        <button 
+          className="text-sm text-resolve-green font-medium"
+          onClick={() => navigate('/problemas')}
+        >
+          Ver todos
+        </button>
       </div>
 
       <div className="overflow-x-auto">
@@ -105,27 +234,31 @@ const RecentProblemsTable: React.FC<RecentProblemsTableProps> = ({ recentActivit
             </TableRow>
           </TableHeader>
           <TableBody>
-            {recentActivities.map((activity) => (
-              <TableRow key={activity.id}>
-                <TableCell className="font-medium">{activity.description}</TableCell>
+            {problems.map((problem) => (
+              <TableRow key={problem.id}>
+                <TableCell className="font-medium">{problem.descricao}</TableCell>
                 <TableCell>
-                  <Badge className={`px-2.5 py-1 rounded-full text-xs flex items-center ${getStatusColor(activity.status)}`}>
-                    {getStatusIcon(activity.status)}
-                    {activity.status}
+                  <Badge className={`px-2.5 py-1 rounded-full text-xs flex items-center ${getStatusColor(problem.status)}`}>
+                    {getStatusIcon(problem.status)}
+                    {problem.status}
                   </Badge>
                 </TableCell>
-                <TableCell className="text-sm">{activity.timeElapsed}</TableCell>
+                <TableCell className="text-sm">
+                  {calculateTimeElapsed(problem.created_at)}
+                </TableCell>
                 <TableCell>
                   <div className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs flex items-center justify-center">
-                    {activity.dueDate}
+                    {formatDeadline(problem.prazo_estimado)}
                   </div>
                 </TableCell>
-                <TableCell className="text-sm">{activity.date}</TableCell>
-                <TableCell className="text-sm">{activity.secretary}</TableCell>
+                <TableCell className="text-sm">{formatDate(problem.created_at)}</TableCell>
+                <TableCell className="text-sm">
+                  {problem.gabinete?.gabinete || 'Não atribuído'}
+                </TableCell>
                 <TableCell>
                   <button 
                     className="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200"
-                    onClick={() => handleViewProblem(activity.id)}
+                    onClick={() => handleViewProblem(problem.id)}
                   >
                     <span className="sr-only">Ver detalhes</span>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
