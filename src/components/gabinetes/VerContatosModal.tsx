@@ -24,7 +24,7 @@ const VerContatosModal: React.FC<VerContatosModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Contatos do Gabinete {gabineteNome}</DialogTitle>
+          <DialogTitle>{gabineteNome}</DialogTitle>
         </DialogHeader>
 
         {isLoading ? (
