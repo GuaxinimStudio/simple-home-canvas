@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
@@ -39,9 +40,13 @@ export const ProblemRow: React.FC<ProblemRowProps> = ({ problem }) => {
     navigate(`/detalhes-ocorrencia/${id}`);
   };
 
+  const getShortDescription = (desc: string) => {
+    return desc.length > 100 ? `${desc.substring(0, 100)}...` : desc;
+  };
+
   return (
     <TableRow>
-      <TableCell className="font-medium">{problem.descricao}</TableCell>
+      <TableCell className="font-medium">{getShortDescription(problem.descricao)}</TableCell>
       <TableCell>
         <ProblemStatusBadge status={problem.status} />
       </TableCell>

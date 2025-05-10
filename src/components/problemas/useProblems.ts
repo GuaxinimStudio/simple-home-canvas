@@ -23,12 +23,15 @@ export const useProblems = (limit = 5) => {
             telefone,
             prazo_estimado,
             municipio,
+            foto_url,
             gabinete:gabinete_id(gabinete)
           `)
           .order('created_at', { ascending: false })
           .limit(limit);
           
         if (error) throw error;
+        
+        console.log("Problemas carregados:", data);
         setProblems(data || []);
       } catch (err: any) {
         console.error('Erro ao buscar problemas:', err);

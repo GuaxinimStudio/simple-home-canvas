@@ -24,6 +24,7 @@ export interface ProblemItem {
   telefone: string;
   prazo_estimado: string | null;
   municipio: string | null;
+  foto_url: string | null;
   gabinete: {
     gabinete: string;
   } | null;
