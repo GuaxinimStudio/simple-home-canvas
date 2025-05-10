@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Image, Clock, CheckCircle } from 'lucide-react';
@@ -109,7 +110,7 @@ export const OcorrenciaDetalhes: React.FC<OcorrenciaDetalhesProps> = ({
               {problemData.descricao_resolvido}
             </p>
             
-            {problemData.imagem_resolvida && (
+            {problemData.imagem_resolvido && (
               <div className="mt-3">
                 <h4 className="text-sm font-medium mb-2">Comprovação da Resolução</h4>
                 <div className="p-3 bg-green-50 rounded-md border border-green-100 flex items-center">
