@@ -17,7 +17,7 @@ interface ProblemaRequest {
   telefone: string;
   descricao: string;
   gabinete_id?: string;
-  foto_url?: string;
+  foto_base64?: string;  // Nova propriedade para receber a imagem em base64
   municipio?: string;
 }
 
@@ -96,12 +96,63 @@ serve(async (req) => {
       );
     }
     
+    let foto_url = null;
+    
+    // Se tiver foto em base64, fazer upload para o bucket
+    if (problemaData.foto_base64) {
+      try {
+        // Extrair dados do base64 e converter para Uint8Array
+        const base64Data = problemaData.foto_base64.split(',')[1] || problemaData.foto_base64;
+        const byteString = atob(base64Data);
+        const arrayBuffer = new Uint8Array(byteString.length);
+        
+        for (let i = 0; i < byteString.length; i++) {
+          arrayBuffer[i] = byteString.charCodeAt(i);
+        }
+        
+        // Gerar um nome único para o arquivo
+        const timestamp = new Date().getTime();
+        const rand = Math.floor(Math.random() * 1000);
+        const fileName = `problema-${timestamp}-${rand}.jpg`;
+        
+        // Fazer o upload da imagem para o bucket
+        const { data: uploadData, error: uploadError } = await supabaseClient
+          .storage
+          .from('problema-imagens')
+          .upload(fileName, arrayBuffer, {
+            contentType: 'image/jpeg',
+            upsert: false
+          });
+          
+        if (uploadError) {
+          console.error("Erro ao fazer upload da imagem:", uploadError);
+          // Continua o processo mesmo sem a imagem
+        } else {
+          // Obter URL pública da imagem
+          const { data: publicUrlData } = supabaseClient
+            .storage
+            .from('problema-imagens')
+            .getPublicUrl(fileName);
+            
+          foto_url = publicUrlData.publicUrl;
+        }
+      } catch (uploadErr) {
+        console.error("Erro ao processar upload de imagem:", uploadErr);
+        // Continua o processo mesmo sem a imagem
+      }
+    }
+    
+    // Verificar se o gabinete_id é um UUID válido ou null
+    const gabineteId = problemaData.gabinete_id && problemaData.gabinete_id !== "id-do-gabinete" 
+      ? problemaData.gabinete_id 
+      : null;
+    
     // Preparando o objeto para inserção
     const novoProblema = {
       telefone: problemaData.telefone,
       descricao: problemaData.descricao,
-      gabinete_id: problemaData.gabinete_id || null,
-      foto_url: problemaData.foto_url || null,
+      gabinete_id: gabineteId,
+      foto_url: foto_url,
       municipio: problemaData.municipio || null,
       status: "Pendente"
     };
