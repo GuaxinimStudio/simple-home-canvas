@@ -14,7 +14,7 @@ import {
 type ProblemItem = {
   id: number;
   description: string;
-  status: string;
+  status: 'Resolvido' | 'Pendente' | 'Em andamento' | 'Informações Insuficientes';
   date: string;
   secretary: string;
   timeElapsed: string;
@@ -26,6 +26,55 @@ type RecentProblemsTableProps = {
 };
 
 const RecentProblemsTable: React.FC<RecentProblemsTableProps> = ({ recentActivities }) => {
+  
+  const getStatusColor = (status: string) => {
+    switch(status) {
+      case 'Resolvido':
+        return "bg-resolve-lightgreen text-resolve-green";
+      case 'Pendente':
+        return "bg-yellow-100 text-yellow-700";
+      case 'Em andamento':
+        return "bg-blue-100 text-blue-700";
+      case 'Informações Insuficientes':
+        return "bg-gray-100 text-gray-700";
+      default:
+        return "bg-gray-100 text-gray-700";
+    }
+  };
+  
+  const getStatusIcon = (status: string) => {
+    switch(status) {
+      case 'Resolvido':
+        return (
+          <svg className="w-3 h-3 mr-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      case 'Pendente':
+        return (
+          <svg className="w-3 h-3 mr-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
+          </svg>
+        );
+      case 'Em andamento':
+        return (
+          <svg className="w-3 h-3 mr-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 6H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        );
+      case 'Informações Insuficientes':
+        return (
+          <svg className="w-3 h-3 mr-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 4V6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M6 8.5V9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5"/>
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
+  
   return (
     <div className="bg-white rounded-lg border shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
@@ -54,11 +103,8 @@ const RecentProblemsTable: React.FC<RecentProblemsTableProps> = ({ recentActivit
               <TableRow key={activity.id}>
                 <TableCell className="font-medium">{activity.description}</TableCell>
                 <TableCell>
-                  <Badge className={`px-2.5 py-1 rounded-full text-xs ${
-                    activity.status === 'Resolvido' 
-                      ? "bg-resolve-lightgreen text-resolve-green" 
-                      : "bg-yellow-100 text-yellow-700"
-                  }`}>
+                  <Badge className={`px-2.5 py-1 rounded-full text-xs flex items-center ${getStatusColor(activity.status)}`}>
+                    {getStatusIcon(activity.status)}
                     {activity.status}
                   </Badge>
                 </TableCell>

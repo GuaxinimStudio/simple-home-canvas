@@ -1,15 +1,21 @@
 
 import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
-import { Select } from "@/components/ui/select";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue 
+} from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
-import { Eye } from "lucide-react";
+import { Eye, Check } from "lucide-react";
 
 type Problem = {
   id: number;
   photo: string;
   description: string;
-  status: 'Resolvido' | 'Pendente';
+  status: 'Resolvido' | 'Pendente' | 'Em andamento' | 'Informações Insuficientes';
   time: string;
   deadline: string;
   date: string;
@@ -17,6 +23,8 @@ type Problem = {
 };
 
 const Problemas: React.FC = () => {
+  const [selectedStatus, setSelectedStatus] = useState<string>("todos");
+  
   const [problems] = useState<Problem[]>([
     { 
       id: 1, 
@@ -47,10 +55,82 @@ const Problemas: React.FC = () => {
       deadline: '15/05/25 00:00',
       date: '7 mai 2025, 11:47',
       secretary: 'Secretaria de Obras',
+    },
+    { 
+      id: 4, 
+      photo: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80",
+      description: 'Avaliação interna', 
+      status: 'Em andamento', 
+      time: '1d 10:25:12',
+      deadline: '16/05/25 00:00',
+      date: '8 mai 2025, 11:47',
+      secretary: 'Secretaria de Educação',
+    },
+    { 
+      id: 5, 
+      photo: "https://images.unsplash.com/photo-1581094794329-c8112a89af12?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80",
+      description: 'Árvore caída', 
+      status: 'Informações Insuficientes', 
+      time: '3d 10:25:12',
+      deadline: '17/05/25 00:00',
+      date: '6 mai 2025, 11:47',
+      secretary: 'Secretaria de Meio Ambiente',
     }
   ]);
   
-  const totalProblems = problems.length;
+  const filteredProblems = selectedStatus === "todos" 
+    ? problems 
+    : problems.filter(problem => problem.status.toLowerCase() === selectedStatus.toLowerCase());
+    
+  const totalProblems = filteredProblems.length;
+
+  const getStatusColor = (status: string) => {
+    switch(status) {
+      case 'Resolvido':
+        return 'bg-green-100 text-green-800';
+      case 'Pendente':
+        return 'bg-yellow-100 text-yellow-800';
+      case 'Em andamento':
+        return 'bg-blue-100 text-blue-800';
+      case 'Informações Insuficientes':
+        return 'bg-gray-100 text-gray-800';
+      default:
+        return 'bg-gray-100 text-gray-800';
+    }
+  };
+
+  const getStatusIcon = (status: string) => {
+    switch(status) {
+      case 'Resolvido':
+        return (
+          <svg className="w-3 h-3 mr-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
+          </svg>
+        );
+      case 'Pendente':
+        return (
+          <svg className="w-3 h-3 mr-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
+          </svg>
+        );
+      case 'Em andamento':
+        return (
+          <svg className="w-3 h-3 mr-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 6H10" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+          </svg>
+        );
+      case 'Informações Insuficientes':
+        return (
+          <svg className="w-3 h-3 mr-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M6 4V6.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M6 8.5V9" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <circle cx="6" cy="6" r="5" stroke="currentColor" strokeWidth="1.5"/>
+          </svg>
+        );
+      default:
+        return null;
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -74,17 +154,36 @@ const Problemas: React.FC = () => {
           {/* Filtros */}
           <div className="flex gap-4">
             <div className="w-64">
-              <Select>
-                <option value="">Todos os status</option>
-                <option value="resolvido">Resolvido</option>
-                <option value="pendente">Pendente</option>
+              <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todos os status" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todos">
+                    <div className="flex items-center">
+                      <Check className="mr-2 h-4 w-4 text-green-600" />
+                      Todos os status
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="pendente">Pendente</SelectItem>
+                  <SelectItem value="em andamento">Em andamento</SelectItem>
+                  <SelectItem value="resolvido">Resolvido</SelectItem>
+                  <SelectItem value="informações insuficientes">Informações Insuficientes</SelectItem>
+                </SelectContent>
               </Select>
             </div>
             <div className="w-64">
               <Select>
-                <option value="">Todas as secretarias</option>
-                <option value="obras">Secretaria de Obras</option>
-                <option value="saude">Secretaria de Saúde</option>
+                <SelectTrigger>
+                  <SelectValue placeholder="Todas as secretarias" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="todas">Todas as secretarias</SelectItem>
+                  <SelectItem value="obras">Secretaria de Obras</SelectItem>
+                  <SelectItem value="saude">Secretaria de Saúde</SelectItem>
+                  <SelectItem value="educacao">Secretaria de Educação</SelectItem>
+                  <SelectItem value="meio-ambiente">Secretaria de Meio Ambiente</SelectItem>
+                </SelectContent>
               </Select>
             </div>
             <div className="flex-1 text-right">
@@ -108,7 +207,7 @@ const Problemas: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {problems.map((problem) => (
+                {filteredProblems.map((problem) => (
                   <tr key={problem.id} className="border-b">
                     <td className="p-4">
                       <div className="w-16 h-16 bg-gray-100 rounded overflow-hidden">
@@ -121,21 +220,8 @@ const Problemas: React.FC = () => {
                     </td>
                     <td className="p-4 font-medium">{problem.description}</td>
                     <td className="p-4">
-                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${
-                        problem.status === 'Resolvido' 
-                          ? 'bg-green-100 text-green-800' 
-                          : 'bg-red-100 text-red-800'
-                      }`}>
-                        {problem.status === 'Resolvido' && (
-                          <svg className="w-3 h-3 mr-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M10 3L4.5 8.5L2 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                          </svg>
-                        )}
-                        {problem.status === 'Pendente' && (
-                          <svg className="w-3 h-3 mr-1" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <circle cx="6" cy="6" r="4.5" stroke="currentColor" strokeWidth="1.5"/>
-                          </svg>
-                        )}
+                      <span className={`inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium ${getStatusColor(problem.status)}`}>
+                        {getStatusIcon(problem.status)}
                         {problem.status}
                       </span>
                     </td>
