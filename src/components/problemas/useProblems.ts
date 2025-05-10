@@ -13,6 +13,7 @@ export const useProblems = (limit = 5) => {
     const fetchProblemas = async () => {
       try {
         setIsLoading(true);
+        // Modificamos a consulta para não usar a política de segurança de profiles
         const { data, error } = await supabase
           .from('problemas')
           .select(`
@@ -23,8 +24,7 @@ export const useProblems = (limit = 5) => {
             telefone,
             prazo_estimado,
             municipio,
-            foto_url,
-            gabinete:gabinete_id(gabinete)
+            foto_url
           `)
           .order('created_at', { ascending: false })
           .limit(limit);
@@ -32,7 +32,15 @@ export const useProblems = (limit = 5) => {
         if (error) throw error;
         
         console.log("Problemas carregados:", data);
-        setProblems(data || []);
+
+        // Processamos os dados para manter a mesma estrutura, mas evitando a recursão infinita
+        // Adicionamos um objeto gabinete nulo temporariamente
+        const processedData = data?.map(problem => ({
+          ...problem,
+          gabinete: null
+        })) || [];
+
+        setProblems(processedData);
       } catch (err: any) {
         console.error('Erro ao buscar problemas:', err);
         setError(err.message || 'Erro ao carregar problemas');
