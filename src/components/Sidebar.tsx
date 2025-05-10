@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, FileText, Building, FileBarChart, Bell, LogOut, Users, Key } from 'lucide-react';
@@ -99,7 +98,7 @@ const Sidebar: React.FC = () => {
             <span className="font-semibold text-sm">{user?.email?.substring(0, 2).toUpperCase() || "JA"}</span>
           </div>
           <div>
-            <p className="font-medium text-gray-800">{userProfile?.nome || "Usuário"}</p>
+            <p className="font-medium text-gray-800">{userProfile?.nome || user?.user_metadata?.nome || user?.email?.split('@')[0] || "Usuário"}</p>
             <p className="text-xs text-gray-500">{userProfile?.role === 'administrador' ? 'Administrador' : 'Vereador'}</p>
           </div>
         </div>
