@@ -11,6 +11,7 @@ import DetalhesOcorrencia from "./pages/DetalhesOcorrencia";
 import Gabinetes from "./pages/Gabinetes";
 import Relatorios from "./pages/Relatorios";
 import Notificacoes from "./pages/Notificacoes";
+import Usuarios from "./pages/Usuarios";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { AuthProvider } from "./contexts/AuthContext";
@@ -56,6 +57,11 @@ const App = () => (
               <Route path="/notificacoes" element={
                 <ProtectedRoute>
                   <Notificacoes />
+                </ProtectedRoute>
+              } />
+              <Route path="/usuarios" element={
+                <ProtectedRoute>
+                  <Usuarios />
                 </ProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />

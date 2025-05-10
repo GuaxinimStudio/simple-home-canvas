@@ -12,26 +12,32 @@ export type Database = {
       gabinetes: {
         Row: {
           created_at: string
-          departamento: string | null
+          estado: string | null
+          gabinete: string
           id: string
-          localizacao: string | null
-          nome: string
+          municipio: string | null
+          responsavel: string | null
+          telefone: string | null
           updated_at: string
         }
         Insert: {
           created_at?: string
-          departamento?: string | null
+          estado?: string | null
+          gabinete: string
           id?: string
-          localizacao?: string | null
-          nome: string
+          municipio?: string | null
+          responsavel?: string | null
+          telefone?: string | null
           updated_at?: string
         }
         Update: {
           created_at?: string
-          departamento?: string | null
+          estado?: string | null
+          gabinete?: string
           id?: string
-          localizacao?: string | null
-          nome?: string
+          municipio?: string | null
+          responsavel?: string | null
+          telefone?: string | null
           updated_at?: string
         }
         Relationships: []
