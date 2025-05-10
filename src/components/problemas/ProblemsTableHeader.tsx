@@ -6,7 +6,7 @@ export const ProblemsTableHeader: React.FC = () => {
   return (
     <TableHeader>
       <TableRow>
-        <TableHead className="w-12">Imagem</TableHead>
+        <TableHead className="w-16">Imagem</TableHead>
         <TableHead>Descrição</TableHead>
         <TableHead>Status</TableHead>
         <TableHead>Tempo</TableHead>

@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format, formatDistanceToNow } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
@@ -8,6 +8,7 @@ import { ProblemStatusBadge } from './ProblemStatusBadge';
 import { ProblemDeadlineBadge } from './ProblemDeadlineBadge';
 import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ProblemItem } from './types';
+import { ProblemImageModal } from './ProblemImageModal';
 
 type ProblemRowProps = {
   problem: ProblemItem;
@@ -15,6 +16,7 @@ type ProblemRowProps = {
 
 export const ProblemRow: React.FC<ProblemRowProps> = ({ problem }) => {
   const navigate = useNavigate();
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   
   const formatDate = (dateString: string) => {
     try {
@@ -54,46 +56,64 @@ export const ProblemRow: React.FC<ProblemRowProps> = ({ problem }) => {
   };
 
   return (
-    <TableRow>
-      <TableCell className="w-12">
-        <Avatar className="h-10 w-10">
-          {problem.foto_url ? (
-            <AvatarImage 
-              src={problem.foto_url} 
-              alt={problem.descricao.substring(0, 20)}
-              className="object-cover"
-            />
-          ) : (
-            <AvatarFallback>{getInitials(problem.descricao)}</AvatarFallback>
-          )}
-        </Avatar>
-      </TableCell>
-      <TableCell className="font-medium">{getShortDescription(problem.descricao)}</TableCell>
-      <TableCell>
-        <ProblemStatusBadge status={problem.status} />
-      </TableCell>
-      <TableCell className="text-sm">
-        {calculateTimeElapsed(problem.created_at)}
-      </TableCell>
-      <TableCell>
-        <ProblemDeadlineBadge deadline={problem.prazo_estimado} />
-      </TableCell>
-      <TableCell className="text-sm">{formatDate(problem.created_at)}</TableCell>
-      <TableCell className="text-sm">
-        {problem.gabinete?.gabinete || 'Não atribuído'}
-      </TableCell>
-      <TableCell>
-        <button 
-          className="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200"
-          onClick={() => handleViewProblem(problem.id)}
-        >
-          <span className="sr-only">Ver detalhes</span>
-          <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-        </button>
-      </TableCell>
-    </TableRow>
+    <>
+      <TableRow>
+        <TableCell className="w-16">
+          <div 
+            className="w-16 h-16 rounded-md overflow-hidden cursor-pointer"
+            onClick={() => problem.foto_url && setIsImageModalOpen(true)}
+          >
+            {problem.foto_url ? (
+              <img 
+                src={problem.foto_url} 
+                alt={problem.descricao.substring(0, 20)}
+                className="h-full w-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-gray-200 flex items-center justify-center">
+                <span className="text-lg font-medium text-gray-500">
+                  {getInitials(problem.descricao)}
+                </span>
+              </div>
+            )}
+          </div>
+        </TableCell>
+        <TableCell className="font-medium">{getShortDescription(problem.descricao)}</TableCell>
+        <TableCell>
+          <ProblemStatusBadge status={problem.status} />
+        </TableCell>
+        <TableCell className="text-sm">
+          {calculateTimeElapsed(problem.created_at)}
+        </TableCell>
+        <TableCell>
+          <ProblemDeadlineBadge deadline={problem.prazo_estimado} />
+        </TableCell>
+        <TableCell className="text-sm">{formatDate(problem.created_at)}</TableCell>
+        <TableCell className="text-sm">
+          {problem.gabinete?.gabinete || 'Não atribuído'}
+        </TableCell>
+        <TableCell>
+          <button 
+            className="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200"
+            onClick={() => handleViewProblem(problem.id)}
+          >
+            <span className="sr-only">Ver detalhes</span>
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
+              <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+            </svg>
+          </button>
+        </TableCell>
+      </TableRow>
+
+      {problem.foto_url && (
+        <ProblemImageModal
+          isOpen={isImageModalOpen}
+          onClose={() => setIsImageModalOpen(false)}
+          imageUrl={problem.foto_url}
+          description={problem.descricao}
+        />
+      )}
+    </>
   );
 };
