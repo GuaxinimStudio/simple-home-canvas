@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -11,7 +12,7 @@ import {
   TableRow
 } from '@/components/ui/table';
 
-type ProblemItem = {
+export type ProblemItem = {
   id: number;
   description: string;
   status: 'Resolvido' | 'Pendente' | 'Em andamento' | 'Informações Insuficientes';

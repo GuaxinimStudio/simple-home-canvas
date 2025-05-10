@@ -25,7 +25,7 @@ const Index = () => {
     { 
       id: 1, 
       description: 'Visita Valdei', 
-      status: 'Resolvido', 
+      status: 'Resolvido' as const, 
       date: '9 mai 2025, 08:39',
       secretary: 'Gabinete do Vereador Rafael Miguel',
       timeElapsed: '13:01:22',
@@ -34,7 +34,7 @@ const Index = () => {
     { 
       id: 2, 
       description: 'Carros lá fora', 
-      status: 'Resolvido', 
+      status: 'Resolvido' as const, 
       date: '7 mai 2025, 16:31',
       secretary: 'Gabinete do Vereador Lucas',
       timeElapsed: '2d 05:09:30',
@@ -43,7 +43,7 @@ const Index = () => {
     { 
       id: 3, 
       description: 'Solucionar', 
-      status: 'Pendente', 
+      status: 'Pendente' as const, 
       date: '7 mai 2025, 11:47',
       secretary: 'Gabinete de Educação',
       timeElapsed: '2d 09:55:41',
@@ -81,3 +81,4 @@ const Index = () => {
 };
 
 export default Index;
+
