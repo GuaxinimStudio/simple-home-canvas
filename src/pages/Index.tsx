@@ -15,8 +15,8 @@ const Index = () => {
 
   // Data for secretary distribution chart
   const secretaryDistributionData = [
-    { name: 'Gabinete de Saúde', value: 30, color: '#FF8585' },
-    { name: 'Gabinete de Obras', value: 50, color: '#9061F9' },
+    { name: 'Gabinete do Vereador Rafael Miguel', value: 30, color: '#FF8585' },
+    { name: 'Gabinete do Vereador Lucas', value: 50, color: '#9061F9' },
     { name: 'Gabinete de Educação', value: 20, color: '#37A2B2' },
   ];
 
@@ -27,7 +27,7 @@ const Index = () => {
       description: 'Visita Valdei', 
       status: 'Resolvido', 
       date: '9 mai 2025, 08:39',
-      secretary: 'Gabinete de Saúde',
+      secretary: 'Gabinete do Vereador Rafael Miguel',
       timeElapsed: '13:01:22',
       dueDate: '14/05/25'
     },
@@ -36,7 +36,7 @@ const Index = () => {
       description: 'Carros lá fora', 
       status: 'Resolvido', 
       date: '7 mai 2025, 16:31',
-      secretary: 'Gabinete de Obras',
+      secretary: 'Gabinete do Vereador Lucas',
       timeElapsed: '2d 05:09:30',
       dueDate: '14/05/25'
     },
@@ -45,7 +45,7 @@ const Index = () => {
       description: 'Solucionar', 
       status: 'Pendente', 
       date: '7 mai 2025, 11:47',
-      secretary: 'Gabinete de Obras',
+      secretary: 'Gabinete de Educação',
       timeElapsed: '2d 09:55:41',
       dueDate: '15/05/25'
     },

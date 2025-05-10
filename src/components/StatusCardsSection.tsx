@@ -57,11 +57,11 @@ const StatusCardsSection: React.FC<StatusCardsSectionProps> = ({
           <div className="flex gap-2 mt-3 flex-wrap justify-center">
             <div className="flex items-center">
               <div className="w-3 h-3 rounded-full bg-[#FF8585] mr-1"></div>
-              <span className="text-xs">Saúde (30%)</span>
+              <span className="text-xs">Ver. Rafael Miguel (30%)</span>
             </div>
             <div className="flex items-center">
               <div className="w-3 h-3 rounded-full bg-[#9061F9] mr-1"></div>
-              <span className="text-xs">Obras (50%)</span>
+              <span className="text-xs">Ver. Lucas (50%)</span>
             </div>
             <div className="flex items-center">
               <div className="w-3 h-3 rounded-full bg-[#37A2B2] mr-1"></div>

@@ -9,7 +9,7 @@ const ActiveSecretariesSection: React.FC = () => {
       </div>
       <div className="space-y-4">
         <div className="flex justify-between">
-          <span>Gabinete de Obras</span>
+          <span>Gabinete do Vereador Rafael Miguel</span>
           <span className="font-medium">85%</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
@@ -17,7 +17,7 @@ const ActiveSecretariesSection: React.FC = () => {
         </div>
 
         <div className="flex justify-between">
-          <span>Gabinete de Saúde</span>
+          <span>Gabinete do Vereador Lucas</span>
           <span className="font-medium">65%</span>
         </div>
         <div className="w-full bg-gray-200 rounded-full h-2">
