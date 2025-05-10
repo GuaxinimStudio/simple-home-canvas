@@ -57,7 +57,7 @@ const NovoContatoModal: React.FC<NovoContatoModalProps> = ({
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
-          <DialogTitle>Novo Contato para {gabineteNome}</DialogTitle>
+          <DialogTitle>Adicionar novo contato ao gabinete</DialogTitle>
         </DialogHeader>
 
         <Form {...form}>
