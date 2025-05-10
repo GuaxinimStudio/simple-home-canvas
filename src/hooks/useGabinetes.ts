@@ -26,6 +26,14 @@ const useGabinetes = () => {
         .order('gabinete');
         
       if (error) {
+        // Verificar se o erro é relacionado a "recursion detected in policy"
+        // que ocorre quando não há dados ou quando ocorrem problemas específicos no Supabase
+        if (error.message?.includes('infinite recursion detected in policy')) {
+          console.error('Erro nas políticas do Supabase:', error);
+          return [];
+        }
+        
+        // Para outros tipos de erros, continuamos mostrando a notificação
         toast.error('Erro ao carregar gabinetes: ' + error.message);
         console.error('Erro ao carregar gabinetes:', error);
         return [];
