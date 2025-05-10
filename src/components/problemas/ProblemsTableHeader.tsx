@@ -6,13 +6,14 @@ export const ProblemsTableHeader: React.FC = () => {
   return (
     <TableHeader>
       <TableRow>
+        <TableHead className="w-12">Imagem</TableHead>
         <TableHead>Descrição</TableHead>
-        <TableHead className="w-[120px]">Status</TableHead>
-        <TableHead className="w-[120px]">Tempo</TableHead>
-        <TableHead className="w-[120px]">Prazo</TableHead>
-        <TableHead className="w-[180px]">Data</TableHead>
-        <TableHead className="w-[180px]">Secretaria</TableHead>
-        <TableHead className="w-[100px]">Ações</TableHead>
+        <TableHead>Status</TableHead>
+        <TableHead>Tempo</TableHead>
+        <TableHead>Prazo</TableHead>
+        <TableHead>Data</TableHead>
+        <TableHead>Gabinete</TableHead>
+        <TableHead className="w-10">Ações</TableHead>
       </TableRow>
     </TableHeader>
   );

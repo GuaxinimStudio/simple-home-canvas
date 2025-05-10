@@ -11,7 +11,9 @@ const Problemas: React.FC = () => {
     filteredProblems, 
     selectedStatus, 
     setSelectedStatus, 
-    totalProblems 
+    totalProblems,
+    isLoading,
+    error 
   } = useProblemData();
 
   return (
@@ -31,7 +33,7 @@ const Problemas: React.FC = () => {
           />
 
           {/* Tabela de problemas */}
-          <ProblemTable problems={filteredProblems} />
+          <ProblemTable problems={filteredProblems} isLoading={isLoading} />
         </div>
       </div>
     </div>

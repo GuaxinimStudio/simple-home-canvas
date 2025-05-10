@@ -6,6 +6,7 @@ import { ptBR } from 'date-fns/locale';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { ProblemStatusBadge } from './ProblemStatusBadge';
 import { ProblemDeadlineBadge } from './ProblemDeadlineBadge';
+import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
 import { ProblemItem } from './types';
 
 type ProblemRowProps = {
@@ -44,8 +45,29 @@ export const ProblemRow: React.FC<ProblemRowProps> = ({ problem }) => {
     return desc.length > 100 ? `${desc.substring(0, 100)}...` : desc;
   };
 
+  const getInitials = (description: string) => {
+    const words = description.split(' ');
+    if (words.length >= 2) {
+      return `${words[0][0]}${words[1][0]}`.toUpperCase();
+    }
+    return description.substring(0, 2).toUpperCase();
+  };
+
   return (
     <TableRow>
+      <TableCell className="w-12">
+        <Avatar className="h-10 w-10">
+          {problem.foto_url ? (
+            <AvatarImage 
+              src={problem.foto_url} 
+              alt={problem.descricao.substring(0, 20)}
+              className="object-cover"
+            />
+          ) : (
+            <AvatarFallback>{getInitials(problem.descricao)}</AvatarFallback>
+          )}
+        </Avatar>
+      </TableCell>
       <TableCell className="font-medium">{getShortDescription(problem.descricao)}</TableCell>
       <TableCell>
         <ProblemStatusBadge status={problem.status} />
