@@ -8,6 +8,11 @@ import { Button } from '@/components/ui/button';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
+import { useForm } from 'react-hook-form';
+import { z } from 'zod';
+import { zodResolver } from '@hookform/resolvers/zod';
 
 interface GabineteProps {
   id: string;
@@ -18,6 +23,14 @@ interface GabineteProps {
   responsavel: string | null;
   profiles: { id: string; nome: string | null }[];
 }
+
+const formSchema = z.object({
+  gabinete: z.string().min(2, "O nome do gabinete deve ter pelo menos 2 caracteres"),
+  responsavel: z.string().optional(),
+  municipio: z.string().min(2, "O município deve ter pelo menos 2 caracteres"),
+  estado: z.string().min(2, "O estado deve ter pelo menos 2 caracteres"),
+  telefone: z.string().optional()
+});
 
 const GabineteCard: React.FC<{ gabinete: GabineteProps }> = ({ gabinete }) => {
   return (
@@ -72,8 +85,20 @@ const GabineteCard: React.FC<{ gabinete: GabineteProps }> = ({ gabinete }) => {
 
 const Gabinetes: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
+  const [isModalOpen, setIsModalOpen] = useState(false);
   
-  const { data: gabinetes, isLoading } = useQuery({
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      gabinete: "",
+      responsavel: "",
+      municipio: "",
+      estado: "",
+      telefone: ""
+    }
+  });
+
+  const { data: gabinetes, isLoading, refetch } = useQuery({
     queryKey: ['gabinetes'],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -97,6 +122,30 @@ const Gabinetes: React.FC = () => {
     (gabinete.municipio && gabinete.municipio.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    const { error } = await supabase
+      .from('gabinetes')
+      .insert([
+        {
+          gabinete: values.gabinete,
+          responsavel: values.responsavel || null,
+          municipio: values.municipio,
+          estado: values.estado,
+          telefone: values.telefone || null
+        }
+      ]);
+
+    if (error) {
+      toast.error('Erro ao criar gabinete: ' + error.message);
+      return;
+    }
+
+    toast.success('Gabinete criado com sucesso!');
+    form.reset();
+    setIsModalOpen(false);
+    refetch();
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
@@ -112,7 +161,10 @@ const Gabinetes: React.FC = () => {
               </p>
             </div>
             
-            <Button className="bg-resolve-green hover:bg-green-700">
+            <Button 
+              className="bg-resolve-green hover:bg-green-700"
+              onClick={() => setIsModalOpen(true)}
+            >
               <PlusCircle className="mr-2 h-4 w-4" />
               Novo Gabinete
             </Button>
@@ -155,6 +207,108 @@ const Gabinetes: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Modal para criar novo gabinete */}
+      <Sheet open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
+          <SheetHeader className="mb-6">
+            <SheetTitle>Novo Gabinete</SheetTitle>
+            <SheetDescription>
+              Preencha os campos para criar um novo gabinete.
+            </SheetDescription>
+          </SheetHeader>
+          
+          <Form {...form}>
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+              <FormField
+                control={form.control}
+                name="gabinete"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Nome do Gabinete</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome do gabinete" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="responsavel"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Responsável</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome do responsável" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="municipio"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Município</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome do município" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="estado"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Estado</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Nome do estado" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="telefone"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Telefone</FormLabel>
+                    <FormControl>
+                      <Input placeholder="Telefone de contato" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <div className="flex justify-end gap-2 pt-4">
+                <Button 
+                  type="button" 
+                  variant="outline"
+                  onClick={() => setIsModalOpen(false)}
+                >
+                  Cancelar
+                </Button>
+                <Button 
+                  type="submit" 
+                  className="bg-resolve-green hover:bg-green-700"
+                >
+                  Salvar
+                </Button>
+              </div>
+            </form>
+          </Form>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 };
