@@ -12,6 +12,8 @@ export interface OcorrenciaData {
   prazo_estimado: string | null;
   gabinete_id: string | null;
   municipio: string | null;
+  descricao_resolvido?: string | null;
+  imagem_resolvido?: string | null;
   gabinete?: {
     gabinete: string;
     municipio: string | null;
