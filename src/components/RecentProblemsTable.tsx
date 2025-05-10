@@ -1,7 +1,7 @@
-
 import React from 'react';
 import { Clock } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
+import { useNavigate } from 'react-router-dom';
 import { 
   Table,
   TableBody,
@@ -26,6 +26,7 @@ type RecentProblemsTableProps = {
 };
 
 const RecentProblemsTable: React.FC<RecentProblemsTableProps> = ({ recentActivities }) => {
+  const navigate = useNavigate();
   
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -75,6 +76,10 @@ const RecentProblemsTable: React.FC<RecentProblemsTableProps> = ({ recentActivit
     }
   };
   
+  const handleViewProblem = (id: number) => {
+    navigate(`/detalhes-ocorrencia/${id}`);
+  };
+  
   return (
     <div className="bg-white rounded-lg border shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
@@ -117,7 +122,10 @@ const RecentProblemsTable: React.FC<RecentProblemsTableProps> = ({ recentActivit
                 <TableCell className="text-sm">{activity.date}</TableCell>
                 <TableCell className="text-sm">{activity.secretary}</TableCell>
                 <TableCell>
-                  <button className="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200">
+                  <button 
+                    className="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200"
+                    onClick={() => handleViewProblem(activity.id)}
+                  >
                     <span className="sr-only">Ver detalhes</span>
                     <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />

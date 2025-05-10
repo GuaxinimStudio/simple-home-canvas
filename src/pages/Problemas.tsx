@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { 
   Select,
@@ -23,6 +24,7 @@ type Problem = {
 };
 
 const Problemas: React.FC = () => {
+  const navigate = useNavigate();
   const [selectedStatus, setSelectedStatus] = useState<string>("todos");
   
   const [problems] = useState<Problem[]>([
@@ -83,6 +85,10 @@ const Problemas: React.FC = () => {
     : problems.filter(problem => problem.status.toLowerCase() === selectedStatus.toLowerCase());
     
   const totalProblems = filteredProblems.length;
+  
+  const handleViewProblem = (id: number) => {
+    navigate(`/detalhes-ocorrencia/${id}`);
+  };
 
   const getStatusColor = (status: string) => {
     switch(status) {
@@ -253,7 +259,11 @@ const Problemas: React.FC = () => {
                     <td className="p-4 text-gray-600">{problem.secretary}</td>
                     <td className="p-4">
                       <div className="flex justify-center">
-                        <Button variant="ghost" size="sm">
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => handleViewProblem(problem.id)}
+                        >
                           <Eye className="h-4 w-4" />
                         </Button>
                       </div>
