@@ -1,50 +1,21 @@
 
 import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
-import { Building, MapPin, Phone, PlusCircle, Eye } from 'lucide-react';
+import { Building, MapPin, Phone, PlusCircle, Eye, UserPlus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface GabineteProps {
+  id: string;
   nome: string;
-  departamento: string;
-  localizacao: string;
-  contatos: number;
+  departamento: string | null;
+  localizacao: string | null;
+  profiles: { id: string; nome: string | null }[];
 }
-
-const GABINETES_MOCK: GabineteProps[] = [
-  {
-    nome: 'Gabinete do Prefeito',
-    departamento: 'Administração Municipal',
-    localizacao: 'Uruaçu, GO - GO',
-    contatos: 3
-  },
-  {
-    nome: 'Gabinete do Vice-Prefeito',
-    departamento: 'Administração Municipal',
-    localizacao: 'Uruaçu - GO',
-    contatos: 2
-  },
-  {
-    nome: 'Gabinete de Assuntos Estratégicos',
-    departamento: 'Planejamento Municipal',
-    localizacao: 'Uruaçu - GO',
-    contatos: 1
-  },
-  {
-    nome: 'Gabinete de Ações Comunitárias',
-    departamento: 'Desenvolvimento Social',
-    localizacao: 'Uruaçu - GO',
-    contatos: 2
-  },
-  {
-    nome: 'Gabinete de Projetos Especiais',
-    departamento: 'Infraestrutura Municipal',
-    localizacao: 'Uruaçu - GO',
-    contatos: 0
-  }
-];
 
 const GabineteCard: React.FC<{ gabinete: GabineteProps }> = ({ gabinete }) => {
   return (
@@ -56,18 +27,18 @@ const GabineteCard: React.FC<{ gabinete: GabineteProps }> = ({ gabinete }) => {
           </div>
           <div className="flex-1">
             <h3 className="text-lg font-medium mb-1">{gabinete.nome}</h3>
-            <p className="text-gray-500 text-sm mb-4">{gabinete.departamento}</p>
+            <p className="text-gray-500 text-sm mb-4">{gabinete.departamento || 'Sem departamento'}</p>
             
             <div className="space-y-3">
               <div className="flex items-center text-gray-500 text-sm">
                 <MapPin className="w-4 h-4 mr-2" />
-                <span>{gabinete.localizacao}</span>
+                <span>{gabinete.localizacao || 'Localização não definida'}</span>
               </div>
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center text-gray-500 text-sm">
-                  <Phone className="w-4 h-4 mr-2" />
-                  <span>{gabinete.contatos} números cadastrados</span>
+                  <UserPlus className="w-4 h-4 mr-2" />
+                  <span>{gabinete.profiles.length} membros vinculados</span>
                 </div>
                 
                 <div className="flex gap-2">
@@ -91,9 +62,27 @@ const GabineteCard: React.FC<{ gabinete: GabineteProps }> = ({ gabinete }) => {
 const Gabinetes: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   
-  const filteredGabinetes = GABINETES_MOCK.filter(gabinete =>
+  const { data: gabinetes, isLoading } = useQuery({
+    queryKey: ['gabinetes'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('gabinetes')
+        .select('*, profiles(id, nome)')
+        .order('nome');
+        
+      if (error) {
+        toast.error('Erro ao carregar gabinetes: ' + error.message);
+        console.error('Erro ao carregar gabinetes:', error);
+        return [];
+      }
+      
+      return data || [];
+    }
+  });
+  
+  const filteredGabinetes = gabinetes?.filter(gabinete =>
     gabinete.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    gabinete.departamento.toLowerCase().includes(searchTerm.toLowerCase())
+    (gabinete.departamento && gabinete.departamento.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -135,11 +124,23 @@ const Gabinetes: React.FC = () => {
           </div>
           
           {/* Grid de cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredGabinetes.map((gabinete, index) => (
-              <GabineteCard key={index} gabinete={gabinete} />
-            ))}
-          </div>
+          {isLoading ? (
+            <div className="flex justify-center items-center py-12">
+              <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-resolve-green"></div>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {filteredGabinetes?.map((gabinete) => (
+                <GabineteCard key={gabinete.id} gabinete={gabinete} />
+              ))}
+              
+              {filteredGabinetes?.length === 0 && (
+                <div className="col-span-full text-center py-12">
+                  <p className="text-gray-500">Nenhum gabinete encontrado com o termo "{searchTerm}"</p>
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     </div>

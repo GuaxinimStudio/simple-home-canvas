@@ -3,6 +3,8 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, FileText, Building, FileBarChart, Bell, LogOut } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
+import { useQuery } from '@tanstack/react-query';
+import { supabase } from '@/integrations/supabase/client';
 
 type NavigationItem = {
   title: string;
@@ -16,6 +18,27 @@ const Sidebar: React.FC = () => {
   const location = useLocation();
   const currentPath = location.pathname;
   const { signOut, user } = useAuth();
+  
+  const { data: userProfile } = useQuery({
+    queryKey: ['profile', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return null;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('*, gabinetes(nome)')
+        .eq('id', user.id)
+        .single();
+        
+      if (error) {
+        console.error('Erro ao carregar perfil:', error);
+        return null;
+      }
+      
+      return data;
+    },
+    enabled: !!user?.id
+  });
   
   const navigationItems: NavigationItem[] = [
     {
@@ -60,14 +83,25 @@ const Sidebar: React.FC = () => {
       </div>
 
       {/* User profile */}
-      <div className="p-4 border-b flex items-center gap-3">
-        <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-          <span className="font-semibold text-sm">{user?.email?.substring(0, 2).toUpperCase() || "JA"}</span>
+      <div className="p-4 border-b">
+        <div className="flex items-center gap-3 mb-1">
+          <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
+            <span className="font-semibold text-sm">{user?.email?.substring(0, 2).toUpperCase() || "JA"}</span>
+          </div>
+          <div>
+            <p className="font-medium text-gray-800">{userProfile?.nome || "Usuário"}</p>
+            <p className="text-xs text-gray-500">{userProfile?.role === 'administrador' ? 'Administrador' : 'Vereador'}</p>
+          </div>
         </div>
-        <div>
-          <p className="font-medium text-gray-800">{user?.user_metadata?.nome || "Usuário"}</p>
-          <p className="text-xs text-gray-500">Administrador Regional</p>
-        </div>
+        
+        {userProfile?.gabinetes && (
+          <div className="ml-11">
+            <p className="text-xs text-gray-500 flex items-center">
+              <Building className="h-3 w-3 mr-1" />
+              {userProfile.gabinetes.nome}
+            </p>
+          </div>
+        )}
       </div>
 
       {/* Navigation */}

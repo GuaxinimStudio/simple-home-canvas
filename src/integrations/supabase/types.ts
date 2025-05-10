@@ -9,11 +9,39 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      gabinetes: {
+        Row: {
+          created_at: string
+          departamento: string | null
+          id: string
+          localizacao: string | null
+          nome: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          departamento?: string | null
+          id?: string
+          localizacao?: string | null
+          nome: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          departamento?: string | null
+          id?: string
+          localizacao?: string | null
+          nome?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           cidade: string | null
           created_at: string
           email: string | null
+          gabinete_id: string | null
           id: string
           nome: string | null
           role: Database["public"]["Enums"]["user_role"]
@@ -25,6 +53,7 @@ export type Database = {
           cidade?: string | null
           created_at?: string
           email?: string | null
+          gabinete_id?: string | null
           id: string
           nome?: string | null
           role: Database["public"]["Enums"]["user_role"]
@@ -36,6 +65,7 @@ export type Database = {
           cidade?: string | null
           created_at?: string
           email?: string | null
+          gabinete_id?: string | null
           id?: string
           nome?: string | null
           role?: Database["public"]["Enums"]["user_role"]
@@ -43,7 +73,15 @@ export type Database = {
           telefone?: string | null
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "profiles_gabinete_id_fkey"
+            columns: ["gabinete_id"]
+            isOneToOne: false
+            referencedRelation: "gabinetes"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {
