@@ -42,6 +42,41 @@ export type Database = {
         }
         Relationships: []
       }
+      notificacao: {
+        Row: {
+          created_at: string
+          gabinete_id: string | null
+          id: string
+          informacao: string
+          telefones: string[]
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          gabinete_id?: string | null
+          id?: string
+          informacao: string
+          telefones?: string[]
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          gabinete_id?: string | null
+          id?: string
+          informacao?: string
+          telefones?: string[]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notificacao_gabinete_id_fkey"
+            columns: ["gabinete_id"]
+            isOneToOne: false
+            referencedRelation: "gabinetes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       problemas: {
         Row: {
           created_at: string
