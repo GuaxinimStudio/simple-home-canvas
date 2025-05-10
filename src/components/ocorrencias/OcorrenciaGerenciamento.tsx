@@ -1,8 +1,15 @@
 
 import React from 'react';
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
+} from "@/components/ui/select";
+import { toast } from "sonner";
 import { StatusType } from '@/types/ocorrencia';
 
 interface OcorrenciaGerenciamentoProps {
@@ -24,6 +31,18 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
   onDepartamentoChange,
   onSalvar
 }) => {
+  // Verifica se um prazo foi definido
+  const isPrazoDefinido = prazoEstimado !== '';
+  
+  // Função para lidar com a alteração do status
+  const handleStatusChange = (value: string) => {
+    if (!isPrazoDefinido) {
+      toast.error("É necessário definir um prazo antes de alterar o status.");
+      return;
+    }
+    onStatusChange(value);
+  };
+  
   return (
     <Card className="p-6">
       <h2 className="text-lg font-medium mb-4">Gerenciamento</h2>
@@ -45,31 +64,28 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
         <div>
           <div className="flex justify-between items-center">
             <h3 className="font-medium mb-2">Atualizar Situação</h3>
-            <span className="text-orange-500 text-xs">Define um prazo estimado para poder alterar o status.</span>
+            <span className="text-orange-500 text-xs">
+              {isPrazoDefinido ? 
+                "Prazo definido, status liberado" : 
+                "Define um prazo estimado para poder alterar o status"}
+            </span>
           </div>
           
-          <RadioGroup 
+          <Select 
             value={currentStatus} 
-            onValueChange={onStatusChange}
-            className="flex flex-col space-y-2"
+            onValueChange={handleStatusChange}
+            disabled={!isPrazoDefinido}
           >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Pendente" id="pendente" />
-              <label htmlFor="pendente" className="text-sm font-medium">Pendente</label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Em andamento" id="em-andamento" />
-              <label htmlFor="em-andamento" className="text-sm font-medium">Em andamento</label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Resolvido" id="resolvido" />
-              <label htmlFor="resolvido" className="text-sm font-medium">Resolvido</label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="Informações Insuficientes" id="insuficiente" />
-              <label htmlFor="insuficiente" className="text-sm font-medium">Informações Insuficientes</label>
-            </div>
-          </RadioGroup>
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="Selecione o status" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="Pendente">Pendente</SelectItem>
+              <SelectItem value="Em andamento">Em andamento</SelectItem>
+              <SelectItem value="Resolvido">Resolvido</SelectItem>
+              <SelectItem value="Informações Insuficientes">Informações Insuficientes</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
 
         <div>

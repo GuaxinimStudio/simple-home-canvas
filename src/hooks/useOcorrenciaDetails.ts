@@ -96,6 +96,10 @@ export const useOcorrenciaDetails = (id: string | undefined) => {
   }, [id]);
 
   const handleStatusChange = (value: string) => {
+    if (!prazoEstimado) {
+      toast.error('É necessário definir um prazo antes de alterar o status.');
+      return;
+    }
     setCurrentStatus(value as StatusType);
   };
 
@@ -107,6 +111,11 @@ export const useOcorrenciaDetails = (id: string | undefined) => {
     try {
       if (!id) {
         throw new Error('ID não fornecido');
+      }
+
+      if (currentStatus !== problemData?.status && !prazoEstimado) {
+        toast.error('É necessário definir um prazo antes de alterar o status.');
+        return;
       }
 
       const updateData: Record<string, any> = {
