@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, FileText, Building, FileBarChart, Bell, LogOut, Users } from 'lucide-react';
@@ -25,7 +26,7 @@ const Sidebar: React.FC = () => {
       
       const { data, error } = await supabase
         .from('profiles')
-        .select('*, gabinetes(nome)')
+        .select('*, gabinetes(gabinete)')
         .eq('id', user.id)
         .single();
         
@@ -102,7 +103,7 @@ const Sidebar: React.FC = () => {
           <div className="ml-11">
             <p className="text-xs text-gray-500 flex items-center">
               <Building className="h-3 w-3 mr-1" />
-              {userProfile.gabinetes.nome}
+              {userProfile.gabinetes.gabinete}
             </p>
           </div>
         )}

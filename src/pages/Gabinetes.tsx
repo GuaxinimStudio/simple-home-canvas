@@ -11,9 +11,11 @@ import { toast } from 'sonner';
 
 interface GabineteProps {
   id: string;
-  nome: string;
-  departamento: string | null;
-  localizacao: string | null;
+  gabinete: string;
+  estado: string | null;
+  municipio: string | null;
+  telefone: string | null;
+  responsavel: string | null;
   profiles: { id: string; nome: string | null }[];
 }
 
@@ -26,14 +28,23 @@ const GabineteCard: React.FC<{ gabinete: GabineteProps }> = ({ gabinete }) => {
             <Building className="h-5 w-5 text-resolve-green" />
           </div>
           <div className="flex-1">
-            <h3 className="text-lg font-medium mb-1">{gabinete.nome}</h3>
-            <p className="text-gray-500 text-sm mb-4">{gabinete.departamento || 'Sem departamento'}</p>
+            <h3 className="text-lg font-medium mb-1">{gabinete.gabinete}</h3>
+            <p className="text-gray-500 text-sm mb-4">
+              {gabinete.responsavel ? `Responsável: ${gabinete.responsavel}` : 'Sem responsável definido'}
+            </p>
             
             <div className="space-y-3">
               <div className="flex items-center text-gray-500 text-sm">
                 <MapPin className="w-4 h-4 mr-2" />
-                <span>{gabinete.localizacao || 'Localização não definida'}</span>
+                <span>{gabinete.municipio ? `${gabinete.municipio}, ${gabinete.estado}` : 'Localização não definida'}</span>
               </div>
+
+              {gabinete.telefone && (
+                <div className="flex items-center text-gray-500 text-sm">
+                  <Phone className="w-4 h-4 mr-2" />
+                  <span>{gabinete.telefone}</span>
+                </div>
+              )}
               
               <div className="flex items-center justify-between">
                 <div className="flex items-center text-gray-500 text-sm">
@@ -68,7 +79,7 @@ const Gabinetes: React.FC = () => {
       const { data, error } = await supabase
         .from('gabinetes')
         .select('*, profiles(id, nome)')
-        .order('nome');
+        .order('gabinete');
         
       if (error) {
         toast.error('Erro ao carregar gabinetes: ' + error.message);
@@ -81,8 +92,9 @@ const Gabinetes: React.FC = () => {
   });
   
   const filteredGabinetes = gabinetes?.filter(gabinete =>
-    gabinete.nome.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (gabinete.departamento && gabinete.departamento.toLowerCase().includes(searchTerm.toLowerCase()))
+    gabinete.gabinete.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    (gabinete.responsavel && gabinete.responsavel.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (gabinete.municipio && gabinete.municipio.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
