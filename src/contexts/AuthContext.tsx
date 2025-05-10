@@ -1,7 +1,7 @@
 
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Session, User } from '@supabase/supabase-js';
+import { Session, User, AuthError } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -9,7 +9,7 @@ type AuthContextType = {
   session: Session | null;
   user: User | null;
   isLoading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ error: AuthError | null }>;
   signUp: (email: string, password: string, nome: string) => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -47,17 +47,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signIn = async (email: string, password: string) => {
     try {
       setIsLoading(true);
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       
       if (error) {
-        toast.error('Erro ao realizar login: ' + error.message);
+        if (error.message.includes('Email not confirmed')) {
+          toast.error('E-mail não confirmado. Verifique sua caixa de entrada.');
+        } else {
+          toast.error('Erro ao realizar login: ' + error.message);
+        }
+        return { error };
       } else {
         toast.success('Login realizado com sucesso!');
         navigate('/');
+        return { error: null };
       }
     } catch (error: any) {
       toast.error('Erro inesperado ao realizar login');
       console.error('Erro ao fazer login:', error);
+      return { error: new AuthError('Erro inesperado ao realizar login') };
     } finally {
       setIsLoading(false);
     }
