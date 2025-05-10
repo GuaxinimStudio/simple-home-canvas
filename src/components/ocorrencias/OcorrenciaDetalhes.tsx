@@ -1,7 +1,6 @@
-
 import React from 'react';
 import { Card } from "@/components/ui/card";
-import { Image, Clock } from 'lucide-react';
+import { Image, Clock, CheckCircle } from 'lucide-react';
 import { formatDate } from '@/utils/dateUtils';
 import { OcorrenciaData } from '@/types/ocorrencia';
 import { useElapsedTimeCounter } from '@/hooks/useElapsedTimeCounter';
@@ -110,15 +109,12 @@ export const OcorrenciaDetalhes: React.FC<OcorrenciaDetalhesProps> = ({
               {problemData.descricao_resolvido}
             </p>
             
-            {problemData.imagem_resolvido && (
+            {problemData.imagem_resolvida && (
               <div className="mt-3">
                 <h4 className="text-sm font-medium mb-2">Comprovação da Resolução</h4>
-                <div className="h-40 rounded-md overflow-hidden">
-                  <img 
-                    src={problemData.imagem_resolvido} 
-                    alt="Comprovação da resolução" 
-                    className="w-full h-full object-cover"
-                  />
+                <div className="p-3 bg-green-50 rounded-md border border-green-100 flex items-center">
+                  <CheckCircle className="text-green-500 w-5 h-5 mr-2" />
+                  <span className="text-gray-700">Imagem de comprovação anexada</span>
                 </div>
               </div>
             )}
