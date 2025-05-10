@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from '../components/Sidebar';
 import { Building, MapPin, Phone, PlusCircle, Eye, UserPlus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
@@ -13,6 +13,18 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+
+interface Estado {
+  id: number;
+  sigla: string;
+  nome: string;
+}
+
+interface Municipio {
+  id: number;
+  nome: string;
+}
 
 interface GabineteProps {
   id: string;
@@ -86,6 +98,9 @@ const GabineteCard: React.FC<{ gabinete: GabineteProps }> = ({ gabinete }) => {
 const Gabinetes: React.FC = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [estados, setEstados] = useState<Estado[]>([]);
+  const [municipios, setMunicipios] = useState<Municipio[]>([]);
+  const [selectedEstado, setSelectedEstado] = useState<string>('');
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -116,6 +131,60 @@ const Gabinetes: React.FC = () => {
     }
   });
   
+  // Carregar estados do Brasil via API do IBGE
+  useEffect(() => {
+    const fetchEstados = async () => {
+      try {
+        const response = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados');
+        if (!response.ok) {
+          throw new Error('Falha ao carregar estados');
+        }
+        const data = await response.json();
+        // Ordenar estados por nome
+        const estadosOrdenados = data.sort((a: Estado, b: Estado) => a.nome.localeCompare(b.nome));
+        setEstados(estadosOrdenados);
+      } catch (error) {
+        console.error('Erro ao buscar estados:', error);
+        toast.error('Não foi possível carregar a lista de estados.');
+      }
+    };
+
+    fetchEstados();
+  }, []);
+
+  // Carregar municípios quando um estado for selecionado
+  useEffect(() => {
+    if (!selectedEstado) {
+      setMunicipios([]);
+      return;
+    }
+
+    const fetchMunicipios = async () => {
+      try {
+        const response = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedEstado}/municipios`);
+        if (!response.ok) {
+          throw new Error('Falha ao carregar municípios');
+        }
+        const data = await response.json();
+        // Ordenar municípios por nome
+        const municipiosOrdenados = data.sort((a: Municipio, b: Municipio) => a.nome.localeCompare(b.nome));
+        setMunicipios(municipiosOrdenados);
+      } catch (error) {
+        console.error('Erro ao buscar municípios:', error);
+        toast.error('Não foi possível carregar a lista de municípios.');
+      }
+    };
+
+    fetchMunicipios();
+  }, [selectedEstado]);
+
+  // Handler para mudança de estado
+  const handleEstadoChange = (value: string) => {
+    setSelectedEstado(value);
+    // Limpar o campo de município quando o estado mudar
+    form.setValue('municipio', '');
+  };
+  
   const filteredGabinetes = gabinetes?.filter(gabinete =>
     gabinete.gabinete.toLowerCase().includes(searchTerm.toLowerCase()) ||
     (gabinete.responsavel && gabinete.responsavel.toLowerCase().includes(searchTerm.toLowerCase())) ||
@@ -123,6 +192,9 @@ const Gabinetes: React.FC = () => {
   );
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
+    // Encontrar o nome do estado a partir da sigla
+    const estadoNome = estados.find(estado => estado.sigla === values.estado)?.nome || values.estado;
+    
     const { error } = await supabase
       .from('gabinetes')
       .insert([
@@ -130,7 +202,7 @@ const Gabinetes: React.FC = () => {
           gabinete: values.gabinete,
           responsavel: values.responsavel || null,
           municipio: values.municipio,
-          estado: values.estado,
+          estado: estadoNome, // Salvar o nome do estado, não a sigla
           telefone: values.telefone || null
         }
       ]);
@@ -250,13 +322,30 @@ const Gabinetes: React.FC = () => {
 
               <FormField
                 control={form.control}
-                name="municipio"
+                name="estado"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Município</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome do município" {...field} />
-                    </FormControl>
+                    <FormLabel>Estado</FormLabel>
+                    <Select 
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        handleEstadoChange(value);
+                      }}
+                      value={field.value}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione um estado" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {estados.map((estado) => (
+                          <SelectItem key={estado.id} value={estado.sigla}>
+                            {estado.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -264,13 +353,28 @@ const Gabinetes: React.FC = () => {
 
               <FormField
                 control={form.control}
-                name="estado"
+                name="municipio"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Estado</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome do estado" {...field} />
-                    </FormControl>
+                    <FormLabel>Município</FormLabel>
+                    <Select
+                      onValueChange={field.onChange}
+                      value={field.value}
+                      disabled={!selectedEstado}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder={selectedEstado ? "Selecione um município" : "Selecione um estado primeiro"} />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {municipios.map((municipio) => (
+                          <SelectItem key={municipio.id} value={municipio.nome}>
+                            {municipio.nome}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
