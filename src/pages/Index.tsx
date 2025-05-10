@@ -1,4 +1,3 @@
-
 import React from 'react';
 import Sidebar from '../components/Sidebar';
 import HeroBanner from '../components/HeroBanner';
@@ -7,9 +6,6 @@ import DonutChart from '../components/DonutChart';
 import { 
   ListFilter, 
   PieChart, 
-  ArrowUp, 
-  ArrowDown,
-  Clock, 
   Calendar
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -80,7 +76,7 @@ const Index = () => {
           />
 
           {/* Status Summary Cards */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             <StatusCard 
               icon={<ListFilter className="h-5 w-5" />}
               title="Status dos Problemas"
@@ -133,37 +129,6 @@ const Index = () => {
                     <div className="w-3 h-3 rounded-full bg-[#37A2B2] mr-1"></div>
                     <span className="text-xs">Educação (20%)</span>
                   </div>
-                </div>
-              </div>
-            </StatusCard>
-
-            <StatusCard 
-              icon={<Clock className="h-5 w-5" />}
-              title="Tempo Médio de Resolução"
-              count="1.5 dias"
-              badge={{ text: "Melhorou 15%", color: "bg-resolve-lightgreen text-resolve-green" }}
-            >
-              <div className="flex flex-col items-center w-full">
-                <div className="flex items-center justify-between w-full mb-2">
-                  <span className="text-sm">Esta semana</span>
-                  <div className="flex items-center text-resolve-green">
-                    <ArrowDown className="h-4 w-4 mr-1" />
-                    <span className="text-xs font-medium">1.5 dias</span>
-                  </div>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-resolve-green h-2 rounded-full" style={{ width: '60%' }}></div>
-                </div>
-                
-                <div className="flex items-center justify-between w-full mb-2 mt-4">
-                  <span className="text-sm">Semana passada</span>
-                  <div className="flex items-center text-resolve-red">
-                    <ArrowUp className="h-4 w-4 mr-1" />
-                    <span className="text-xs font-medium">1.8 dias</span>
-                  </div>
-                </div>
-                <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div className="bg-resolve-yellow h-2 rounded-full" style={{ width: '70%' }}></div>
                 </div>
               </div>
             </StatusCard>
