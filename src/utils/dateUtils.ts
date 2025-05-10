@@ -2,10 +2,12 @@
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
-export const calculateElapsedTime = (createdAt: string) => {
+export const calculateElapsedTime = (createdAt: string, endDate?: string) => {
   const now = new Date();
   const created = new Date(createdAt);
-  const diffMs = now.getTime() - created.getTime();
+  const end = endDate ? new Date(endDate) : now;
+  
+  const diffMs = end.getTime() - created.getTime();
   
   const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
   const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));

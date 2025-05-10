@@ -39,6 +39,18 @@ export const ProblemRow: React.FC<ProblemRowProps> = ({ problem }) => {
     }
   };
 
+  // Método para formatar o tempo para problemas resolvidos
+  const getTimeDisplay = () => {
+    if (problem.status === 'Resolvido') {
+      return (
+        <span className="text-green-500">
+          Resolvido {calculateTimeElapsed(problem.created_at)}
+        </span>
+      );
+    }
+    return calculateTimeElapsed(problem.created_at);
+  };
+
   const handleViewProblem = (id: string) => {
     navigate(`/detalhes-ocorrencia/${id}`);
   };
@@ -83,7 +95,7 @@ export const ProblemRow: React.FC<ProblemRowProps> = ({ problem }) => {
           <ProblemStatusBadge status={problem.status} />
         </TableCell>
         <TableCell className="text-sm">
-          {calculateTimeElapsed(problem.created_at)}
+          {getTimeDisplay()}
         </TableCell>
         <TableCell>
           <ProblemDeadlineBadge deadline={problem.prazo_estimado} />

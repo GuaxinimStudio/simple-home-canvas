@@ -116,6 +116,13 @@ export const useOcorrenciaDetails = (id: string | undefined) => {
       if (prazoEstimado) {
         updateData.prazo_estimado = prazoEstimado;
       }
+      
+      // Se o status for alterado para Resolvido, atualizamos a data de resolução
+      // automaticamente na data atual
+      if (currentStatus === 'Resolvido' && problemData?.status !== 'Resolvido') {
+        // A data de atualização (updated_at) será atualizada automaticamente pelo trigger do banco
+        toast.success('Problema resolvido! O contador de tempo foi parado.');
+      }
 
       const { error } = await supabase
         .from('problemas')
@@ -124,6 +131,19 @@ export const useOcorrenciaDetails = (id: string | undefined) => {
 
       if (error) {
         throw error;
+      }
+
+      // Atualizar o problemData localmente para refletir mudanças imediatamente
+      if (problemData) {
+        const updatedProblem = {
+          ...problemData,
+          status: currentStatus,
+          prazo_estimado: prazoEstimado ? new Date(prazoEstimado).toISOString() : problemData.prazo_estimado,
+          updated_at: currentStatus === 'Resolvido' && problemData.status !== 'Resolvido' 
+            ? new Date().toISOString() 
+            : problemData.updated_at
+        };
+        setProblemData(updatedProblem);
       }
 
       toast.success('Alterações salvas com sucesso!');

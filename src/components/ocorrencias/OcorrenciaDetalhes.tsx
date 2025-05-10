@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card } from "@/components/ui/card";
-import { Image } from 'lucide-react';
+import { Image, Clock } from 'lucide-react';
 import { formatDate, calculateElapsedTime } from '@/utils/dateUtils';
 import { OcorrenciaData } from '@/types/ocorrencia';
 
@@ -14,6 +14,9 @@ export const OcorrenciaDetalhes: React.FC<OcorrenciaDetalhesProps> = ({
   problemData,
   onImageClick
 }) => {
+  // Determinar se o problema está resolvido
+  const isResolved = problemData.status === 'Resolvido';
+
   return (
     <Card className="p-6">
       <h2 className="text-lg font-medium text-purple-600 mb-4 flex items-center">
@@ -70,12 +73,17 @@ export const OcorrenciaDetalhes: React.FC<OcorrenciaDetalhesProps> = ({
 
         <div>
           <h3 className="font-medium mb-2">Tempo Decorrido</h3>
-          <div className="flex items-center text-red-500">
-            <svg className="w-4 h-4 mr-2" viewBox="0 0 24 24" fill="none">
-              <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
-              <path d="M12 6v6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-            </svg>
-            {calculateElapsedTime(problemData.created_at)}
+          <div className={`flex items-center ${isResolved ? "text-green-500" : "text-red-500"}`}>
+            <Clock className="w-4 h-4 mr-2" />
+            {isResolved ? (
+              <span>
+                Resolvido após {calculateElapsedTime(problemData.created_at, problemData.updated_at)}
+              </span>
+            ) : (
+              <span>
+                Em andamento há {calculateElapsedTime(problemData.created_at)}
+              </span>
+            )}
           </div>
         </div>
 
