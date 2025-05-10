@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Edit, Trash2, MoreVertical } from 'lucide-react';
@@ -10,6 +10,19 @@ import {
   DropdownMenuTrigger
 } from '@/components/ui/dropdown-menu';
 import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import EditarUsuarioModal from './EditarUsuarioModal';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Usuario {
   id: string;
@@ -17,6 +30,7 @@ interface Usuario {
   email: string | null;
   telefone: string | null;
   role: string;
+  gabinete_id: string | null;
   gabinetes: {
     gabinete: string;
   } | null;
@@ -26,9 +40,16 @@ interface UsuariosTableProps {
   usuarios: Usuario[] | undefined;
   isLoading: boolean;
   error: Error | null;
+  gabinetes: { id: string; gabinete: string }[];
+  onUsuarioUpdated: () => void;
 }
 
-const UsuariosTable = ({ usuarios, isLoading, error }: UsuariosTableProps) => {
+const UsuariosTable = ({ usuarios, isLoading, error, gabinetes, onUsuarioUpdated }: UsuariosTableProps) => {
+  const [usuarioSelecionado, setUsuarioSelecionado] = useState<Usuario | null>(null);
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [usuarioParaExcluir, setUsuarioParaExcluir] = useState<Usuario | null>(null);
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+
   // Função para traduzir o role
   const traduzirRole = (role: string) => {
     switch (role) {
@@ -42,13 +63,51 @@ const UsuariosTable = ({ usuarios, isLoading, error }: UsuariosTableProps) => {
   };
 
   const handleEdit = (usuario: Usuario) => {
-    toast.info(`Editar usuário: ${usuario.nome}`);
-    // Aqui implementaremos a funcionalidade de edição posteriormente
+    setUsuarioSelecionado(usuario);
+    setIsEditModalOpen(true);
   };
 
-  const handleDelete = (usuario: Usuario) => {
-    toast.info(`Excluir usuário: ${usuario.nome}`);
-    // Aqui implementaremos a funcionalidade de exclusão posteriormente
+  const handleDelete = async (usuario: Usuario) => {
+    setUsuarioParaExcluir(usuario);
+    setIsDeleteDialogOpen(true);
+  };
+
+  const confirmarExclusao = async () => {
+    if (!usuarioParaExcluir) return;
+
+    try {
+      // Primeiro exclui o perfil
+      const { error: profileError } = await supabase
+        .from('profiles')
+        .delete()
+        .eq('id', usuarioParaExcluir.id);
+
+      if (profileError) {
+        toast.error('Erro ao excluir perfil do usuário');
+        console.error('Erro ao excluir perfil:', profileError);
+        return;
+      }
+
+      // Em seguida, exclui o usuário da auth
+      const { error: authError } = await supabase.auth.admin.deleteUser(
+        usuarioParaExcluir.id
+      );
+
+      if (authError) {
+        toast.error('Erro ao excluir conta do usuário');
+        console.error('Erro ao excluir usuário:', authError);
+        return;
+      }
+
+      toast.success('Usuário excluído com sucesso');
+      onUsuarioUpdated();
+    } catch (error) {
+      toast.error('Erro ao excluir usuário');
+      console.error('Erro ao excluir usuário:', error);
+    } finally {
+      setIsDeleteDialogOpen(false);
+      setUsuarioParaExcluir(null);
+    }
   };
 
   return (
@@ -128,6 +187,34 @@ const UsuariosTable = ({ usuarios, isLoading, error }: UsuariosTableProps) => {
           )}
         </TableBody>
       </Table>
+
+      <EditarUsuarioModal
+        open={isEditModalOpen}
+        onOpenChange={setIsEditModalOpen}
+        onSuccess={onUsuarioUpdated}
+        usuario={usuarioSelecionado}
+        gabinetes={gabinetes}
+      />
+
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Excluir Usuário</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem certeza que deseja excluir este usuário? Esta ação não pode ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmarExclusao}
+              className="bg-red-600 hover:bg-red-700"
+            >
+              Excluir
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };

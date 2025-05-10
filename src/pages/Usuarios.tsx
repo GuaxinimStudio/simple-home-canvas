@@ -56,6 +56,8 @@ const Usuarios = () => {
               usuarios={usuariosFiltrados} 
               isLoading={isLoading} 
               error={error} 
+              gabinetes={gabinetes || []}
+              onUsuarioUpdated={refetch}
             />
           </div>
         </div>
