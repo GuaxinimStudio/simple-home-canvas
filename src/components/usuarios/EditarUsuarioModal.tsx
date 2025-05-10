@@ -52,10 +52,13 @@ interface EditarUsuarioModalProps {
   gabinetes: { id: string; gabinete: string }[];
 }
 
+// Definimos aqui o tipo específico para o role
+type UserRole = "vereador" | "administrador";
+
 const formSchema = z.object({
   nome: z.string().min(2, { message: 'O nome deve ter pelo menos 2 caracteres' }),
   telefone: z.string().optional().nullable(),
-  role: z.string(),
+  role: z.enum(["vereador", "administrador"]), // Usando z.enum para garantir que apenas esses valores sejam aceitos
   gabinete_id: z.string().optional().nullable(),
 });
 
@@ -71,7 +74,7 @@ const EditarUsuarioModal = ({
     defaultValues: {
       nome: '',
       telefone: '',
-      role: 'vereador',
+      role: 'vereador' as UserRole, // Asseguramos que o tipo é correto
       gabinete_id: '',
     },
   });
@@ -82,7 +85,7 @@ const EditarUsuarioModal = ({
       form.reset({
         nome: usuario.nome || '',
         telefone: usuario.telefone || '',
-        role: usuario.role || 'vereador',
+        role: (usuario.role as UserRole) || 'vereador', // Convertemos explicitamente o tipo
         gabinete_id: usuario.gabinete_id || '',
       });
     }
