@@ -1,6 +1,9 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Home, FileText, Building, FileBarChart, Bell, LogOut } from 'lucide-react';
+import { useAuth } from '@/contexts/AuthContext';
+
 type NavigationItem = {
   title: string;
   icon: React.ComponentType<{
@@ -8,31 +11,46 @@ type NavigationItem = {
   }>;
   path: string;
 };
+
 const Sidebar: React.FC = () => {
   const location = useLocation();
   const currentPath = location.pathname;
-  const navigationItems: NavigationItem[] = [{
-    title: "Início",
-    icon: Home,
-    path: "/"
-  }, {
-    title: "Problemas",
-    icon: FileText,
-    path: "/problemas"
-  }, {
-    title: "Gabinetes",
-    icon: Building,
-    path: "/gabinetes"
-  }, {
-    title: "Relatórios",
-    icon: FileBarChart,
-    path: "/relatorios"
-  }, {
-    title: "Notificações",
-    icon: Bell,
-    path: "/notificacoes"
-  }];
-  return <div className="h-screen w-64 bg-white flex flex-col border-r">
+  const { signOut, user } = useAuth();
+  
+  const navigationItems: NavigationItem[] = [
+    {
+      title: "Início",
+      icon: Home,
+      path: "/"
+    },
+    {
+      title: "Problemas",
+      icon: FileText,
+      path: "/problemas"
+    },
+    {
+      title: "Gabinetes",
+      icon: Building,
+      path: "/gabinetes"
+    },
+    {
+      title: "Relatórios",
+      icon: FileBarChart,
+      path: "/relatorios"
+    },
+    {
+      title: "Notificações",
+      icon: Bell,
+      path: "/notificacoes"
+    }
+  ];
+  
+  const handleSignOut = () => {
+    signOut();
+  };
+
+  return (
+    <div className="h-screen w-64 bg-white flex flex-col border-r">
       {/* Logo */}
       <div className="p-4 flex items-center gap-2">
         <div className="w-8 h-8 rounded-full bg-resolve-green flex items-center justify-center">
@@ -44,10 +62,10 @@ const Sidebar: React.FC = () => {
       {/* User profile */}
       <div className="p-4 border-b flex items-center gap-3">
         <div className="w-8 h-8 rounded-full bg-green-100 flex items-center justify-center text-green-600">
-          <span className="font-semibold text-sm">JA</span>
+          <span className="font-semibold text-sm">{user?.email?.substring(0, 2).toUpperCase() || "JA"}</span>
         </div>
         <div>
-          <p className="font-medium text-gray-800">Jessé Araújo</p>
+          <p className="font-medium text-gray-800">{user?.user_metadata?.nome || "Usuário"}</p>
           <p className="text-xs text-gray-500">Administrador Regional</p>
         </div>
       </div>
@@ -56,24 +74,41 @@ const Sidebar: React.FC = () => {
       <nav className="flex-1 overflow-y-auto py-4">
         <ul className="space-y-1 px-2">
           {navigationItems.map(item => {
-          const isActive = currentPath === item.path || item.path === "/" && currentPath === "/" || item.path !== "/" && currentPath.startsWith(item.path);
-          return <li key={item.title}>
-                <Link to={item.path} className={`flex items-center gap-3 px-3 py-2 rounded-md ${isActive ? 'text-resolve-green border-l-2 border-resolve-green' : 'text-gray-600 hover:bg-gray-100'}`}>
+            const isActive = currentPath === item.path || 
+                            (item.path === "/" && currentPath === "/") || 
+                            (item.path !== "/" && currentPath.startsWith(item.path));
+            
+            return (
+              <li key={item.title}>
+                <Link 
+                  to={item.path} 
+                  className={`flex items-center gap-3 px-3 py-2 rounded-md ${
+                    isActive 
+                      ? 'text-resolve-green border-l-2 border-resolve-green' 
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
                   <item.icon className={`h-5 w-5 ${isActive ? 'text-resolve-green' : 'text-gray-500'}`} />
                   <span>{item.title}</span>
                 </Link>
-              </li>;
-        })}
+              </li>
+            );
+          })}
         </ul>
       </nav>
 
       {/* Logout */}
       <div className="p-4 border-t">
-        <Link to="/sair" className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-100">
+        <button 
+          onClick={handleSignOut}
+          className="flex items-center gap-3 px-3 py-2 rounded-md text-gray-600 hover:bg-gray-100 w-full"
+        >
           <LogOut className="h-5 w-5 text-gray-500" />
           <span>Sair</span>
-        </Link>
+        </button>
       </div>
-    </div>;
+    </div>
+  );
 };
+
 export default Sidebar;
