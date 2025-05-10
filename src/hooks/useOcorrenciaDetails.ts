@@ -23,36 +23,70 @@ export const useOcorrenciaDetails = (id: string | undefined) => {
           throw new Error('ID não fornecido');
         }
 
-        const { data, error } = await supabase
+        // Tentamos primeiro buscar apenas dados básicos do problema, sem joins que podem causar recursão
+        const { data: basicData, error: basicError } = await supabase
           .from('problemas')
-          .select(`
-            *,
-            gabinete:gabinetes(gabinete, municipio)
-          `)
+          .select('*')
           .eq('id', id)
           .single();
 
-        if (error) {
-          throw error;
+        if (basicError) {
+          // Se houver erro na consulta básica, não podemos continuar
+          throw basicError;
         }
 
-        setProblemData(data);
+        // Se temos os dados básicos, podemos usá-los
+        let fullData = basicData;
         
-        if (data) {
-          setCurrentStatus(data.status as StatusType);
+        // Agora tentamos buscar o gabinete separadamente se temos um gabinete_id
+        if (basicData.gabinete_id) {
+          try {
+            const { data: gabineteData, error: gabineteError } = await supabase
+              .from('gabinetes')
+              .select('gabinete, municipio')
+              .eq('id', basicData.gabinete_id)
+              .single();
+              
+            if (!gabineteError && gabineteData) {
+              // Se conseguimos os dados do gabinete, adicionamos ao objeto de dados
+              fullData = {
+                ...basicData,
+                gabinete: {
+                  gabinete: gabineteData.gabinete,
+                  municipio: gabineteData.municipio
+                }
+              };
+            }
+          } catch (gabErr) {
+            console.warn('Erro ao buscar gabinete, continuando com dados básicos:', gabErr);
+            // Não interrompemos o fluxo, continuamos com os dados básicos
+          }
+        }
+
+        setProblemData(fullData);
+        
+        if (fullData) {
+          setCurrentStatus(fullData.status as StatusType);
           
-          if (data.gabinete_id) {
-            setSelectedDepartamento(data.gabinete?.gabinete || '');
+          if (fullData.gabinete_id && fullData.gabinete) {
+            setSelectedDepartamento(fullData.gabinete.gabinete || '');
           }
           
-          if (data.prazo_estimado) {
-            setPrazoEstimado(format(new Date(data.prazo_estimado), 'yyyy-MM-dd'));
+          if (fullData.prazo_estimado) {
+            setPrazoEstimado(format(new Date(fullData.prazo_estimado), 'yyyy-MM-dd'));
           }
         }
       } catch (err: any) {
         console.error('Erro ao buscar detalhes do problema:', err);
-        setError(err.message || 'Erro ao carregar dados');
-        toast.error(`Erro ao carregar dados: ${err.message}`);
+        
+        // Verificamos se é o erro específico de recursão infinita
+        if (err.message?.includes('infinite recursion detected')) {
+          setError('Erro de permissão no banco de dados. Contate o administrador.');
+          toast.error('Erro de permissão no banco de dados.');
+        } else {
+          setError(err.message || 'Erro ao carregar dados');
+          toast.error(`Erro ao carregar dados: ${err.message}`);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -114,3 +148,4 @@ export const useOcorrenciaDetails = (id: string | undefined) => {
     setSelectedDepartamento
   };
 };
+
