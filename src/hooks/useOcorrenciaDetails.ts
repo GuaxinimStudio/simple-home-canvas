@@ -13,6 +13,9 @@ export const useOcorrenciaDetails = (id: string | undefined) => {
   const [problemData, setProblemData] = useState<OcorrenciaData | null>(null);
   const [prazoEstimado, setPrazoEstimado] = useState<string>('');
   const [imageModalOpen, setImageModalOpen] = useState(false);
+  const [descricaoResolvido, setDescricaoResolvido] = useState<string>('');
+  const [imagemResolvido, setImagemResolvido] = useState<File | null>(null);
+  const [imagemResolvidoPreview, setImagemResolvidoPreview] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchProblemDetails = async () => {
@@ -75,6 +78,14 @@ export const useOcorrenciaDetails = (id: string | undefined) => {
           if (fullData.prazo_estimado) {
             setPrazoEstimado(format(new Date(fullData.prazo_estimado), 'yyyy-MM-dd'));
           }
+          
+          if (fullData.descricao_resolvido) {
+            setDescricaoResolvido(fullData.descricao_resolvido);
+          }
+          
+          if (fullData.imagem_resolvido) {
+            setImagemResolvidoPreview(fullData.imagem_resolvido);
+          }
         }
       } catch (err: any) {
         console.error('Erro ao buscar detalhes do problema:', err);
@@ -106,6 +117,26 @@ export const useOcorrenciaDetails = (id: string | undefined) => {
   const handlePrazoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setPrazoEstimado(e.target.value);
   };
+  
+  const handleDescricaoResolvidoChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setDescricaoResolvido(e.target.value);
+  };
+  
+  const handleImagemResolvidoChange = async (file: File | null) => {
+    if (file) {
+      // Criar uma URL temporária para preview
+      const previewUrl = URL.createObjectURL(file);
+      setImagemResolvidoPreview(previewUrl);
+      setImagemResolvido(file);
+    } else {
+      // Se null, limpar o preview
+      if (imagemResolvidoPreview && !imagemResolvidoPreview.startsWith('http')) {
+        URL.revokeObjectURL(imagemResolvidoPreview);
+      }
+      setImagemResolvidoPreview(null);
+      setImagemResolvido(null);
+    }
+  };
 
   const handleSalvar = async () => {
     try {
@@ -118,8 +149,15 @@ export const useOcorrenciaDetails = (id: string | undefined) => {
         return;
       }
 
+      // Verifica se precisa de descrição detalhada para status de Resolvido ou Informações Insuficientes
+      if ((currentStatus === 'Resolvido' || currentStatus === 'Informações Insuficientes') && !descricaoResolvido.trim()) {
+        toast.error(`É necessário fornecer ${currentStatus === 'Resolvido' ? 'detalhes da resolução' : 'orientações para o cidadão'}.`);
+        return;
+      }
+
       const updateData: Record<string, any> = {
         status: currentStatus,
+        descricao_resolvido: descricaoResolvido
       };
 
       if (prazoEstimado) {
@@ -132,30 +170,68 @@ export const useOcorrenciaDetails = (id: string | undefined) => {
         // A data de atualização (updated_at) será atualizada automaticamente pelo trigger do banco
         toast.success('Problema resolvido! O contador de tempo foi parado.');
       }
+      
+      // Se tiver uma nova imagem para upload
+      if (imagemResolvido) {
+        // Converter imagem para base64 para salvar no banco
+        // Na prática, deveria ser feito upload da imagem para um bucket de storage
+        // E armazenar apenas a URL no banco de dados
+        const reader = new FileReader();
+        reader.readAsDataURL(imagemResolvido);
+        reader.onload = async () => {
+          updateData.imagem_resolvido = reader.result;
+          
+          // Atualizar o banco de dados com todos os dados
+          const { error } = await supabase
+            .from('problemas')
+            .update(updateData)
+            .eq('id', id);
 
-      const { error } = await supabase
-        .from('problemas')
-        .update(updateData)
-        .eq('id', id);
+          if (error) {
+            throw error;
+          }
 
-      if (error) {
-        throw error;
-      }
+          // Atualizar o problemData localmente para refletir mudanças imediatamente
+          if (problemData) {
+            const updatedProblem = {
+              ...problemData,
+              ...updateData,
+              prazo_estimado: prazoEstimado ? new Date(prazoEstimado).toISOString() : problemData.prazo_estimado,
+              updated_at: currentStatus === 'Resolvido' && problemData.status !== 'Resolvido' 
+                ? new Date().toISOString() 
+                : problemData.updated_at
+            };
+            setProblemData(updatedProblem);
+          }
 
-      // Atualizar o problemData localmente para refletir mudanças imediatamente
-      if (problemData) {
-        const updatedProblem = {
-          ...problemData,
-          status: currentStatus,
-          prazo_estimado: prazoEstimado ? new Date(prazoEstimado).toISOString() : problemData.prazo_estimado,
-          updated_at: currentStatus === 'Resolvido' && problemData.status !== 'Resolvido' 
-            ? new Date().toISOString() 
-            : problemData.updated_at
+          toast.success('Alterações salvas com sucesso!');
         };
-        setProblemData(updatedProblem);
-      }
+      } else {
+        // Se não houver nova imagem, apenas atualizamos os outros dados
+        const { error } = await supabase
+          .from('problemas')
+          .update(updateData)
+          .eq('id', id);
 
-      toast.success('Alterações salvas com sucesso!');
+        if (error) {
+          throw error;
+        }
+
+        // Atualizar o problemData localmente para refletir mudanças imediatamente
+        if (problemData) {
+          const updatedProblem = {
+            ...problemData,
+            ...updateData,
+            prazo_estimado: prazoEstimado ? new Date(prazoEstimado).toISOString() : problemData.prazo_estimado,
+            updated_at: currentStatus === 'Resolvido' && problemData.status !== 'Resolvido' 
+              ? new Date().toISOString() 
+              : problemData.updated_at
+          };
+          setProblemData(updatedProblem);
+        }
+
+        toast.success('Alterações salvas com sucesso!');
+      }
     } catch (err: any) {
       console.error('Erro ao salvar alterações:', err);
       toast.error(`Erro ao salvar: ${err.message}`);
@@ -170,10 +246,14 @@ export const useOcorrenciaDetails = (id: string | undefined) => {
     selectedDepartamento,
     prazoEstimado,
     imageModalOpen,
+    descricaoResolvido,
+    imagemResolvidoPreview,
     setImageModalOpen,
     handleStatusChange,
     handlePrazoChange,
     handleSalvar,
-    setSelectedDepartamento
+    setSelectedDepartamento,
+    handleDescricaoResolvidoChange,
+    handleImagemResolvidoChange
   };
 };

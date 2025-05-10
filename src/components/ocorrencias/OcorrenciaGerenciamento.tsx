@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { 
@@ -9,8 +9,11 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 import { StatusType } from '@/types/ocorrencia';
+import { Upload } from 'lucide-react';
 
 interface OcorrenciaGerenciamentoProps {
   currentStatus: StatusType;
@@ -20,6 +23,10 @@ interface OcorrenciaGerenciamentoProps {
   selectedDepartamento: string;
   onDepartamentoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   onSalvar: () => void;
+  descricaoResolvido: string;
+  onDescricaoResolvidoChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
+  onImagemResolvidoChange: (file: File | null) => void;
+  imagemResolvidoPreview: string | null;
 }
 
 export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = ({
@@ -29,7 +36,11 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
   onPrazoChange,
   selectedDepartamento,
   onDepartamentoChange,
-  onSalvar
+  onSalvar,
+  descricaoResolvido,
+  onDescricaoResolvidoChange,
+  onImagemResolvidoChange,
+  imagemResolvidoPreview
 }) => {
   // Verifica se um prazo foi definido
   const isPrazoDefinido = prazoEstimado !== '';
@@ -41,6 +52,21 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
       return;
     }
     onStatusChange(value);
+  };
+
+  // Verifica se devemos mostrar os campos adicionais
+  const showAdditionalFields = currentStatus === "Resolvido" || currentStatus === "Informações Insuficientes";
+  
+  // Manipulador de arquivo de imagem
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error("Arquivo muito grande. O tamanho máximo é 5MB.");
+        return;
+      }
+      onImagemResolvidoChange(file);
+    }
   };
   
   return (
@@ -120,6 +146,70 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
             />
           </div>
         </div>
+
+        {showAdditionalFields && (
+          <>
+            <div>
+              <h3 className="font-medium mb-2">
+                {currentStatus === "Resolvido" ? "Detalhes da Resolução" : "Orientações para o Cidadão"}
+              </h3>
+              <Textarea 
+                placeholder={currentStatus === "Resolvido" 
+                  ? "Descreva como o problema foi resolvido..." 
+                  : "Explique que informações são necessárias..."
+                }
+                className="min-h-[120px] w-full"
+                value={descricaoResolvido}
+                onChange={onDescricaoResolvidoChange}
+              />
+            </div>
+
+            <div>
+              <h3 className="font-medium mb-2">
+                {currentStatus === "Resolvido" ? "Imagem da Resolução" : "Imagem de Apoio"}
+              </h3>
+              
+              {imagemResolvidoPreview ? (
+                <div className="relative mb-3">
+                  <img 
+                    src={imagemResolvidoPreview} 
+                    alt="Imagem de comprovação" 
+                    className="w-full h-48 object-cover rounded-md"
+                  />
+                  <button 
+                    className="absolute top-2 right-2 bg-red-500 text-white p-1 rounded-full"
+                    onClick={() => onImagemResolvidoChange(null)}
+                    type="button"
+                  >
+                    X
+                  </button>
+                </div>
+              ) : (
+                <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
+                  <Input
+                    id="image-upload"
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={handleFileChange}
+                  />
+                  <label 
+                    htmlFor="image-upload" 
+                    className="cursor-pointer flex flex-col items-center justify-center"
+                  >
+                    <Upload className="w-8 h-8 text-gray-400 mb-2" />
+                    <span className="text-sm text-gray-500">
+                      Clique para fazer upload de imagem
+                    </span>
+                    <span className="text-xs text-gray-400 mt-1">
+                      (Máximo 5MB)
+                    </span>
+                  </label>
+                </div>
+              )}
+            </div>
+          </>
+        )}
 
         <Button 
           onClick={onSalvar}
