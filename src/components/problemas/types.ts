@@ -1,13 +1,16 @@
 
-export type ProblemItem = {
-  id: string;
-  descricao: string;
-  status: string;
-  created_at: string;
-  telefone: string;
-  prazo_estimado: string | null;
-  municipio: string | null;
-  gabinete: {
-    gabinete: string;
-  } | null;
-};
+export interface Problem {
+  id: number;
+  photo: string;
+  description: string;
+  status: 'Resolvido' | 'Pendente' | 'Em andamento' | 'Informações Insuficientes';
+  time: string;
+  deadline: string;
+  date: string;
+  secretary: string;
+}
+
+export interface ProblemState {
+  problems: Problem[];
+  selectedStatus: string;
+}
