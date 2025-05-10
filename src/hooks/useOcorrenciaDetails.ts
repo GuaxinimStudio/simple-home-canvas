@@ -20,7 +20,8 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     imagemResolvido: null,
     imagemResolvidoPreview: null,
     imageModalOpen: false,
-    isSaved: false  // Nova propriedade para controlar se foi salvo como resolvido
+    isSaved: false,  // Propriedade para controlar se foi salvo como resolvido
+    respostaEnviada: false // Nova propriedade para controlar se a resposta foi enviada
   });
 
   // Função para atualizar o estado parcialmente
@@ -32,7 +33,9 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
   const updateProblemData = useCallback((data: Partial<OcorrenciaData>) => {
     setState(prevState => ({
       ...prevState,
-      problemData: prevState.problemData ? { ...prevState.problemData, ...data } : null
+      problemData: prevState.problemData ? { ...prevState.problemData, ...data } : null,
+      // Atualizar respostaEnviada se estiver presente no problema
+      respostaEnviada: data.resposta_enviada !== undefined ? data.resposta_enviada : prevState.respostaEnviada
     }));
   }, []);
 
@@ -59,10 +62,15 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     imagemResolvidoPreview: imageManager.imagemResolvidoPreview
   }, updateState);
 
-  // Verificar se já está salvo como resolvido quando carregar os dados
+  // Verificar se já está salvo como resolvido e se a resposta já foi enviada quando carregar os dados
   useState(() => {
-    if (state.problemData && state.problemData.status === 'Resolvido') {
-      updateState({ isSaved: true });
+    if (state.problemData) {
+      if (state.problemData.status === 'Resolvido') {
+        updateState({ isSaved: true });
+      }
+      if (state.problemData.resposta_enviada) {
+        updateState({ respostaEnviada: true });
+      }
     }
   });
 
@@ -96,6 +104,7 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     imagemResolvido: imageManager.imagemResolvido,
     imagemResolvidoPreview: imageManager.imagemResolvidoPreview,
     isSaved: isSaved || (state.problemData?.status === 'Resolvido'), // Considerar resolvido se já estiver no banco
+    respostaEnviada: state.respostaEnviada || (state.problemData?.resposta_enviada === true), // Verificar se a resposta já foi enviada
     handleStatusChange,
     handlePrazoChange,
     handleSalvar,
