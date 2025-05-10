@@ -1,5 +1,5 @@
 
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
@@ -69,15 +69,31 @@ const EditarUsuarioModal = ({
   usuario,
   gabinetes,
 }: EditarUsuarioModalProps) => {
+  // Adicionando state para controlar a visibilidade do campo de secretaria
+  const [showGabineteField, setShowGabineteField] = useState(true);
+  
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       nome: '',
       telefone: '',
-      role: 'vereador' as UserRole, // Asseguramos que o tipo é correto
+      role: 'vereador' as UserRole,
       gabinete_id: '',
     },
   });
+  
+  // Observar mudanças no campo role para mostrar/ocultar o campo de secretaria
+  const watchRole = form.watch("role");
+  
+  useEffect(() => {
+    // Se o papel for administrador, ocultar o campo de secretaria
+    setShowGabineteField(watchRole !== "administrador");
+    
+    // Se mudar para administrador, limpar o valor do gabinete_id
+    if (watchRole === "administrador") {
+      form.setValue("gabinete_id", null);
+    }
+  }, [watchRole, form]);
 
   // Atualiza os valores do formulário quando o usuário muda
   useEffect(() => {
@@ -85,9 +101,12 @@ const EditarUsuarioModal = ({
       form.reset({
         nome: usuario.nome || '',
         telefone: usuario.telefone || '',
-        role: (usuario.role as UserRole) || 'vereador', // Convertemos explicitamente o tipo
+        role: (usuario.role as UserRole) || 'vereador',
         gabinete_id: usuario.gabinete_id || '',
       });
+      
+      // Definir a visibilidade inicial do campo de secretaria com base no papel do usuário
+      setShowGabineteField(usuario.role !== "administrador");
     }
   }, [usuario, form]);
 
@@ -101,7 +120,7 @@ const EditarUsuarioModal = ({
           nome: values.nome,
           telefone: values.telefone,
           role: values.role,
-          gabinete_id: values.gabinete_id,
+          gabinete_id: values.role === "administrador" ? null : values.gabinete_id,
         })
         .eq('id', usuario.id);
 
@@ -181,34 +200,37 @@ const EditarUsuarioModal = ({
               )}
             />
             
-            <FormField
-              control={form.control}
-              name="gabinete_id"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Secretaria</FormLabel>
-                  <Select 
-                    onValueChange={field.onChange} 
-                    defaultValue={field.value || undefined}
-                  >
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma secretaria" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="null">Nenhuma</SelectItem> {/* Alterado de "" para "null" */}
-                      {gabinetes.map((gabinete) => (
-                        <SelectItem key={gabinete.id} value={gabinete.id}>
-                          {gabinete.gabinete}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+            {/* Renderização condicional do campo de secretaria baseado no papel selecionado */}
+            {showGabineteField && (
+              <FormField
+                control={form.control}
+                name="gabinete_id"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Secretaria</FormLabel>
+                    <Select 
+                      onValueChange={field.onChange} 
+                      defaultValue={field.value || undefined}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Selecione uma secretaria" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        <SelectItem value="null">Nenhuma</SelectItem>
+                        {gabinetes.map((gabinete) => (
+                          <SelectItem key={gabinete.id} value={gabinete.id}>
+                            {gabinete.gabinete}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+            )}
             
             <DialogFooter>
               <Button 
