@@ -1,4 +1,5 @@
 
+import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
 import { OcorrenciaData } from '@/types/ocorrencia';
@@ -9,6 +10,8 @@ export const useOcorrenciaSave = (
   state: OcorrenciaState, 
   setState: (state: Partial<OcorrenciaState>) => void
 ) => {
+  const [isSaved, setIsSaved] = useState<boolean>(false);
+  
   const { 
     currentStatus, 
     problemData, 
@@ -16,6 +19,13 @@ export const useOcorrenciaSave = (
     descricaoResolvido, 
     imagemResolvido 
   } = state;
+
+  // Quando carrega os dados iniciais, verifica se já está resolvido e salvo
+  useState(() => {
+    if (problemData && problemData.status === 'Resolvido') {
+      setIsSaved(true);
+    }
+  });
 
   const handleSalvar = async () => {
     try {
@@ -31,6 +41,12 @@ export const useOcorrenciaSave = (
       // Verifica se precisa de descrição detalhada para status de Resolvido ou Informações Insuficientes
       if ((currentStatus === 'Resolvido' || currentStatus === 'Informações Insuficientes') && !descricaoResolvido?.trim()) {
         toast.error(`É necessário fornecer ${currentStatus === 'Resolvido' ? 'detalhes da resolução' : 'orientações para o cidadão'}.`);
+        return;
+      }
+
+      // Se estiver resolvendo e não tiver imagem, exigir uma imagem
+      if (currentStatus === 'Resolvido' && !imagemResolvido && !problemData?.imagem_resolvido) {
+        toast.error('É necessário fornecer uma imagem de comprovação da resolução.');
         return;
       }
 
@@ -84,6 +100,11 @@ export const useOcorrenciaSave = (
                 : problemData.updated_at
             };
             setState({ problemData: updatedProblem });
+            
+            // Atualizar o estado de salvamento se foi resolvido
+            if (currentStatus === 'Resolvido') {
+              setIsSaved(true);
+            }
           }
 
           toast.success('Alterações salvas com sucesso!');
@@ -112,6 +133,11 @@ export const useOcorrenciaSave = (
               : problemData.updated_at
           };
           setState({ problemData: updatedProblem });
+          
+          // Atualizar o estado de salvamento se foi resolvido
+          if (currentStatus === 'Resolvido') {
+            setIsSaved(true);
+          }
         }
 
         toast.success('Alterações salvas com sucesso!');
@@ -122,5 +148,5 @@ export const useOcorrenciaSave = (
     }
   };
 
-  return { handleSalvar };
+  return { handleSalvar, isSaved };
 };

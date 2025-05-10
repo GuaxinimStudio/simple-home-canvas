@@ -21,6 +21,7 @@ interface OcorrenciaGerenciamentoProps {
   onImagemResolvidoChange: (file: File | null) => void;
   imagemResolvidoPreview: string | null;
   onEnviarRespostaCidadao?: () => void;
+  isSaved?: boolean;
 }
 
 export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = ({
@@ -35,13 +36,14 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
   onDescricaoResolvidoChange,
   onImagemResolvidoChange,
   imagemResolvidoPreview,
-  onEnviarRespostaCidadao
+  onEnviarRespostaCidadao,
+  isSaved = false
 }) => {
   // Verifica se um prazo foi definido
   const isPrazoDefinido = prazoEstimado !== '';
   
   // Verifica se o status está resolvido para bloquear os campos
-  const isResolvido = currentStatus === "Resolvido";
+  const isResolvido = currentStatus === "Resolvido" && isSaved;
   
   // Verifica se devemos mostrar os campos adicionais
   const showAdditionalFields = currentStatus === "Resolvido" || currentStatus === "Informações Insuficientes";
@@ -94,7 +96,8 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
         )}
 
         <OcorrenciaAcoes 
-          isResolvido={isResolvido}
+          isResolvido={currentStatus === "Resolvido"}
+          isSalvo={isSaved}
           onSalvar={onSalvar}
           onEnviarRespostaCidadao={onEnviarRespostaCidadao}
         />

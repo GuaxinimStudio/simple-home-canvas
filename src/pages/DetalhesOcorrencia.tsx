@@ -21,6 +21,7 @@ const DetalhesOcorrencia: React.FC = () => {
     imageModalOpen,
     descricaoResolvido,
     imagemResolvidoPreview,
+    isSaved,
     setImageModalOpen,
     handleStatusChange,
     handlePrazoChange,
@@ -119,6 +120,7 @@ const DetalhesOcorrencia: React.FC = () => {
               onImagemResolvidoChange={handleImagemResolvidoChange}
               imagemResolvidoPreview={imagemResolvidoPreview}
               onEnviarRespostaCidadao={handleEnviarRespostaCidadao}
+              isSaved={isSaved}
             />
           </div>
         </div>

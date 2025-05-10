@@ -19,7 +19,8 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     descricaoResolvido: '',
     imagemResolvido: null,
     imagemResolvidoPreview: null,
-    imageModalOpen: false
+    imageModalOpen: false,
+    isSaved: false  // Nova propriedade para controlar se foi salvo como resolvido
   });
 
   // Função para atualizar o estado parcialmente
@@ -50,13 +51,20 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
   const imageManager = useOcorrenciaImages(state.imagemResolvidoPreview);
   
   // Gerenciar salvamento de alterações
-  const { handleSalvar } = useOcorrenciaSave(id, {
+  const { handleSalvar, isSaved } = useOcorrenciaSave(id, {
     ...state,
     currentStatus,
     prazoEstimado,
     imagemResolvido: imageManager.imagemResolvido,
     imagemResolvidoPreview: imageManager.imagemResolvidoPreview
   }, updateState);
+
+  // Verificar se já está salvo como resolvido quando carregar os dados
+  useState(() => {
+    if (state.problemData && state.problemData.status === 'Resolvido') {
+      updateState({ isSaved: true });
+    }
+  });
 
   // Gerenciar envio de resposta ao cidadão
   const { handleEnviarRespostaCidadao } = useEnviarRespostaCidadao(
@@ -87,6 +95,7 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     prazoEstimado,
     imagemResolvido: imageManager.imagemResolvido,
     imagemResolvidoPreview: imageManager.imagemResolvidoPreview,
+    isSaved: isSaved || (state.problemData?.status === 'Resolvido'), // Considerar resolvido se já estiver no banco
     handleStatusChange,
     handlePrazoChange,
     handleSalvar,

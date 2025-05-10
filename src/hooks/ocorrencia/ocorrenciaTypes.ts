@@ -12,6 +12,7 @@ export interface OcorrenciaState {
   imagemResolvido: File | null;
   imagemResolvidoPreview: string | null;
   imageModalOpen: boolean;
+  isSaved?: boolean; // Nova propriedade para controle de salvamento
 }
 
 export interface OcorrenciaActions {
