@@ -2,7 +2,6 @@
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 
 interface GabineteProps {
   id: string;
@@ -20,26 +19,30 @@ const useGabinetes = () => {
   const { data: gabinetes, isLoading, refetch } = useQuery({
     queryKey: ['gabinetes'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('gabinetes')
-        .select('*, profiles(id, nome)')
-        .order('gabinete');
-        
-      if (error) {
-        // Verificar se o erro é relacionado a "recursion detected in policy"
-        // que ocorre quando não há dados ou quando ocorrem problemas específicos no Supabase
-        if (error.message?.includes('infinite recursion detected in policy')) {
-          console.error('Erro nas políticas do Supabase:', error);
+      try {
+        const { data, error } = await supabase
+          .from('gabinetes')
+          .select('*, profiles(id, nome)')
+          .order('gabinete');
+          
+        if (error) {
+          // Em caso de erro "infinite recursion detected in policy", retornamos array vazio
+          // Este erro ocorre devido a configurações RLS no Supabase
+          if (error.message?.includes('infinite recursion detected in policy')) {
+            console.error('Aviso: Erro nas políticas do Supabase (recursão infinita). Retornando lista vazia:', error);
+            return [];
+          }
+          
+          // Para outros tipos de erros, logamos no console mas não mostramos toast
+          console.error('Erro ao carregar gabinetes:', error);
           return [];
         }
         
-        // Para outros tipos de erros, continuamos mostrando a notificação
-        toast.error('Erro ao carregar gabinetes: ' + error.message);
-        console.error('Erro ao carregar gabinetes:', error);
+        return data || [];
+      } catch (err) {
+        console.error('Erro inesperado ao carregar gabinetes:', err);
         return [];
       }
-      
-      return data || [];
     }
   });
   
