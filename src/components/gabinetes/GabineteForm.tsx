@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { z } from 'zod';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -26,6 +26,7 @@ const formSchema = z.object({
 
 const GabineteForm: React.FC<GabineteFormProps> = ({ onSuccess, onCancel }) => {
   const { estados, municipios, selectedEstado, setSelectedEstado } = useLocalizacao();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -46,29 +47,40 @@ const GabineteForm: React.FC<GabineteFormProps> = ({ onSuccess, onCancel }) => {
   };
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    // Encontrar o nome do estado a partir da sigla
-    const estadoNome = estados.find(estado => estado.sigla === values.estado)?.nome || values.estado;
-    
-    const { error } = await supabase
-      .from('gabinetes')
-      .insert([
-        {
-          gabinete: values.gabinete,
-          responsavel: values.responsavel || null,
-          municipio: values.municipio,
-          estado: estadoNome, // Salvar o nome do estado, não a sigla
-          telefone: values.telefone || null
-        }
-      ]);
+    setIsSubmitting(true);
+    try {
+      // Encontrar o nome do estado a partir da sigla
+      const estadoNome = estados.find(estado => estado.sigla === values.estado)?.nome || values.estado;
+      
+      const { data, error } = await supabase
+        .from('gabinetes')
+        .insert([
+          {
+            gabinete: values.gabinete,
+            responsavel: values.responsavel || null,
+            municipio: values.municipio,
+            estado: estadoNome, // Salvar o nome do estado, não a sigla
+            telefone: values.telefone || null
+          }
+        ])
+        .select();
 
-    if (error) {
-      toast.error('Erro ao criar gabinete: ' + error.message);
-      return;
+      if (error) {
+        console.error('Erro ao criar gabinete:', error);
+        toast.error('Erro ao criar gabinete: ' + error.message);
+        return;
+      }
+
+      console.log('Gabinete criado com sucesso:', data);
+      toast.success('Gabinete criado com sucesso!');
+      form.reset();
+      onSuccess();
+    } catch (err) {
+      console.error('Erro inesperado ao criar gabinete:', err);
+      toast.error('Ocorreu um erro ao criar o gabinete. Tente novamente.');
+    } finally {
+      setIsSubmitting(false);
     }
-
-    toast.success('Gabinete criado com sucesso!');
-    form.reset();
-    onSuccess();
   };
 
   return (
@@ -181,14 +193,16 @@ const GabineteForm: React.FC<GabineteFormProps> = ({ onSuccess, onCancel }) => {
             type="button" 
             variant="outline"
             onClick={onCancel}
+            disabled={isSubmitting}
           >
             Cancelar
           </Button>
           <Button 
             type="submit" 
             className="bg-resolve-green hover:bg-green-700"
+            disabled={isSubmitting}
           >
-            Salvar
+            {isSubmitting ? 'Salvando...' : 'Salvar'}
           </Button>
         </div>
       </form>
