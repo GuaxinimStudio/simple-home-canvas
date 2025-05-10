@@ -1,18 +1,20 @@
 
 import React from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { Home, FileText, Building, FileBarChart, Bell, LogOut } from 'lucide-react';
 
 type NavigationItem = {
   title: string;
   icon: React.ComponentType<{ className?: string }>;
   path: string;
-  active?: boolean;
 };
 
 const Sidebar: React.FC = () => {
+  const location = useLocation();
+  const currentPath = location.pathname;
+  
   const navigationItems: NavigationItem[] = [
-    { title: "Início", icon: Home, path: "/", active: true },
+    { title: "Início", icon: Home, path: "/" },
     { title: "Problemas", icon: FileText, path: "/problemas" },
     { title: "Gabinetes", icon: Building, path: "/gabinetes" },
     { title: "Relatórios", icon: FileBarChart, path: "/relatorios" },
@@ -43,21 +45,27 @@ const Sidebar: React.FC = () => {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4">
         <ul className="space-y-1 px-2">
-          {navigationItems.map((item) => (
-            <li key={item.title}>
-              <Link 
-                to={item.path}
-                className={`flex items-center gap-3 px-3 py-2 rounded-md ${
-                  item.active 
-                    ? 'text-resolve-green border-l-2 border-resolve-green' 
-                    : 'text-gray-600 hover:bg-gray-100'
-                }`}
-              >
-                <item.icon className={`h-5 w-5 ${item.active ? 'text-resolve-green' : 'text-gray-500'}`} />
-                <span>{item.title}</span>
-              </Link>
-            </li>
-          ))}
+          {navigationItems.map((item) => {
+            const isActive = currentPath === item.path || 
+                            (item.path === "/" && currentPath === "/") ||
+                            (item.path !== "/" && currentPath.startsWith(item.path));
+            
+            return (
+              <li key={item.title}>
+                <Link 
+                  to={item.path}
+                  className={`flex items-center gap-3 px-3 py-2 rounded-md ${
+                    isActive 
+                      ? 'text-resolve-green border-l-2 border-resolve-green' 
+                      : 'text-gray-600 hover:bg-gray-100'
+                  }`}
+                >
+                  <item.icon className={`h-5 w-5 ${isActive ? 'text-resolve-green' : 'text-gray-500'}`} />
+                  <span>{item.title}</span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       </nav>
 
