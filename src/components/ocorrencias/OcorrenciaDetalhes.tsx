@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Image, Clock } from 'lucide-react';
@@ -88,7 +89,7 @@ export const OcorrenciaDetalhes: React.FC<OcorrenciaDetalhesProps> = ({
               </span>
             ) : (
               <span>
-                Em andamento há {elapsedTime}
+                Recebido há {elapsedTime}
               </span>
             )}
           </div>

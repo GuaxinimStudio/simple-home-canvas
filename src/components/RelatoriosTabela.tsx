@@ -100,7 +100,7 @@ const ElapsedTimeDisplay = ({ createdAt, updatedAt, isResolved }: {
     return <span className="text-green-600">Resolvido após {elapsedTime}</span>;
   }
   
-  return <span className="text-red-500">Em andamento há {elapsedTime}</span>;
+  return <span className="text-red-500">Recebido há {elapsedTime}</span>;
 };
 
 const RelatoriosTabela: React.FC = () => {

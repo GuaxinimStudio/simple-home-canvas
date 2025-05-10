@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -45,7 +46,7 @@ export const ProblemRow: React.FC<ProblemRowProps> = ({ problem }) => {
     }
     return (
       <span className="text-red-500">
-        Em andamento há {elapsedTime}
+        Recebido há {elapsedTime}
       </span>
     );
   };
