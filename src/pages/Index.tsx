@@ -6,7 +6,8 @@ import DonutChart from '../components/DonutChart';
 import { 
   ListFilter, 
   PieChart, 
-  Calendar
+  Calendar,
+  Clock
 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { 
