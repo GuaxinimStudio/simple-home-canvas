@@ -3,14 +3,14 @@ import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
 import { supabase } from "@/integrations/supabase/client";
-import { StatusType } from '@/types/ocorrencia';
+import { StatusType, OcorrenciaData } from '@/types/ocorrencia';
 
 export const useOcorrenciaDetails = (id: string | undefined) => {
   const [currentStatus, setCurrentStatus] = useState<StatusType>('Pendente');
   const [selectedDepartamento, setSelectedDepartamento] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [problemData, setProblemData] = useState<any>(null);
+  const [problemData, setProblemData] = useState<OcorrenciaData | null>(null);
   const [prazoEstimado, setPrazoEstimado] = useState<string>('');
   const [imageModalOpen, setImageModalOpen] = useState(false);
 
@@ -36,7 +36,7 @@ export const useOcorrenciaDetails = (id: string | undefined) => {
         }
 
         // Se temos os dados básicos, podemos usá-los
-        let fullData = basicData;
+        let fullData = basicData as OcorrenciaData;
         
         // Agora tentamos buscar o gabinete separadamente se temos um gabinete_id
         if (basicData.gabinete_id) {
@@ -55,7 +55,7 @@ export const useOcorrenciaDetails = (id: string | undefined) => {
                   gabinete: gabineteData.gabinete,
                   municipio: gabineteData.municipio
                 }
-              };
+              } as OcorrenciaData;
             }
           } catch (gabErr) {
             console.warn('Erro ao buscar gabinete, continuando com dados básicos:', gabErr);
@@ -148,4 +148,3 @@ export const useOcorrenciaDetails = (id: string | undefined) => {
     setSelectedDepartamento
   };
 };
-
