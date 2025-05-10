@@ -197,7 +197,7 @@ const EditarUsuarioModal = ({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value="">Nenhuma</SelectItem>
+                      <SelectItem value="null">Nenhuma</SelectItem> {/* Alterado de "" para "null" */}
                       {gabinetes.map((gabinete) => (
                         <SelectItem key={gabinete.id} value={gabinete.id}>
                           {gabinete.gabinete}
