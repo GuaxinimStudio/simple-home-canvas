@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useElapsedTimeCounter } from '@/hooks/useElapsedTimeCounter';
@@ -85,7 +84,7 @@ const tabelaData = [
   }
 ];
 
-// Componente para exibir o tempo decorrido com atualização em tempo real
+// Componente para exibir o tempo decorrido com atualização em tempo real como cronômetro
 const ElapsedTimeDisplay = ({ createdAt, updatedAt, isResolved }: { 
   createdAt: string, 
   updatedAt: string | null, 
@@ -93,7 +92,8 @@ const ElapsedTimeDisplay = ({ createdAt, updatedAt, isResolved }: {
 }) => {
   const elapsedTime = useElapsedTimeCounter(
     createdAt, 
-    isResolved ? updatedAt : null
+    isResolved ? updatedAt : null,
+    1000 // Atualizar a cada 1 segundo para funcionar como cronômetro
   );
   
   if (isResolved) {

@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Image, Clock } from 'lucide-react';
@@ -18,11 +17,11 @@ export const OcorrenciaDetalhes: React.FC<OcorrenciaDetalhesProps> = ({
   // Determinar se o problema está resolvido
   const isResolved = problemData.status === 'Resolvido';
   
-  // Utilizamos o novo hook para atualizar o tempo automaticamente
+  // Utilizamos o hook para atualizar o tempo a cada segundo como um cronômetro
   const elapsedTime = useElapsedTimeCounter(
     problemData.created_at,
     isResolved ? problemData.updated_at : null,
-    5000 // Atualizar a cada 5 segundos para melhor experiência do usuário
+    1000 // Atualizar a cada 1 segundo para funcionar como cronômetro
   );
 
   return (

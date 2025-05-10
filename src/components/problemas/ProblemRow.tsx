@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
@@ -18,10 +17,11 @@ export const ProblemRow: React.FC<ProblemRowProps> = ({ problem }) => {
   const navigate = useNavigate();
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   
-  // Utilizamos o novo hook para manter o tempo atualizado automaticamente
+  // Utilizamos o hook para atualizar o tempo em tempo real como um cronômetro
   const elapsedTime = useElapsedTimeCounter(
     problem.created_at, 
-    problem.status === 'Resolvido' ? problem.updated_at : null
+    problem.status === 'Resolvido' ? problem.updated_at : null,
+    1000 // Atualizar a cada 1 segundo
   );
   
   const formatDate = (dateString: string) => {
