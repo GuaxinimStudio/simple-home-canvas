@@ -39,7 +39,12 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
   useFetchOcorrencia(id, updateState);
 
   // Gerenciar status e prazo
-  const statusManager = useOcorrenciaStatus(state.currentStatus, state.prazoEstimado);
+  const { 
+    currentStatus, 
+    prazoEstimado, 
+    handleStatusChange, 
+    handlePrazoChange 
+  } = useOcorrenciaStatus(state.currentStatus, state.prazoEstimado);
   
   // Gerenciar imagens
   const imageManager = useOcorrenciaImages(state.imagemResolvidoPreview);
@@ -47,8 +52,8 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
   // Gerenciar salvamento de alterações
   const { handleSalvar } = useOcorrenciaSave(id, {
     ...state,
-    currentStatus: statusManager.currentStatus,
-    prazoEstimado: statusManager.prazoEstimado,
+    currentStatus,
+    prazoEstimado,
     imagemResolvido: imageManager.imagemResolvido,
     imagemResolvidoPreview: imageManager.imagemResolvidoPreview
   }, updateState);
@@ -78,12 +83,12 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
 
   return {
     ...state,
-    currentStatus: statusManager.currentStatus,
-    prazoEstimado: statusManager.prazoEstimado,
+    currentStatus,
+    prazoEstimado,
     imagemResolvido: imageManager.imagemResolvido,
     imagemResolvidoPreview: imageManager.imagemResolvidoPreview,
-    handleStatusChange: statusManager.handleStatusChange,
-    handlePrazoChange: statusManager.handlePrazoChange,
+    handleStatusChange,
+    handlePrazoChange,
     handleSalvar,
     setSelectedDepartamento,
     handleDescricaoResolvidoChange,

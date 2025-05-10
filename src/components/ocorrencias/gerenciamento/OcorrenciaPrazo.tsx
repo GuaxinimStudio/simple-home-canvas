@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { Calendar } from 'lucide-react';
 
 interface OcorrenciaPrazoProps {
   prazoEstimado: string;
@@ -19,9 +20,12 @@ export const OcorrenciaPrazo: React.FC<OcorrenciaPrazoProps> = ({
         <span className="text-green-500 text-xs">Alteração: SG</span>
       </div>
       <div className="relative">
+        <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+          <Calendar className="h-5 w-5 text-gray-400" />
+        </div>
         <input 
           type="date" 
-          className="w-full border rounded-md px-4 py-2.5 text-gray-700"
+          className="w-full border rounded-md pl-10 py-2.5 text-gray-700"
           placeholder="Selecione um prazo"
           value={prazoEstimado}
           onChange={onPrazoChange}
