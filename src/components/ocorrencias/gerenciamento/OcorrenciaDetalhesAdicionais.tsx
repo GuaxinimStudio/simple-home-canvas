@@ -4,9 +4,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Upload } from 'lucide-react';
 import { toast } from "sonner";
+import { StatusType } from '@/types/ocorrencia';
 
 interface OcorrenciaDetalhesAdicionaisProps {
-  currentStatus: string;
+  currentStatus: StatusType;
   descricaoResolvido: string;
   onDescricaoResolvidoChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
   imagemResolvidoPreview: string | null;
@@ -34,17 +35,42 @@ export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionais
     }
   };
 
+  // Textos contextuais baseados no status
+  const getTitulos = () => {
+    if (currentStatus === 'Resolvido') {
+      return {
+        descricao: "Detalhes da Resolução",
+        placeholder: "Descreva como o problema foi resolvido...",
+        imagem: "Imagem da Resolução"
+      };
+    } else if (currentStatus === 'Informações Insuficientes') {
+      return {
+        descricao: "Orientações para o Cidadão",
+        placeholder: "Explique quais informações são necessárias...",
+        imagem: "Imagem de Apoio (opcional)"
+      };
+    } else {
+      return {
+        descricao: "Detalhes Adicionais",
+        placeholder: "Adicione informações relevantes...",
+        imagem: "Imagem de Apoio"
+      };
+    }
+  };
+
+  const titulos = getTitulos();
+
+  // Verifica se a imagem é obrigatória
+  const isImagemObrigatoria = currentStatus === 'Resolvido';
+
   return (
     <>
       <div>
         <h3 className="font-medium mb-2">
-          {currentStatus === "Resolvido" ? "Detalhes da Resolução" : "Orientações para o Cidadão"}
+          {titulos.descricao}
         </h3>
         <Textarea 
-          placeholder={currentStatus === "Resolvido" 
-            ? "Descreva como o problema foi resolvido..." 
-            : "Explique que informações são necessárias..."
-          }
+          placeholder={titulos.placeholder}
           className="min-h-[120px] w-full"
           value={descricaoResolvido}
           onChange={onDescricaoResolvidoChange}
@@ -53,9 +79,16 @@ export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionais
       </div>
 
       <div>
-        <h3 className="font-medium mb-2">
-          {currentStatus === "Resolvido" ? "Imagem da Resolução" : "Imagem de Apoio"}
-        </h3>
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="font-medium">
+            {titulos.imagem}
+          </h3>
+          {isImagemObrigatoria && !isResolvido && !imagemResolvidoPreview && (
+            <span className="text-red-500 text-xs">
+              *Obrigatório para resolução
+            </span>
+          )}
+        </div>
         
         {imagemResolvidoPreview ? (
           <div className="relative mb-3">

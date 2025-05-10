@@ -1,7 +1,7 @@
 
 import { useState, useCallback } from 'react';
 import { StatusType, OcorrenciaData } from '@/types/ocorrencia';
-import { OcorrenciaState, OcorrenciaActions } from './ocorrencia/ocorrenciaTypes';
+import { OcorrenciaState, OcorrenciaActions, isStatusRequireResponse } from './ocorrencia/ocorrenciaTypes';
 import { useFetchOcorrencia } from './ocorrencia/useFetchOcorrencia';
 import { useOcorrenciaStatus } from './ocorrencia/useOcorrenciaStatus';
 import { useOcorrenciaImages } from './ocorrencia/useOcorrenciaImages';
@@ -65,7 +65,7 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
   // Verificar se já está salvo como resolvido e se a resposta já foi enviada quando carregar os dados
   useState(() => {
     if (state.problemData) {
-      if (state.problemData.status === 'Resolvido') {
+      if (isStatusRequireResponse(state.problemData.status as any)) {
         updateState({ isSaved: true });
       }
       if (state.problemData.resposta_enviada) {
@@ -103,8 +103,8 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     prazoEstimado,
     imagemResolvido: imageManager.imagemResolvido,
     imagemResolvidoPreview: imageManager.imagemResolvidoPreview,
-    isSaved: isSaved || (state.problemData?.status === 'Resolvido'), // Considerar resolvido se já estiver no banco
-    respostaEnviada: state.respostaEnviada || (state.problemData?.resposta_enviada === true), // Verificar se a resposta já foi enviada
+    isSaved: isSaved || (state.problemData && isStatusRequireResponse(state.problemData.status as any)), 
+    respostaEnviada: state.respostaEnviada || (state.problemData?.resposta_enviada === true),
     handleStatusChange,
     handlePrazoChange,
     handleSalvar,

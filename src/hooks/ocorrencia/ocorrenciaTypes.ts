@@ -13,7 +13,7 @@ export interface OcorrenciaState {
   imagemResolvidoPreview: string | null;
   imageModalOpen: boolean;
   isSaved?: boolean; // Propriedade para controle de salvamento
-  respostaEnviada?: boolean; // Nova propriedade para controle de resposta enviada
+  respostaEnviada?: boolean; // Propriedade para controle de resposta enviada
 }
 
 export interface OcorrenciaActions {
@@ -26,3 +26,8 @@ export interface OcorrenciaActions {
   setImageModalOpen: React.Dispatch<React.SetStateAction<boolean>>;
   handleEnviarRespostaCidadao: () => Promise<void>;
 }
+
+// Função auxiliar para verificar se o status requer envio de resposta ao cidadão
+export const isStatusRequireResponse = (status: StatusType): boolean => {
+  return status === 'Resolvido' || status === 'Informações Insuficientes';
+};

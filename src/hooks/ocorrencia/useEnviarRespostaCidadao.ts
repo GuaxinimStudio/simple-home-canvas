@@ -14,7 +14,7 @@ export const useEnviarRespostaCidadao = (
       }
       
       // Exibir toast de loading
-      toast.loading('Enviando resposta ao cidadão...');
+      toast.loading('Enviando informações ao cidadão...');
       
       // Preparar os dados para enviar ao webhook
       const webhookUrl = 'https://hook.us1.make.com/4ktz9s09wo5kt8a4fhhsb46pudkwan6u';
@@ -58,12 +58,17 @@ export const useEnviarRespostaCidadao = (
       
       // Exibir toast de sucesso
       toast.dismiss();
-      toast.success('Resposta enviada com sucesso ao cidadão!');
+      
+      const mensagemSucesso = problemData.status === 'Informações Insuficientes' 
+        ? 'Orientações enviadas com sucesso ao cidadão!' 
+        : 'Resposta enviada com sucesso ao cidadão!';
+        
+      toast.success(mensagemSucesso);
       
     } catch (err: any) {
       console.error('Erro ao enviar resposta ao cidadão:', err);
       toast.dismiss();
-      toast.error(`Erro ao enviar resposta: ${err.message}`);
+      toast.error(`Erro ao enviar informações: ${err.message}`);
     }
   };
 

@@ -7,6 +7,7 @@ import { OcorrenciaPrazo } from './gerenciamento/OcorrenciaPrazo';
 import { OcorrenciaDepartamento } from './gerenciamento/OcorrenciaDepartamento';
 import { OcorrenciaDetalhesAdicionais } from './gerenciamento/OcorrenciaDetalhesAdicionais';
 import { OcorrenciaAcoes } from './gerenciamento/OcorrenciaAcoes';
+import { isStatusRequireResponse } from '@/hooks/ocorrencia/ocorrenciaTypes';
 
 interface OcorrenciaGerenciamentoProps {
   currentStatus: StatusType;
@@ -44,11 +45,12 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
   // Verifica se um prazo foi definido
   const isPrazoDefinido = prazoEstimado !== '';
   
-  // Verifica se o status está resolvido para bloquear os campos
-  const isResolvido = currentStatus === "Resolvido" && isSaved;
+  // Verifica se o status requer resposta e está salvo para bloquear os campos
+  const requiresResponse = isStatusRequireResponse(currentStatus);
+  const isFormLocked = requiresResponse && isSaved;
   
   // Verifica se devemos mostrar os campos adicionais
-  const showAdditionalFields = currentStatus === "Resolvido" || currentStatus === "Informações Insuficientes";
+  const showAdditionalFields = requiresResponse;
   
   return (
     <Card className="p-6">
@@ -72,13 +74,13 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
           currentStatus={currentStatus}
           onStatusChange={onStatusChange}
           isPrazoDefinido={isPrazoDefinido}
-          isResolvido={isResolvido}
+          isResolvido={isFormLocked}
         />
 
         <OcorrenciaPrazo 
           prazoEstimado={prazoEstimado}
           onPrazoChange={onPrazoChange}
-          isResolvido={isResolvido}
+          isResolvido={isFormLocked}
         />
 
         <OcorrenciaDepartamento 
@@ -93,12 +95,12 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
             onDescricaoResolvidoChange={onDescricaoResolvidoChange}
             imagemResolvidoPreview={imagemResolvidoPreview}
             onImagemResolvidoChange={onImagemResolvidoChange}
-            isResolvido={isResolvido}
+            isResolvido={isFormLocked}
           />
         )}
 
         <OcorrenciaAcoes 
-          isResolvido={currentStatus === "Resolvido"}
+          currentStatus={currentStatus}
           isSalvo={isSaved}
           onSalvar={onSalvar}
           onEnviarRespostaCidadao={onEnviarRespostaCidadao}

@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { toast } from 'sonner';
 import { supabase } from "@/integrations/supabase/client";
 import { OcorrenciaData } from '@/types/ocorrencia';
-import { OcorrenciaState } from './ocorrenciaTypes';
+import { OcorrenciaState, isStatusRequireResponse } from './ocorrenciaTypes';
 
 export const useOcorrenciaSave = (
   id: string | undefined, 
@@ -22,7 +22,7 @@ export const useOcorrenciaSave = (
 
   // Quando carrega os dados iniciais, verifica se já está resolvido e salvo
   useState(() => {
-    if (problemData && problemData.status === 'Resolvido') {
+    if (problemData && isStatusRequireResponse(problemData.status as any)) {
       setIsSaved(true);
     }
   });
@@ -39,7 +39,7 @@ export const useOcorrenciaSave = (
       }
 
       // Verifica se precisa de descrição detalhada para status de Resolvido ou Informações Insuficientes
-      if ((currentStatus === 'Resolvido' || currentStatus === 'Informações Insuficientes') && !descricaoResolvido?.trim()) {
+      if (isStatusRequireResponse(currentStatus) && !descricaoResolvido?.trim()) {
         toast.error(`É necessário fornecer ${currentStatus === 'Resolvido' ? 'detalhes da resolução' : 'orientações para o cidadão'}.`);
         return;
       }
@@ -63,11 +63,18 @@ export const useOcorrenciaSave = (
         updateData.descricao_resolvido = descricaoResolvido;
       }
       
-      // Se o status for alterado para Resolvido, atualizamos a data de resolução
-      // automaticamente na data atual
-      if (currentStatus === 'Resolvido' && problemData?.status !== 'Resolvido') {
+      // Se o status for alterado para Resolvido ou Informações Insuficientes,
+      // atualizamos a data de resolução automaticamente
+      const shouldUpdateResolvedAt = isStatusRequireResponse(currentStatus) && 
+        !isStatusRequireResponse(problemData?.status as any);
+        
+      if (shouldUpdateResolvedAt) {
         // A data de atualização (updated_at) será atualizada automaticamente pelo trigger do banco
-        toast.success('Problema resolvido! O contador de tempo foi parado.');
+        toast.success(
+          currentStatus === 'Resolvido' 
+            ? 'Problema resolvido! O contador de tempo foi parado.' 
+            : 'Informações insuficientes registradas! O cidadão será notificado.'
+        );
       }
       
       // Se tiver uma nova imagem para upload
@@ -95,14 +102,14 @@ export const useOcorrenciaSave = (
               ...problemData,
               ...updateData,
               prazo_estimado: prazoEstimado ? new Date(prazoEstimado).toISOString() : null,
-              updated_at: currentStatus === 'Resolvido' && problemData.status !== 'Resolvido' 
+              updated_at: shouldUpdateResolvedAt 
                 ? new Date().toISOString() 
                 : problemData.updated_at
             };
             setState({ problemData: updatedProblem });
             
-            // Atualizar o estado de salvamento se foi resolvido
-            if (currentStatus === 'Resolvido') {
+            // Atualizar o estado de salvamento se foi resolvido ou informações insuficientes
+            if (isStatusRequireResponse(currentStatus)) {
               setIsSaved(true);
             }
           }
@@ -128,14 +135,14 @@ export const useOcorrenciaSave = (
           const updatedProblem = {
             ...problemData,
             ...updateData,
-            updated_at: currentStatus === 'Resolvido' && problemData.status !== 'Resolvido' 
+            updated_at: shouldUpdateResolvedAt 
               ? new Date().toISOString() 
               : problemData.updated_at
           };
           setState({ problemData: updatedProblem });
           
-          // Atualizar o estado de salvamento se foi resolvido
-          if (currentStatus === 'Resolvido') {
+          // Atualizar o estado de salvamento se foi resolvido ou informações insuficientes
+          if (isStatusRequireResponse(currentStatus)) {
             setIsSaved(true);
           }
         }
