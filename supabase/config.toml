@@ -36,3 +36,6 @@ enabled = true
 [functions]
 [functions.receber-problema]
 verify_jwt = false
+
+[functions.gerar-token]
+verify_jwt = false

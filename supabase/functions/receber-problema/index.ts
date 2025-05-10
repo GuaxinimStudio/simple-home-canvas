@@ -1,12 +1,16 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { verify } from "https://deno.land/x/djwt@v2.8/mod.ts";
 
 // Configuração dos headers CORS
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
+
+// Chave secreta para verificação do token (deve ser a mesma usada na geração)
+const SECRET_KEY = "resolve-leg-api-secret-key";
 
 // Interface para o request do problema
 interface ProblemaRequest {
@@ -24,6 +28,49 @@ serve(async (req) => {
   }
   
   try {
+    // Verificação do token de autenticação
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader || !authHeader.startsWith("Bearer ")) {
+      return new Response(
+        JSON.stringify({ erro: "Token de autenticação ausente ou inválido" }),
+        { 
+          status: 401, 
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders 
+          }
+        }
+      );
+    }
+
+    const token = authHeader.split(" ")[1];
+    
+    try {
+      // Importa a chave para verificação
+      const key = await crypto.subtle.importKey(
+        "raw",
+        new TextEncoder().encode(SECRET_KEY),
+        { name: "HMAC", hash: "SHA-256" },
+        false,
+        ["sign", "verify"]
+      );
+      
+      // Verifica o token
+      await verify(token, key);
+    } catch (error) {
+      console.error("Erro na verificação do token:", error);
+      return new Response(
+        JSON.stringify({ erro: "Token inválido ou expirado" }),
+        { 
+          status: 401, 
+          headers: { 
+            "Content-Type": "application/json",
+            ...corsHeaders 
+          }
+        }
+      );
+    }
+
     // Criação do cliente Supabase com as credenciais do ambiente
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
