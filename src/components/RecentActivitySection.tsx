@@ -12,7 +12,7 @@ const RecentActivitySection: React.FC = () => {
           <div className="w-2 h-2 mt-1.5 rounded-full bg-resolve-green"></div>
           <div>
             <p className="text-sm">
-              <span className="font-medium">Secretaria de Obras</span> 
+              <span className="font-medium">Gabinete de Obras</span> 
               {' '}respondeu ao problema <span className="text-resolve-green">#1001</span>
             </p>
             <p className="text-xs text-gray-500">Há 2 horas</p>
@@ -24,7 +24,7 @@ const RecentActivitySection: React.FC = () => {
           <div>
             <p className="text-sm">
               <span className="font-medium">Novo problema</span> 
-              {' '}registrado na <span className="text-resolve-green">Secretaria de Saúde</span>
+              {' '}registrado no <span className="text-resolve-green">Gabinete de Saúde</span>
             </p>
             <p className="text-xs text-gray-500">Há 3 horas</p>
           </div>

@@ -43,9 +43,9 @@ const StatusCardsSection: React.FC<StatusCardsSectionProps> = ({
 
       <StatusCard 
         icon={<PieChart className="h-5 w-5" />}
-        title="Distribuição por Secretaria"
+        title="Distribuição por Gabinete"
         count="3"
-        badge={{ text: "3 Secretarias", color: "bg-resolve-lightgreen text-resolve-green" }}
+        badge={{ text: "3 Gabinetes", color: "bg-resolve-lightgreen text-resolve-green" }}
       >
         <div className="flex flex-col items-center">
           <DonutChart 
