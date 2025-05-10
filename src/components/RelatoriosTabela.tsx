@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { calculateElapsedTime } from '@/utils/dateUtils';
+import { useElapsedTimeCounter } from '@/hooks/useElapsedTimeCounter';
 
 // Dados de exemplo para a tabela detalhada
 const tabelaData = [
@@ -85,6 +85,24 @@ const tabelaData = [
   }
 ];
 
+// Componente para exibir o tempo decorrido com atualização em tempo real
+const ElapsedTimeDisplay = ({ createdAt, updatedAt, isResolved }: { 
+  createdAt: string, 
+  updatedAt: string | null, 
+  isResolved: boolean 
+}) => {
+  const elapsedTime = useElapsedTimeCounter(
+    createdAt, 
+    isResolved ? updatedAt : null
+  );
+  
+  if (isResolved) {
+    return <span className="text-green-600">Resolvido após {elapsedTime}</span>;
+  }
+  
+  return <span className="text-red-500">Em andamento há {elapsedTime}</span>;
+};
+
 const RelatoriosTabela: React.FC = () => {
   return (
     <div className="bg-white p-6 rounded-lg border">
@@ -118,15 +136,11 @@ const RelatoriosTabela: React.FC = () => {
                 </span>
               </TableCell>
               <TableCell>
-                {item.status === 'Resolvido' && item.updated_at ? (
-                  <span className="text-green-600">
-                    Resolvido após {calculateElapsedTime(item.created_at, item.updated_at)}
-                  </span>
-                ) : (
-                  <span className="text-red-500">
-                    Em andamento há {calculateElapsedTime(item.created_at)}
-                  </span>
-                )}
+                <ElapsedTimeDisplay
+                  createdAt={item.created_at}
+                  updatedAt={item.updated_at}
+                  isResolved={item.status === 'Resolvido'}
+                />
               </TableCell>
               <TableCell>{item.prazo}</TableCell>
               <TableCell className={`${

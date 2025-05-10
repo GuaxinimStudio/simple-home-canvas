@@ -6,9 +6,9 @@ import { ptBR } from 'date-fns/locale';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { ProblemStatusBadge } from './ProblemStatusBadge';
 import { ProblemDeadlineBadge } from './ProblemDeadlineBadge';
-import { calculateElapsedTime } from '@/utils/dateUtils';
 import { ProblemItem } from './types';
 import { ProblemImageModal } from './ProblemImageModal';
+import { useElapsedTimeCounter } from '@/hooks/useElapsedTimeCounter';
 
 type ProblemRowProps = {
   problem: ProblemItem;
@@ -17,6 +17,12 @@ type ProblemRowProps = {
 export const ProblemRow: React.FC<ProblemRowProps> = ({ problem }) => {
   const navigate = useNavigate();
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  
+  // Utilizamos o novo hook para manter o tempo atualizado automaticamente
+  const elapsedTime = useElapsedTimeCounter(
+    problem.created_at, 
+    problem.status === 'Resolvido' ? problem.updated_at : null
+  );
   
   const formatDate = (dateString: string) => {
     try {
@@ -33,13 +39,13 @@ export const ProblemRow: React.FC<ProblemRowProps> = ({ problem }) => {
     if (problem.status === 'Resolvido') {
       return (
         <span className="text-green-500">
-          Resolvido após {calculateElapsedTime(problem.created_at, problem.updated_at)}
+          Resolvido após {elapsedTime}
         </span>
       );
     }
     return (
       <span className="text-red-500">
-        Em andamento há {calculateElapsedTime(problem.created_at)}
+        Em andamento há {elapsedTime}
       </span>
     );
   };

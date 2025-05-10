@@ -2,8 +2,9 @@
 import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Image, Clock } from 'lucide-react';
-import { formatDate, calculateElapsedTime } from '@/utils/dateUtils';
+import { formatDate } from '@/utils/dateUtils';
 import { OcorrenciaData } from '@/types/ocorrencia';
+import { useElapsedTimeCounter } from '@/hooks/useElapsedTimeCounter';
 
 interface OcorrenciaDetalhesProps {
   problemData: OcorrenciaData;
@@ -16,6 +17,13 @@ export const OcorrenciaDetalhes: React.FC<OcorrenciaDetalhesProps> = ({
 }) => {
   // Determinar se o problema está resolvido
   const isResolved = problemData.status === 'Resolvido';
+  
+  // Utilizamos o novo hook para atualizar o tempo automaticamente
+  const elapsedTime = useElapsedTimeCounter(
+    problemData.created_at,
+    isResolved ? problemData.updated_at : null,
+    5000 // Atualizar a cada 5 segundos para melhor experiência do usuário
+  );
 
   return (
     <Card className="p-6">
@@ -77,11 +85,11 @@ export const OcorrenciaDetalhes: React.FC<OcorrenciaDetalhesProps> = ({
             <Clock className="w-4 h-4 mr-2" />
             {isResolved ? (
               <span>
-                Resolvido após {calculateElapsedTime(problemData.created_at, problemData.updated_at)}
+                Resolvido após {elapsedTime}
               </span>
             ) : (
               <span>
-                Em andamento há {calculateElapsedTime(problemData.created_at)}
+                Em andamento há {elapsedTime}
               </span>
             )}
           </div>
