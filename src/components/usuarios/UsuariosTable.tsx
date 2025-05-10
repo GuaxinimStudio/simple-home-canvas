@@ -2,7 +2,14 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { MoreHorizontal } from 'lucide-react';
+import { Edit, Trash2, MoreVertical } from 'lucide-react';
+import { 
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger
+} from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
 
 interface Usuario {
   id: string;
@@ -32,6 +39,16 @@ const UsuariosTable = ({ usuarios, isLoading, error }: UsuariosTableProps) => {
       default:
         return role;
     }
+  };
+
+  const handleEdit = (usuario: Usuario) => {
+    toast.info(`Editar usuário: ${usuario.nome}`);
+    // Aqui implementaremos a funcionalidade de edição posteriormente
+  };
+
+  const handleDelete = (usuario: Usuario) => {
+    toast.info(`Excluir usuário: ${usuario.nome}`);
+    // Aqui implementaremos a funcionalidade de exclusão posteriormente
   };
 
   return (
@@ -76,9 +93,29 @@ const UsuariosTable = ({ usuarios, isLoading, error }: UsuariosTableProps) => {
                 </TableCell>
                 <TableCell>{usuario.gabinetes?.gabinete || "-"}</TableCell>
                 <TableCell>
-                  <Button variant="ghost" size="icon">
-                    <MoreHorizontal className="h-4 w-4" />
-                  </Button>
+                  <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                      <Button variant="ghost" size="icon">
+                        <MoreVertical className="h-4 w-4" />
+                      </Button>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent align="end">
+                      <DropdownMenuItem 
+                        onClick={() => handleEdit(usuario)}
+                        className="cursor-pointer"
+                      >
+                        <Edit className="mr-2 h-4 w-4" />
+                        Editar
+                      </DropdownMenuItem>
+                      <DropdownMenuItem 
+                        onClick={() => handleDelete(usuario)}
+                        className="cursor-pointer text-red-600 hover:text-red-700 focus:text-red-600"
+                      >
+                        <Trash2 className="mr-2 h-4 w-4" />
+                        Excluir
+                      </DropdownMenuItem>
+                    </DropdownMenuContent>
+                  </DropdownMenu>
                 </TableCell>
               </TableRow>
             ))
