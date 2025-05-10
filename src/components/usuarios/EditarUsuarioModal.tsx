@@ -1,36 +1,13 @@
 
-import React, { useEffect, useState } from 'react';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-
+import React from 'react';
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
   DialogDescription,
-  DialogFooter,
 } from '@/components/ui/dialog';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from '@/components/ui/form';
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from '@/components/ui/select';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import EditarUsuarioForm from './EditarUsuarioForm';
 
 interface Usuario {
   id: string;
@@ -52,16 +29,6 @@ interface EditarUsuarioModalProps {
   gabinetes: { id: string; gabinete: string }[];
 }
 
-// Definimos aqui o tipo específico para o role
-type UserRole = "vereador" | "administrador";
-
-const formSchema = z.object({
-  nome: z.string().min(2, { message: 'O nome deve ter pelo menos 2 caracteres' }),
-  telefone: z.string().optional().nullable(),
-  role: z.enum(["vereador", "administrador"]), // Usando z.enum para garantir que apenas esses valores sejam aceitos
-  gabinete_id: z.string().optional().nullable(),
-});
-
 const EditarUsuarioModal = ({
   open,
   onOpenChange,
@@ -69,76 +36,6 @@ const EditarUsuarioModal = ({
   usuario,
   gabinetes,
 }: EditarUsuarioModalProps) => {
-  // Adicionando state para controlar a visibilidade do campo de secretaria
-  const [showGabineteField, setShowGabineteField] = useState(true);
-  
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      nome: '',
-      telefone: '',
-      role: 'vereador' as UserRole,
-      gabinete_id: '',
-    },
-  });
-  
-  // Observar mudanças no campo role para mostrar/ocultar o campo de secretaria
-  const watchRole = form.watch("role");
-  
-  useEffect(() => {
-    // Se o papel for administrador, ocultar o campo de secretaria
-    setShowGabineteField(watchRole !== "administrador");
-    
-    // Se mudar para administrador, limpar o valor do gabinete_id
-    if (watchRole === "administrador") {
-      form.setValue("gabinete_id", null);
-    }
-  }, [watchRole, form]);
-
-  // Atualiza os valores do formulário quando o usuário muda
-  useEffect(() => {
-    if (usuario) {
-      form.reset({
-        nome: usuario.nome || '',
-        telefone: usuario.telefone || '',
-        role: (usuario.role as UserRole) || 'vereador',
-        gabinete_id: usuario.gabinete_id || '',
-      });
-      
-      // Definir a visibilidade inicial do campo de secretaria com base no papel do usuário
-      setShowGabineteField(usuario.role !== "administrador");
-    }
-  }, [usuario, form]);
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    if (!usuario) return;
-    
-    try {
-      const { error } = await supabase
-        .from('profiles')
-        .update({
-          nome: values.nome,
-          telefone: values.telefone,
-          role: values.role,
-          gabinete_id: values.role === "administrador" ? null : values.gabinete_id,
-        })
-        .eq('id', usuario.id);
-
-      if (error) {
-        toast.error('Erro ao atualizar usuário');
-        console.error('Erro ao atualizar usuário:', error);
-        return;
-      }
-
-      toast.success('Usuário atualizado com sucesso');
-      onSuccess();
-      onOpenChange(false);
-    } catch (error) {
-      toast.error('Erro ao atualizar usuário');
-      console.error('Erro ao atualizar usuário:', error);
-    }
-  };
-
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
@@ -148,102 +45,13 @@ const EditarUsuarioModal = ({
             Edite as informações do usuário abaixo.
           </DialogDescription>
         </DialogHeader>
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <FormField
-              control={form.control}
-              name="nome"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Nome</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Nome do usuário" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="telefone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Telefone</FormLabel>
-                  <FormControl>
-                    <Input placeholder="Telefone do usuário" {...field} value={field.value || ''} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            <FormField
-              control={form.control}
-              name="role"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Função</FormLabel>
-                  <Select onValueChange={field.onChange} defaultValue={field.value}>
-                    <FormControl>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Selecione uma função" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value="vereador">Vereador</SelectItem>
-                      <SelectItem value="administrador">Administrador</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            
-            {/* Renderização condicional do campo de secretaria baseado no papel selecionado */}
-            {showGabineteField && (
-              <FormField
-                control={form.control}
-                name="gabinete_id"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Secretaria</FormLabel>
-                    <Select 
-                      onValueChange={field.onChange} 
-                      defaultValue={field.value || undefined}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione uma secretaria" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        <SelectItem value="null">Nenhuma</SelectItem>
-                        {gabinetes.map((gabinete) => (
-                          <SelectItem key={gabinete.id} value={gabinete.id}>
-                            {gabinete.gabinete}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            )}
-            
-            <DialogFooter>
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => onOpenChange(false)}
-              >
-                Cancelar
-              </Button>
-              <Button type="submit">Salvar Alterações</Button>
-            </DialogFooter>
-          </form>
-        </Form>
+        
+        <EditarUsuarioForm
+          usuario={usuario}
+          onSuccess={onSuccess}
+          onClose={() => onOpenChange(false)}
+          gabinetes={gabinetes}
+        />
       </DialogContent>
     </Dialog>
   );
