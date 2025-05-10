@@ -53,36 +53,68 @@ const Usuarios = () => {
     gabinete_id: z.string().optional(),
   });
 
-  // Buscar dados de usuários com gabinetes associados
+  // Buscar dados de usuários - Modificado para contornar o problema de recursão RLS
   const { data: usuarios, isLoading, error, refetch } = useQuery({
     queryKey: ['usuarios'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select(`
-          id,
-          nome,
-          email,
-          telefone,
-          role,
-          gabinete_id,
-          gabinetes (
+      try {
+        // Primeiro buscamos os IDs e dados básicos dos perfis
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select(`
             id,
-            gabinete
-          )
-        `)
-        .order('nome');
+            nome,
+            email,
+            telefone,
+            role,
+            gabinete_id
+          `)
+          .order('nome');
 
-      if (error) {
+        if (profilesError) {
+          throw profilesError;
+        }
+
+        // Agora obtemos os dados dos gabinetes em uma consulta separada
+        const gabineteIds = profilesData
+          .filter(profile => profile.gabinete_id)
+          .map(profile => profile.gabinete_id);
+
+        let gabinetesMap = {};
+        
+        if (gabineteIds.length > 0) {
+          const { data: gabinetesData, error: gabinetesError } = await supabase
+            .from('gabinetes')
+            .select('id, gabinete')
+            .in('id', gabineteIds);
+
+          if (gabinetesError) {
+            console.error('Erro ao buscar gabinetes:', gabinetesError);
+          } else if (gabinetesData) {
+            // Criar um mapa de ID para objeto de gabinete
+            gabinetesMap = gabinetesData.reduce((acc, gabinete) => {
+              acc[gabinete.id] = gabinete;
+              return acc;
+            }, {});
+          }
+        }
+
+        // Combinar os dados de perfis com os dados de gabinetes
+        const usuariosCompletos = profilesData.map(profile => ({
+          ...profile,
+          gabinetes: profile.gabinete_id ? gabinetesMap[profile.gabinete_id] : null
+        }));
+
+        return usuariosCompletos || [];
+      } catch (err) {
+        console.error('Erro na consulta de usuários:', err);
         toast({
           variant: "destructive",
           title: "Erro ao carregar usuários",
-          description: error.message
+          description: err.message
         });
         return [];
       }
-
-      return data || [];
     }
   });
 
