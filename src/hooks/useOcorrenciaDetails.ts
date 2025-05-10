@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { toast } from 'sonner';
 import { format } from 'date-fns';
@@ -284,10 +283,12 @@ export const useOcorrenciaDetails = (id: string | undefined) => {
       }
       
       // Atualizar localmente também
-      setProblemData({
-        ...problemData,
-        resposta_enviada: true
-      });
+      if (problemData) {
+        setProblemData({
+          ...problemData,
+          resposta_enviada: true
+        });
+      }
       
       // Exibir toast de sucesso
       toast.dismiss();

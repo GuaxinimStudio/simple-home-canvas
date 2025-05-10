@@ -14,6 +14,7 @@ export interface OcorrenciaData {
   municipio: string | null;
   descricao_resolvido?: string | null;
   imagem_resolvido?: string | null;
+  resposta_enviada?: boolean | null;
   gabinete?: {
     gabinete: string;
     municipio: string | null;
