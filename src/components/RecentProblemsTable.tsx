@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Clock } from 'lucide-react';
+import React, { useState } from 'react';
+import { Clock, ChevronDown, ChevronUp, Calendar, User, Clock3 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { 
   Table,
@@ -10,6 +10,12 @@ import {
   TableHeader,
   TableRow
 } from '@/components/ui/table';
+import { 
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger 
+} from '@/components/ui/collapsible';
+import { ToggleGroup, ToggleGroupItem } from '@/components/ui/toggle-group';
 
 type ProblemItem = {
   id: number;
@@ -26,6 +32,13 @@ type RecentProblemsTableProps = {
 };
 
 const RecentProblemsTable: React.FC<RecentProblemsTableProps> = ({ recentActivities }) => {
+  const [openItem, setOpenItem] = useState<number | null>(null);
+  const [activeTab, setActiveTab] = useState<string>("detalhes");
+
+  const toggleItem = (id: number) => {
+    setOpenItem(openItem === id ? null : id);
+  };
+
   return (
     <div className="bg-white rounded-lg border shadow-sm p-6">
       <div className="flex items-center justify-between mb-4">
@@ -45,41 +58,151 @@ const RecentProblemsTable: React.FC<RecentProblemsTableProps> = ({ recentActivit
               <TableHead className="w-[120px]">Tempo</TableHead>
               <TableHead className="w-[120px]">Prazo</TableHead>
               <TableHead className="w-[180px]">Data</TableHead>
-              <TableHead className="w-[180px]">Secretaria</TableHead>
+              <TableHead className="w-[180px]">Gabinete</TableHead>
               <TableHead className="w-[100px]">Ações</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {recentActivities.map((activity) => (
-              <TableRow key={activity.id}>
-                <TableCell className="font-medium">{activity.description}</TableCell>
-                <TableCell>
-                  <Badge className={`px-2.5 py-1 rounded-full text-xs ${
-                    activity.status === 'Resolvido' 
-                      ? "bg-resolve-lightgreen text-resolve-green" 
-                      : "bg-yellow-100 text-yellow-700"
-                  }`}>
-                    {activity.status}
-                  </Badge>
-                </TableCell>
-                <TableCell className="text-sm">{activity.timeElapsed}</TableCell>
-                <TableCell>
-                  <div className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs flex items-center justify-center">
-                    {activity.dueDate}
-                  </div>
-                </TableCell>
-                <TableCell className="text-sm">{activity.date}</TableCell>
-                <TableCell className="text-sm">{activity.secretary}</TableCell>
-                <TableCell>
-                  <button className="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200">
-                    <span className="sr-only">Ver detalhes</span>
-                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className="w-4 h-4">
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.963-7.178z" />
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                  </button>
-                </TableCell>
-              </TableRow>
+              <React.Fragment key={activity.id}>
+                <TableRow>
+                  <TableCell className="font-medium">{activity.description}</TableCell>
+                  <TableCell>
+                    <Badge className={`px-2.5 py-1 rounded-full text-xs ${
+                      activity.status === 'Resolvido' 
+                        ? "bg-resolve-lightgreen text-resolve-green" 
+                        : "bg-yellow-100 text-yellow-700"
+                    }`}>
+                      {activity.status}
+                    </Badge>
+                  </TableCell>
+                  <TableCell className="text-sm">{activity.timeElapsed}</TableCell>
+                  <TableCell>
+                    <div className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs flex items-center justify-center">
+                      {activity.dueDate}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm">{activity.date}</TableCell>
+                  <TableCell className="text-sm">{activity.secretary}</TableCell>
+                  <TableCell>
+                    <CollapsibleTrigger 
+                      onClick={() => toggleItem(activity.id)}
+                      className="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200 w-8 h-8 flex items-center justify-center"
+                    >
+                      <span className="sr-only">Ver detalhes</span>
+                      {openItem === activity.id ? (
+                        <ChevronUp className="w-4 h-4" />
+                      ) : (
+                        <ChevronDown className="w-4 h-4" />
+                      )}
+                    </CollapsibleTrigger>
+                  </TableCell>
+                </TableRow>
+
+                <TableRow>
+                  <TableCell colSpan={7} className="p-0">
+                    <Collapsible open={openItem === activity.id}>
+                      <CollapsibleContent className="bg-gray-50 p-4 rounded-lg border border-gray-200 mb-4">
+                        <div className="mb-3">
+                          <ToggleGroup type="single" defaultValue="detalhes" value={activeTab} onValueChange={(value) => value && setActiveTab(value)}>
+                            <ToggleGroupItem value="detalhes" variant="success" className="text-sm">
+                              Detalhes
+                            </ToggleGroupItem>
+                            <ToggleGroupItem value="solicitacao" variant="success" className="text-sm">
+                              Solicitação
+                            </ToggleGroupItem>
+                            <ToggleGroupItem value="gerenciamento" variant="success" className="text-sm">
+                              Gerenciamento
+                            </ToggleGroupItem>
+                          </ToggleGroup>
+                        </div>
+
+                        {activeTab === "detalhes" && (
+                          <div className="space-y-4">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                              <div className="space-y-2">
+                                <h4 className="text-sm font-semibold">Detalhes do Problema</h4>
+                                <p className="text-sm">{activity.description}</p>
+                                
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <Calendar className="h-4 w-4" />
+                                  <span>Registro: {activity.date}</span>
+                                </div>
+
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <Clock3 className="h-4 w-4" />
+                                  <span>Tempo decorrido: {activity.timeElapsed}</span>
+                                </div>
+                              </div>
+                              
+                              <div className="space-y-2">
+                                <h4 className="text-sm font-semibold">Informações de Contato</h4>
+                                <div className="flex items-center gap-2 text-sm text-gray-600">
+                                  <User className="h-4 w-4" />
+                                  <span>Contato: 55629406{activity.id}234</span>
+                                </div>
+                                
+                                <h4 className="text-sm font-semibold mt-4">Situação Atual</h4>
+                                <Badge className={`px-2.5 py-1 rounded-full text-xs ${
+                                  activity.status === 'Resolvido' 
+                                    ? "bg-resolve-lightgreen text-resolve-green" 
+                                    : "bg-yellow-100 text-yellow-700"
+                                }`}>
+                                  {activity.status}
+                                </Badge>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {activeTab === "solicitacao" && (
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="text-sm font-semibold">Informações fornecidas pelo cidadão</h4>
+                              <p className="text-sm mt-2">
+                                Detalhes da solicitação para o problema "{activity.description}". 
+                                Este problema foi registrado no {activity.secretary}.
+                              </p>
+                            </div>
+
+                            <div>
+                              <h4 className="text-sm font-semibold">Registro Fotográfico</h4>
+                              <div className="mt-2 h-48 bg-gray-200 rounded-md flex items-center justify-center">
+                                <span className="text-sm text-gray-500">Imagem do problema</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+
+                        {activeTab === "gerenciamento" && (
+                          <div className="space-y-4">
+                            <div>
+                              <h4 className="text-sm font-semibold">Atualizar Situação</h4>
+                              <div className="mt-2 bg-gray-100 p-3 rounded-md">
+                                <p className="text-sm">
+                                  {activity.status === 'Resolvido' 
+                                    ? "O status não pode ser alterado pois a demanda já foi finalizada."
+                                    : "Pendente de resolução pelo gabinete responsável."}
+                                </p>
+                              </div>
+                            </div>
+
+                            <div>
+                              <h4 className="text-sm font-semibold">Prazo Estimado de Resolução</h4>
+                              <div className="flex items-center gap-2 mt-1">
+                                <div className="bg-green-100 text-green-700 px-2 py-1 rounded text-xs flex items-center justify-center">
+                                  {activity.dueDate}
+                                </div>
+                                <span className="text-xs text-orange-500">Alterações: 1/2</span>
+                              </div>
+                            </div>
+                          </div>
+                        )}
+                      </CollapsibleContent>
+                    </Collapsible>
+                  </TableCell>
+                </TableRow>
+              </React.Fragment>
             ))}
           </TableBody>
         </Table>
