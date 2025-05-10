@@ -7,19 +7,6 @@ import RecentProblemsTable from '../components/RecentProblemsTable';
 import ActivitySections from '../components/ActivitySections';
 
 const Index = () => {
-  // Data for problem status chart
-  const problemStatusData = [
-    { name: 'Pendentes', value: 3, color: '#F5B74F' },
-    { name: 'Resolvidos', value: 3, color: '#3BA676' },
-  ];
-
-  // Data for secretary distribution chart
-  const secretaryDistributionData = [
-    { name: 'Gabinete do Vereador Rafael Miguel', value: 30, color: '#FF8585' },
-    { name: 'Gabinete do Vereador Lucas', value: 50, color: '#9061F9' },
-    { name: 'Gabinete de Educação', value: 20, color: '#37A2B2' },
-  ];
-
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
@@ -33,10 +20,7 @@ const Index = () => {
           />
 
           {/* Status Summary Cards */}
-          <StatusCardsSection 
-            problemStatusData={problemStatusData} 
-            secretaryDistributionData={secretaryDistributionData} 
-          />
+          <StatusCardsSection />
 
           {/* Problemas Recentes Table - agora apenas passamos o limite */}
           <RecentProblemsTable limit={5} />
