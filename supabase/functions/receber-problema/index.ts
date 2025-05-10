@@ -17,7 +17,8 @@ interface ProblemaRequest {
   telefone: string;
   descricao: string;
   gabinete_id?: string;
-  foto_base64?: string;  // Propriedade para receber a imagem em base64
+  foto_base64?: string;  // Base64 da imagem
+  foto_url?: string;     // URL externa da imagem
   municipio?: string;
 }
 
@@ -98,9 +99,81 @@ serve(async (req) => {
     
     let foto_url = null;
     
-    // Se tiver foto em base64, fazer upload para o bucket
-    if (problemaData.foto_base64) {
+    // Verificar se o bucket existe, caso contrário, criá-lo
+    try {
+      const { data: bucketData, error: bucketError } = await supabaseClient
+        .storage
+        .getBucket('problema-imagens');
+        
+      if (bucketError && bucketError.message.includes('not found')) {
+        console.log("Bucket não encontrado, criando...");
+        await supabaseClient
+          .storage
+          .createBucket('problema-imagens', {
+            public: true,
+            fileSizeLimit: 5242880 // 5MB
+          });
+      }
+    } catch (bucketErr) {
+      console.error("Erro ao verificar/criar bucket:", bucketErr);
+    }
+    
+    // CASO 1: Se receber uma URL externa de imagem
+    if (problemaData.foto_url) {
       try {
+        console.log("Processando URL externa da imagem:", problemaData.foto_url);
+        
+        // Fazer download da imagem externa
+        const imageResponse = await fetch(problemaData.foto_url);
+        
+        if (!imageResponse.ok) {
+          throw new Error(`Falha ao baixar imagem: ${imageResponse.status}`);
+        }
+        
+        const imageBlob = await imageResponse.blob();
+        const arrayBuffer = await imageBlob.arrayBuffer();
+        const imageBytes = new Uint8Array(arrayBuffer);
+        
+        // Gerar um nome único para o arquivo
+        const timestamp = new Date().getTime();
+        const rand = Math.floor(Math.random() * 1000);
+        const fileName = `problema-${timestamp}-${rand}.jpg`;
+        
+        // Fazer o upload da imagem para o bucket
+        const { data: uploadData, error: uploadError } = await supabaseClient
+          .storage
+          .from('problema-imagens')
+          .upload(fileName, imageBytes, {
+            contentType: 'image/jpeg',
+            upsert: false
+          });
+          
+        if (uploadError) {
+          console.error("Erro ao fazer upload da imagem externa:", uploadError);
+          // Usa a URL original como fallback
+          foto_url = problemaData.foto_url;
+        } else {
+          // Obter URL pública da imagem
+          const { data: publicUrlData } = supabaseClient
+            .storage
+            .from('problema-imagens')
+            .getPublicUrl(fileName);
+            
+          foto_url = publicUrlData.publicUrl;
+          console.log("URL da imagem externa salva no bucket:", foto_url);
+        }
+      } catch (downloadErr) {
+        console.error("Erro ao processar download/upload de imagem externa:", downloadErr);
+        // Usa a URL original como fallback
+        foto_url = problemaData.foto_url;
+        console.log("Usando URL original como fallback:", foto_url);
+      }
+    }
+    // CASO 2: Se receber uma imagem em base64
+    else if (problemaData.foto_base64) {
+      try {
+        console.log("Processando imagem em base64");
+        
         // Extrair dados do base64 e converter para Uint8Array
         const base64Data = problemaData.foto_base64.split(',')[1] || problemaData.foto_base64;
         const byteString = atob(base64Data);
@@ -115,21 +188,6 @@ serve(async (req) => {
         const rand = Math.floor(Math.random() * 1000);
         const fileName = `problema-${timestamp}-${rand}.jpg`;
         
-        // Verificar se o bucket existe, caso contrário, criá-lo
-        const { data: bucketData, error: bucketError } = await supabaseClient
-          .storage
-          .getBucket('problema-imagens');
-          
-        if (bucketError && bucketError.message.includes('not found')) {
-          console.log("Bucket não encontrado, criando...");
-          await supabaseClient
-            .storage
-            .createBucket('problema-imagens', {
-              public: true,
-              fileSizeLimit: 5242880 // 5MB
-            });
-        }
-        
         // Fazer o upload da imagem para o bucket
         const { data: uploadData, error: uploadError } = await supabaseClient
           .storage
@@ -140,8 +198,7 @@ serve(async (req) => {
           });
           
         if (uploadError) {
-          console.error("Erro ao fazer upload da imagem:", uploadError);
-          // Continua o processo mesmo sem a imagem
+          console.error("Erro ao fazer upload da imagem base64:", uploadError);
         } else {
           // Obter URL pública da imagem
           const { data: publicUrlData } = supabaseClient
@@ -150,11 +207,10 @@ serve(async (req) => {
             .getPublicUrl(fileName);
             
           foto_url = publicUrlData.publicUrl;
-          console.log("URL da imagem gerada:", foto_url);
+          console.log("URL da imagem base64 salva no bucket:", foto_url);
         }
       } catch (uploadErr) {
-        console.error("Erro ao processar upload de imagem:", uploadErr);
-        // Continua o processo mesmo sem a imagem
+        console.error("Erro ao processar upload de imagem base64:", uploadErr);
       }
     }
     
@@ -168,12 +224,12 @@ serve(async (req) => {
       telefone: problemaData.telefone,
       descricao: problemaData.descricao,
       gabinete_id: gabineteId,
-      foto_url: foto_url,  // Garantindo que a URL está sendo salva no campo foto_url
+      foto_url: foto_url,
       municipio: problemaData.municipio || null,
       status: "Pendente"
     };
     
-    console.log("Recebendo novo problema:", novoProblema);
+    console.log("Inserindo problema com dados:", novoProblema);
     
     // Inserção do problema na tabela
     const { data: problema, error } = await supabaseClient
