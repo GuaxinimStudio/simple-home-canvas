@@ -23,24 +23,28 @@ export const useOcorrenciaSave = (
         throw new Error('ID não fornecido');
       }
 
-      if (currentStatus !== problemData?.status && !prazoEstimado) {
+      if (currentStatus !== 'Pendente' && !prazoEstimado) {
         toast.error('É necessário definir um prazo antes de alterar o status.');
         return;
       }
 
       // Verifica se precisa de descrição detalhada para status de Resolvido ou Informações Insuficientes
-      if ((currentStatus === 'Resolvido' || currentStatus === 'Informações Insuficientes') && !descricaoResolvido.trim()) {
+      if ((currentStatus === 'Resolvido' || currentStatus === 'Informações Insuficientes') && !descricaoResolvido?.trim()) {
         toast.error(`É necessário fornecer ${currentStatus === 'Resolvido' ? 'detalhes da resolução' : 'orientações para o cidadão'}.`);
         return;
       }
 
+      console.log('Salvando alterações no banco de dados...');
+      console.log('Status:', currentStatus);
+      console.log('Prazo estimado:', prazoEstimado);
+      
       const updateData: Record<string, any> = {
         status: currentStatus,
-        descricao_resolvido: descricaoResolvido
+        prazo_estimado: prazoEstimado ? new Date(prazoEstimado).toISOString() : null
       };
-
-      if (prazoEstimado) {
-        updateData.prazo_estimado = prazoEstimado;
+      
+      if (descricaoResolvido?.trim()) {
+        updateData.descricao_resolvido = descricaoResolvido;
       }
       
       // Se o status for alterado para Resolvido, atualizamos a data de resolução
@@ -65,6 +69,7 @@ export const useOcorrenciaSave = (
             .eq('id', id);
 
           if (error) {
+            console.error('Erro ao salvar alterações:', error);
             throw error;
           }
 
@@ -73,7 +78,7 @@ export const useOcorrenciaSave = (
             const updatedProblem = {
               ...problemData,
               ...updateData,
-              prazo_estimado: prazoEstimado ? new Date(prazoEstimado).toISOString() : problemData.prazo_estimado,
+              prazo_estimado: prazoEstimado ? new Date(prazoEstimado).toISOString() : null,
               updated_at: currentStatus === 'Resolvido' && problemData.status !== 'Resolvido' 
                 ? new Date().toISOString() 
                 : problemData.updated_at
@@ -85,12 +90,15 @@ export const useOcorrenciaSave = (
         };
       } else {
         // Se não houver nova imagem, apenas atualizamos os outros dados
+        console.log('Dados de atualização:', updateData);
+        
         const { error } = await supabase
           .from('problemas')
           .update(updateData)
           .eq('id', id);
 
         if (error) {
+          console.error('Erro ao salvar alterações:', error);
           throw error;
         }
 
@@ -99,7 +107,6 @@ export const useOcorrenciaSave = (
           const updatedProblem = {
             ...problemData,
             ...updateData,
-            prazo_estimado: prazoEstimado ? new Date(prazoEstimado).toISOString() : problemData.prazo_estimado,
             updated_at: currentStatus === 'Resolvido' && problemData.status !== 'Resolvido' 
               ? new Date().toISOString() 
               : problemData.updated_at

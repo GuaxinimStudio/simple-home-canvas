@@ -12,8 +12,9 @@ export const usePrazoEstimado = (initialPrazo: string = '') => {
   }, [initialPrazo]);
 
   const handlePrazoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPrazoEstimado(e.target.value);
-    console.log('Prazo alterado para:', e.target.value);
+    const newPrazo = e.target.value;
+    setPrazoEstimado(newPrazo);
+    console.log('Prazo alterado para:', newPrazo);
   };
 
   return {
