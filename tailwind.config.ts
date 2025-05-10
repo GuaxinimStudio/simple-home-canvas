@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,16 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Custom color scheme for Resolve+
+				resolve: {
+					green: '#3BA676',
+					lightgreen: '#E8F5EF',
+					yellow: '#F5B74F',
+					red: '#FF6B6B',
+					coral: '#FF8585',
+					purple: '#9061F9',
+					teal: '#37A2B2'
 				}
 			},
 			borderRadius: {
