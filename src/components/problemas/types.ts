@@ -21,6 +21,7 @@ export interface ProblemItem {
   descricao: string;
   status: string;
   created_at: string;
+  updated_at: string;
   telefone: string;
   prazo_estimado: string | null;
   municipio: string | null;

@@ -21,6 +21,7 @@ export const useProblems = (limit = 5) => {
             descricao,
             status,
             created_at,
+            updated_at,
             telefone,
             prazo_estimado,
             municipio,

@@ -1,12 +1,15 @@
 
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
+import { calculateElapsedTime } from '@/utils/dateUtils';
 
 // Dados de exemplo para a tabela detalhada
 const tabelaData = [
   { 
     id: 1, 
-    data: '09/05/25', 
+    data: '09/05/25',
+    created_at: '2025-05-09T10:00:00',
+    updated_at: '2025-05-10T15:00:00',
     municipio: 'Uruaçu', 
     secretaria: 'Secretaria de Saúde', 
     status: 'Resolvido', 
@@ -17,7 +20,9 @@ const tabelaData = [
   },
   { 
     id: 2, 
-    data: '07/05/25', 
+    data: '07/05/25',
+    created_at: '2025-05-07T09:00:00',
+    updated_at: '2025-05-08T14:00:00', 
     municipio: 'Uruaçu', 
     secretaria: 'Secretaria de Educação', 
     status: 'Resolvido', 
@@ -28,7 +33,9 @@ const tabelaData = [
   },
   { 
     id: 3, 
-    data: '07/05/25', 
+    data: '07/05/25',
+    created_at: '2025-05-07T14:00:00',
+    updated_at: null, 
     municipio: 'Uruaçu', 
     secretaria: 'Secretaria de Infraestrutura', 
     status: 'Pendente', 
@@ -39,7 +46,9 @@ const tabelaData = [
   },
   { 
     id: 4, 
-    data: '07/05/25', 
+    data: '07/05/25',
+    created_at: '2025-05-07T10:30:00',
+    updated_at: '2025-05-07T18:00:00', 
     municipio: 'Uruaçu', 
     secretaria: 'Secretaria de Finanças', 
     status: 'Resolvido', 
@@ -50,7 +59,9 @@ const tabelaData = [
   },
   { 
     id: 5, 
-    data: '05/05/25', 
+    data: '05/05/25',
+    created_at: '2025-05-05T08:30:00',
+    updated_at: null, 
     municipio: 'Uruaçu', 
     secretaria: 'Secretaria de Cultura', 
     status: 'Pendente', 
@@ -61,7 +72,9 @@ const tabelaData = [
   },
   { 
     id: 6, 
-    data: '05/05/25', 
+    data: '05/05/25',
+    created_at: '2025-05-05T16:45:00', 
+    updated_at: null,
     municipio: 'Uruaçu', 
     secretaria: 'Secretaria de Esportes', 
     status: 'Pendente', 
@@ -82,6 +95,7 @@ const RelatoriosTabela: React.FC = () => {
             <TableHead>Município</TableHead>
             <TableHead>Secretaria</TableHead>
             <TableHead>Status</TableHead>
+            <TableHead>Tempo</TableHead>
             <TableHead>Prazo</TableHead>
             <TableHead>Resolvido no prazo</TableHead>
             <TableHead>Dias de atraso</TableHead>
@@ -102,6 +116,17 @@ const RelatoriosTabela: React.FC = () => {
                 }`}>
                   {item.status}
                 </span>
+              </TableCell>
+              <TableCell>
+                {item.status === 'Resolvido' && item.updated_at ? (
+                  <span className="text-green-600">
+                    Resolvido após {calculateElapsedTime(item.created_at, item.updated_at)}
+                  </span>
+                ) : (
+                  <span className="text-red-500">
+                    Em andamento há {calculateElapsedTime(item.created_at)}
+                  </span>
+                )}
               </TableCell>
               <TableCell>{item.prazo}</TableCell>
               <TableCell className={`${

@@ -1,12 +1,12 @@
 
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { format, formatDistanceToNow } from 'date-fns';
+import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { TableRow, TableCell } from '@/components/ui/table';
 import { ProblemStatusBadge } from './ProblemStatusBadge';
 import { ProblemDeadlineBadge } from './ProblemDeadlineBadge';
-import { Avatar, AvatarImage, AvatarFallback } from '@/components/ui/avatar';
+import { calculateElapsedTime } from '@/utils/dateUtils';
 import { ProblemItem } from './types';
 import { ProblemImageModal } from './ProblemImageModal';
 
@@ -28,27 +28,20 @@ export const ProblemRow: React.FC<ProblemRowProps> = ({ problem }) => {
     }
   };
 
-  const calculateTimeElapsed = (dateString: string) => {
-    try {
-      return formatDistanceToNow(new Date(dateString), {
-        locale: ptBR,
-        addSuffix: true
-      });
-    } catch (e) {
-      return 'Data inválida';
-    }
-  };
-
   // Método para formatar o tempo para problemas resolvidos
   const getTimeDisplay = () => {
     if (problem.status === 'Resolvido') {
       return (
         <span className="text-green-500">
-          Resolvido {calculateTimeElapsed(problem.created_at)}
+          Resolvido após {calculateElapsedTime(problem.created_at, problem.updated_at)}
         </span>
       );
     }
-    return calculateTimeElapsed(problem.created_at);
+    return (
+      <span className="text-red-500">
+        Em andamento há {calculateElapsedTime(problem.created_at)}
+      </span>
+    );
   };
 
   const handleViewProblem = (id: string) => {

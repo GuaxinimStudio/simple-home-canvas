@@ -22,6 +22,7 @@ export const useProblemData = () => {
             descricao,
             status,
             created_at,
+            updated_at,
             telefone,
             prazo_estimado,
             municipio,
