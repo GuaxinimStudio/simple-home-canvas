@@ -85,17 +85,18 @@ const RecentProblemsTable: React.FC<RecentProblemsTableProps> = ({ recentActivit
                   <TableCell className="text-sm">{activity.date}</TableCell>
                   <TableCell className="text-sm">{activity.secretary}</TableCell>
                   <TableCell>
-                    <CollapsibleTrigger 
-                      onClick={() => toggleItem(activity.id)}
-                      className="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200 w-8 h-8 flex items-center justify-center"
-                    >
-                      <span className="sr-only">Ver detalhes</span>
-                      {openItem === activity.id ? (
-                        <ChevronUp className="w-4 h-4" />
-                      ) : (
-                        <ChevronDown className="w-4 h-4" />
-                      )}
-                    </CollapsibleTrigger>
+                    <Collapsible open={openItem === activity.id} onOpenChange={() => toggleItem(activity.id)}>
+                      <CollapsibleTrigger 
+                        className="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200 w-8 h-8 flex items-center justify-center"
+                      >
+                        <span className="sr-only">Ver detalhes</span>
+                        {openItem === activity.id ? (
+                          <ChevronUp className="w-4 h-4" />
+                        ) : (
+                          <ChevronDown className="w-4 h-4" />
+                        )}
+                      </CollapsibleTrigger>
+                    </Collapsible>
                   </TableCell>
                 </TableRow>
 
