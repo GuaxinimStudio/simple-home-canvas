@@ -1,12 +1,16 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Button } from "@/components/ui/button";
-import { ArrowLeft } from 'lucide-react';
+import { ArrowLeft, Image } from 'lucide-react';
 import { Card } from "@/components/ui/card";
 import Sidebar from '../components/Sidebar';
 import { toast } from 'sonner';
+import { supabase } from "@/integrations/supabase/client";
+import { format } from 'date-fns';
+import { ProblemImageModal } from '@/components/problemas/ProblemImageModal';
+import { ptBR } from 'date-fns/locale';
 
 type StatusType = 'Pendente' | 'Em andamento' | 'Resolvido' | 'Informações Insuficientes';
 
@@ -15,17 +19,58 @@ const DetalhesOcorrencia: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [currentStatus, setCurrentStatus] = useState<StatusType>('Pendente');
   const [selectedDepartamento, setSelectedDepartamento] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [problemData, setProblemData] = useState<any>(null);
+  const [prazoEstimado, setPrazoEstimado] = useState<string>('');
+  const [imageModalOpen, setImageModalOpen] = useState(false);
 
-  // Estes dados seriam obtidos de uma API com base no ID
-  // Por enquanto, vamos simular dados estáticos
-  const ocorrencia = {
-    id: Number(id),
-    descricao: "Árvore caída na Rua Principal",
-    status: 'Pendente' as StatusType,
-    dataRegistro: '8 mai 2025, 22:35',
-    contato: '5562-9785050',
-    tempoDecorrido: '00:45:23'
-  };
+  useEffect(() => {
+    const fetchProblemDetails = async () => {
+      try {
+        setIsLoading(true);
+        
+        if (!id) {
+          throw new Error('ID não fornecido');
+        }
+
+        const { data, error } = await supabase
+          .from('problemas')
+          .select(`
+            *,
+            gabinete:gabinetes(gabinete, municipio)
+          `)
+          .eq('id', id)
+          .single();
+
+        if (error) {
+          throw error;
+        }
+
+        setProblemData(data);
+        
+        if (data) {
+          setCurrentStatus(data.status as StatusType);
+          
+          if (data.gabinete_id) {
+            setSelectedDepartamento(data.gabinete?.gabinete || '');
+          }
+          
+          if (data.prazo_estimado) {
+            setPrazoEstimado(format(new Date(data.prazo_estimado), 'yyyy-MM-dd'));
+          }
+        }
+      } catch (err: any) {
+        console.error('Erro ao buscar detalhes do problema:', err);
+        setError(err.message || 'Erro ao carregar dados');
+        toast.error(`Erro ao carregar dados: ${err.message}`);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchProblemDetails();
+  }, [id]);
 
   const handleVoltar = () => {
     navigate('/problemas');
@@ -35,9 +80,99 @@ const DetalhesOcorrencia: React.FC = () => {
     setCurrentStatus(value as StatusType);
   };
 
-  const handleSalvar = () => {
-    toast.success('Alterações salvas com sucesso!');
+  const handlePrazoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setPrazoEstimado(e.target.value);
   };
+
+  const calculateElapsedTime = (createdAt: string) => {
+    const now = new Date();
+    const created = new Date(createdAt);
+    const diffMs = now.getTime() - created.getTime();
+    
+    const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+    const hours = Math.floor((diffMs % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const minutes = Math.floor((diffMs % (1000 * 60 * 60)) / (1000 * 60));
+    
+    if (days > 0) {
+      return `${days}d ${hours}h ${minutes}m`;
+    } else {
+      return `${hours}h ${minutes}m`;
+    }
+  };
+
+  const formatDate = (dateString: string) => {
+    try {
+      return format(new Date(dateString), "d MMM yyyy, HH:mm", { locale: ptBR });
+    } catch (err) {
+      return "Data inválida";
+    }
+  };
+
+  const handleSalvar = async () => {
+    try {
+      if (!id) {
+        throw new Error('ID não fornecido');
+      }
+
+      const updateData: Record<string, any> = {
+        status: currentStatus,
+      };
+
+      if (prazoEstimado) {
+        updateData.prazo_estimado = prazoEstimado;
+      }
+
+      const { error } = await supabase
+        .from('problemas')
+        .update(updateData)
+        .eq('id', id);
+
+      if (error) {
+        throw error;
+      }
+
+      toast.success('Alterações salvas com sucesso!');
+    } catch (err: any) {
+      console.error('Erro ao salvar alterações:', err);
+      toast.error(`Erro ao salvar: ${err.message}`);
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="flex h-screen bg-green-50">
+        <Sidebar />
+        <div className="flex-1 flex items-center justify-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-green-500"></div>
+        </div>
+      </div>
+    );
+  }
+
+  if (error || !problemData) {
+    return (
+      <div className="flex h-screen bg-green-50">
+        <Sidebar />
+        <div className="flex-1 p-6">
+          <div className="max-w-4xl mx-auto">
+            <div className="flex items-center mb-6">
+              <button onClick={handleVoltar} className="flex items-center text-gray-600 hover:text-gray-900">
+                <ArrowLeft className="h-5 w-5 mr-2" />
+                <span>Voltar para Problemas</span>
+              </button>
+            </div>
+            <Card className="p-6 text-center">
+              <h1 className="text-xl text-red-500">Erro ao carregar detalhes da ocorrência</h1>
+              <p className="text-gray-600 mt-2">{error || 'Ocorrência não encontrada'}</p>
+              <Button onClick={handleVoltar} className="mt-4">
+                Voltar para a lista
+              </Button>
+            </Card>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-screen bg-green-50">
@@ -75,26 +210,46 @@ const DetalhesOcorrencia: React.FC = () => {
               <div className="space-y-6">
                 <div>
                   <h3 className="font-medium mb-2">Registro Fotográfico</h3>
-                  <div className="bg-gray-100 h-40 rounded-md flex items-center justify-center text-gray-400">
-                    Sem foto disponível
-                  </div>
+                  {problemData.foto_url ? (
+                    <div className="bg-gray-100 h-48 rounded-md overflow-hidden">
+                      <div 
+                        className="w-full h-full cursor-pointer"
+                        onClick={() => setImageModalOpen(true)}
+                      >
+                        <div className="relative w-full h-full">
+                          <img 
+                            src={problemData.foto_url} 
+                            alt={problemData.descricao}
+                            className="w-full h-full object-cover"
+                          />
+                          <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-0 hover:bg-opacity-20 transition-opacity">
+                            <Image className="w-8 h-8 text-white opacity-0 hover:opacity-100" />
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="bg-gray-100 h-40 rounded-md flex items-center justify-center text-gray-400">
+                      Sem foto disponível
+                    </div>
+                  )}
                 </div>
 
                 <div>
                   <h3 className="font-medium mb-2">Descrição do Problema</h3>
                   <p className="bg-gray-50 p-3 rounded text-gray-700 border">
-                    {ocorrencia.descricao}
+                    {problemData.descricao}
                   </p>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <h3 className="font-medium mb-2">Contato</h3>
-                    <p className="text-gray-700">{ocorrencia.contato}</p>
+                    <p className="text-gray-700">{problemData.telefone}</p>
                   </div>
                   <div>
                     <h3 className="font-medium mb-2">Data do Registro</h3>
-                    <p className="text-gray-700">{ocorrencia.dataRegistro}</p>
+                    <p className="text-gray-700">{formatDate(problemData.created_at)}</p>
                   </div>
                 </div>
 
@@ -105,9 +260,16 @@ const DetalhesOcorrencia: React.FC = () => {
                       <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2"/>
                       <path d="M12 6v6h6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                     </svg>
-                    {ocorrencia.tempoDecorrido}
+                    {calculateElapsedTime(problemData.created_at)}
                   </div>
                 </div>
+
+                {problemData.municipio && (
+                  <div>
+                    <h3 className="font-medium mb-2">Município</h3>
+                    <p className="text-gray-700">{problemData.municipio}</p>
+                  </div>
+                )}
               </div>
             </Card>
 
@@ -166,9 +328,11 @@ const DetalhesOcorrencia: React.FC = () => {
                   </div>
                   <div className="relative">
                     <input 
-                      type="text" 
+                      type="date" 
                       className="w-full border rounded-md px-4 py-2.5 text-gray-700"
                       placeholder="Selecione um prazo"
+                      value={prazoEstimado}
+                      onChange={handlePrazoChange}
                     />
                   </div>
                 </div>
@@ -201,6 +365,15 @@ const DetalhesOcorrencia: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {problemData.foto_url && (
+        <ProblemImageModal
+          isOpen={imageModalOpen}
+          onClose={() => setImageModalOpen(false)}
+          imageUrl={problemData.foto_url}
+          description={problemData.descricao}
+        />
+      )}
     </div>
   );
 };
