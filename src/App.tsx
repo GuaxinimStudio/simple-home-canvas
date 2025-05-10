@@ -18,7 +18,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Index />} />
           <Route path="/problemas" element={<Index />} /> {/* Placeholder */}
-          <Route path="/secretarias" element={<Index />} /> {/* Placeholder */}
+          <Route path="/gabinetes" element={<Index />} /> {/* Placeholder */}
           <Route path="/relatorios" element={<Index />} /> {/* Placeholder */}
           <Route path="/notificacoes" element={<Index />} /> {/* Placeholder */}
           <Route path="*" element={<NotFound />} />

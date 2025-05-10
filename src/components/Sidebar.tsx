@@ -14,7 +14,7 @@ const Sidebar: React.FC = () => {
   const navigationItems: NavigationItem[] = [
     { title: "Início", icon: Home, path: "/", active: true },
     { title: "Problemas", icon: FileText, path: "/problemas" },
-    { title: "Secretarias", icon: Building, path: "/secretarias" },
+    { title: "Gabinetes", icon: Building, path: "/gabinetes" },
     { title: "Relatórios", icon: FileBarChart, path: "/relatorios" },
     { title: "Notificações", icon: Bell, path: "/notificacoes" },
   ];
