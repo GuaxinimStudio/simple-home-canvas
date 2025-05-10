@@ -14,13 +14,16 @@ interface GabineteCardProps {
     municipio: string | null;
     telefone: string | null;
     responsavel: string | null;
-    profiles: { id: string; nome: string | null }[];
+    profiles: { id: string; nome: string | null }[] | null;
   };
 }
 
 const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete }) => {
   const [isVerContatosModalOpen, setIsVerContatosModalOpen] = useState(false);
   const [isNovoContatoModalOpen, setIsNovoContatoModalOpen] = useState(false);
+
+  // Garantir que profiles seja sempre um array, mesmo se for null
+  const profiles = gabinete.profiles || [];
 
   return (
     <Card className="bg-white overflow-hidden">
@@ -51,7 +54,7 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete }) => {
               <div className="flex items-center justify-between">
                 <div className="flex items-center text-gray-500 text-sm">
                   <UserPlus className="w-4 h-4 mr-2" />
-                  <span>{gabinete.profiles.length} membros vinculados</span>
+                  <span>{profiles.length} membros vinculados</span>
                 </div>
                 
                 <div className="flex gap-2">
