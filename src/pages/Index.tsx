@@ -20,37 +20,6 @@ const Index = () => {
     { name: 'Gabinete de Educação', value: 20, color: '#37A2B2' },
   ];
 
-  // Data for recent activities
-  const recentActivities = [
-    { 
-      id: 1, 
-      description: 'Visita Valdei', 
-      status: 'Resolvido' as const, 
-      date: '9 mai 2025, 08:39',
-      secretary: 'Gabinete do Vereador Rafael Miguel',
-      timeElapsed: '13:01:22',
-      dueDate: '14/05/25'
-    },
-    { 
-      id: 2, 
-      description: 'Carros lá fora', 
-      status: 'Resolvido' as const, 
-      date: '7 mai 2025, 16:31',
-      secretary: 'Gabinete do Vereador Lucas',
-      timeElapsed: '2d 05:09:30',
-      dueDate: '14/05/25'
-    },
-    { 
-      id: 3, 
-      description: 'Solucionar', 
-      status: 'Pendente' as const, 
-      date: '7 mai 2025, 11:47',
-      secretary: 'Gabinete de Educação',
-      timeElapsed: '2d 09:55:41',
-      dueDate: '15/05/25'
-    },
-  ];
-
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
@@ -69,8 +38,8 @@ const Index = () => {
             secretaryDistributionData={secretaryDistributionData} 
           />
 
-          {/* Problemas Recentes Table */}
-          <RecentProblemsTable recentActivities={recentActivities} />
+          {/* Problemas Recentes Table - agora apenas passamos o limite */}
+          <RecentProblemsTable limit={5} />
 
           {/* Activity Sections */}
           <ActivitySections />
@@ -81,4 +50,3 @@ const Index = () => {
 };
 
 export default Index;
-
