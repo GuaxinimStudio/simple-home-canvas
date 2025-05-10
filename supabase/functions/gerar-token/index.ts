@@ -28,17 +28,17 @@ serve(async (req) => {
       ["sign", "verify"]
     );
     
-    // Definição das claims do token (payload)
+    // Definição das claims do token (payload) sem data de expiração
     const payload = {
       iss: "resolve-leg-api",
-      exp: Math.floor(Date.now() / 1000) + 60 * 60 * 24 * 30, // Expira em 30 dias
       iat: Math.floor(Date.now() / 1000),
+      // Sem incluir "exp", o token será permanente
     };
     
     // Criação do token JWT
     const token = await create({ alg: "HS256", typ: "JWT" }, payload, key);
     
-    console.log("Token gerado com sucesso");
+    console.log("Token permanente gerado com sucesso");
     
     // Retorna o token no formato adequado para uso com o cabeçalho Authorization
     return new Response(

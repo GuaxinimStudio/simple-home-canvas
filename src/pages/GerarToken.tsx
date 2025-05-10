@@ -1,9 +1,10 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
+import { toast } from 'sonner';
 
 const GerarToken = () => {
   const [token, setToken] = useState<string | null>(null);
@@ -24,9 +25,11 @@ const GerarToken = () => {
 
       setToken(data.token);
       setAuthHeader(data.authorization_header);
+      toast.success('Token permanente gerado com sucesso!');
     } catch (err) {
       console.error('Erro ao gerar token:', err);
       setError('Erro ao gerar token. Verifique o console para mais detalhes.');
+      toast.error('Erro ao gerar token.');
     } finally {
       setIsLoading(false);
     }
@@ -34,20 +37,21 @@ const GerarToken = () => {
 
   const handleCopyToClipboard = (text: string) => {
     navigator.clipboard.writeText(text);
+    toast.success('Copiado para a área de transferência!');
   };
 
   return (
     <div className="container mx-auto py-10 max-w-3xl">
       <Card>
         <CardHeader>
-          <CardTitle>Gerar Token de Autenticação</CardTitle>
+          <CardTitle>Gerar Token de Autenticação Permanente</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <Button 
             onClick={handleGerarToken} 
             disabled={isLoading}
           >
-            {isLoading ? 'Gerando...' : 'Gerar Novo Token'}
+            {isLoading ? 'Gerando...' : 'Gerar Novo Token Permanente'}
           </Button>
           
           {error && (
@@ -94,8 +98,8 @@ const GerarToken = () => {
                 </div>
               </div>
 
-              <div className="bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700 p-4 rounded">
-                <p className="text-sm">Este token expira em 30 dias. Use-o para autenticar requisições à API.</p>
+              <div className="bg-green-100 border-l-4 border-green-500 text-green-700 p-4 rounded">
+                <p className="text-sm">Este token é permanente e não expira. Use-o para autenticar requisições à API.</p>
                 <p className="text-sm mt-2">
                   Para usar, adicione o cabeçalho <span className="font-mono">Authorization: Bearer [token]</span> às suas requisições.
                 </p>
