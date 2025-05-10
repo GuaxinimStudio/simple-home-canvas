@@ -19,15 +19,14 @@ export const useEnviarRespostaCidadao = (
       // Preparar os dados para enviar ao webhook
       const webhookUrl = 'https://hook.us1.make.com/4ktz9s09wo5kt8a4fhhsb46pudkwan6u';
       const webhookData = {
-        id: problemData.id,
-        telefone: problemData.telefone,
-        descricao: problemData.descricao,
-        descricao_resolvido: problemData.descricao_resolvido,
-        municipio: problemData.municipio,
-        created_at: problemData.created_at,
-        updated_at: problemData.updated_at,
-        imagem_resolvido: problemData.imagem_resolvido
+        valor_1_foto_problema: problemData.foto_url || '',
+        valor_2_descricao_problema: problemData.descricao || '',
+        valor_3_foto_resolucao: problemData.imagem_resolvido || '',
+        valor_4_descricao_resolucao: problemData.descricao_resolvido || '',
+        valor_5_telefone: problemData.telefone || ''
       };
+
+      console.log('Dados sendo enviados para o webhook:', webhookData);
       
       // Enviar para o webhook
       const response = await fetch(webhookUrl, {
