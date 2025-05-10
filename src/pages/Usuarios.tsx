@@ -53,7 +53,7 @@ const Usuarios = () => {
     gabinete_id: z.string().optional(),
   });
 
-  // Buscar dados de usuários - Modificado para contornar o problema de recursão RLS
+  // Buscar dados de usuários - Usando a abordagem dividida para evitar recursão RLS
   const { data: usuarios, isLoading, error, refetch } = useQuery({
     queryKey: ['usuarios'],
     queryFn: async () => {
@@ -105,6 +105,7 @@ const Usuarios = () => {
           gabinetes: profile.gabinete_id ? gabinetesMap[profile.gabinete_id] : null
         }));
 
+        console.log('Usuários carregados com sucesso:', usuariosCompletos.length);
         return usuariosCompletos || [];
       } catch (err) {
         console.error('Erro na consulta de usuários:', err);
