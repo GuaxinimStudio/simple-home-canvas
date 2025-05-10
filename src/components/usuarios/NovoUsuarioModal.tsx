@@ -23,7 +23,7 @@ const NovoUsuarioModal = ({ open, onOpenChange, onSuccess, gabinetes }: NovoUsua
         <SheetHeader>
           <SheetTitle>Novo Usuário</SheetTitle>
           <SheetDescription>
-            Adicione um novo usuário ao sistema. O usuário receberá um e-mail para definir sua senha.
+            Adicione um novo usuário ao sistema. Defina a senha inicial que será usada pelo usuário.
           </SheetDescription>
         </SheetHeader>
 
