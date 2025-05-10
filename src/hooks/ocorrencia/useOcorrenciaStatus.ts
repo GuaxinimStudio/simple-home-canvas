@@ -1,25 +1,27 @@
 
 import { useState } from 'react';
-import { toast } from 'sonner';
-import { StatusType, OcorrenciaData } from '@/types/ocorrencia';
+import { StatusType } from '@/types/ocorrencia';
+import { usePrazoEstimado } from './usePrazoEstimado';
+import { useStatusValidation } from './useStatusValidation';
 
 export const useOcorrenciaStatus = (
   initialStatus: StatusType = 'Pendente',
   initialPrazo: string = ''
 ) => {
+  // Gerenciar o status atual
   const [currentStatus, setCurrentStatus] = useState<StatusType>(initialStatus);
-  const [prazoEstimado, setPrazoEstimado] = useState<string>(initialPrazo);
+  
+  // Utilizar hooks específicos para gerenciamento de prazo e validações
+  const { prazoEstimado, setPrazoEstimado, handlePrazoChange, isPrazoDefinido } = usePrazoEstimado(initialPrazo);
+  const { validateStatusChange } = useStatusValidation();
 
+  // Função para alterar o status com validação
   const handleStatusChange = (value: string) => {
-    if (!prazoEstimado) {
-      toast.error('É necessário definir um prazo antes de alterar o status.');
-      return;
+    const isValid = validateStatusChange({ isPrazoDefinido });
+    
+    if (isValid) {
+      setCurrentStatus(value as StatusType);
     }
-    setCurrentStatus(value as StatusType);
-  };
-
-  const handlePrazoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setPrazoEstimado(e.target.value);
   };
 
   return {
@@ -29,5 +31,6 @@ export const useOcorrenciaStatus = (
     setPrazoEstimado,
     handleStatusChange,
     handlePrazoChange,
+    isPrazoDefinido
   };
 };

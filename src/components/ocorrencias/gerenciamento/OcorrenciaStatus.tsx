@@ -7,7 +7,6 @@ import {
   SelectTrigger,
   SelectValue
 } from "@/components/ui/select";
-import { toast } from "sonner";
 import { StatusType } from '@/types/ocorrencia';
 
 interface OcorrenciaStatusProps {
@@ -23,15 +22,6 @@ export const OcorrenciaStatus: React.FC<OcorrenciaStatusProps> = ({
   isPrazoDefinido,
   isResolvido
 }) => {
-  // Função para lidar com a alteração do status
-  const handleStatusChange = (value: string) => {
-    if (!isPrazoDefinido) {
-      toast.error("É necessário definir um prazo antes de alterar o status.");
-      return;
-    }
-    onStatusChange(value);
-  };
-
   return (
     <div>
       <div className="flex justify-between items-center">
@@ -45,7 +35,7 @@ export const OcorrenciaStatus: React.FC<OcorrenciaStatusProps> = ({
       
       <Select 
         value={currentStatus} 
-        onValueChange={handleStatusChange}
+        onValueChange={onStatusChange}
         disabled={!isPrazoDefinido || isResolvido}
       >
         <SelectTrigger className="w-full">
