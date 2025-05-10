@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { Home, FileText, Building, FileBarChart, Bell, LogOut, Users } from 'lucide-react';
+import { Home, FileText, Building, FileBarChart, Bell, LogOut, Users, Key } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
@@ -70,6 +70,11 @@ const Sidebar: React.FC = () => {
       title: "Notificações",
       icon: Bell,
       path: "/notificacoes"
+    },
+    {
+      title: "Gerar Token",
+      icon: Key,
+      path: "/gerar-token"
     }
   ];
   
