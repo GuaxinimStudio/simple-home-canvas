@@ -1,220 +1,18 @@
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import Sidebar from '../components/Sidebar';
-import { Building, MapPin, Phone, PlusCircle, Eye, UserPlus } from 'lucide-react';
+import { PlusCircle } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useQuery } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
-import { Sheet, SheetContent, SheetDescription, SheetHeader, SheetTitle } from '@/components/ui/sheet';
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
-import { useForm } from 'react-hook-form';
-import { z } from 'zod';
-import { zodResolver } from '@hookform/resolvers/zod';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-
-interface Estado {
-  id: number;
-  sigla: string;
-  nome: string;
-}
-
-interface Municipio {
-  id: number;
-  nome: string;
-}
-
-interface GabineteProps {
-  id: string;
-  gabinete: string;
-  estado: string | null;
-  municipio: string | null;
-  telefone: string | null;
-  responsavel: string | null;
-  profiles: { id: string; nome: string | null }[];
-}
-
-const formSchema = z.object({
-  gabinete: z.string().min(2, "O nome do gabinete deve ter pelo menos 2 caracteres"),
-  responsavel: z.string().optional(),
-  municipio: z.string().min(2, "O município deve ter pelo menos 2 caracteres"),
-  estado: z.string().min(2, "O estado deve ter pelo menos 2 caracteres"),
-  telefone: z.string().optional()
-});
-
-const GabineteCard: React.FC<{ gabinete: GabineteProps }> = ({ gabinete }) => {
-  return (
-    <Card className="bg-white overflow-hidden">
-      <CardContent className="p-6">
-        <div className="flex items-start gap-3">
-          <div className="bg-green-50 p-2 rounded-md">
-            <Building className="h-5 w-5 text-resolve-green" />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-lg font-medium mb-1">{gabinete.gabinete}</h3>
-            <p className="text-gray-500 text-sm mb-4">
-              {gabinete.responsavel ? `Responsável: ${gabinete.responsavel}` : 'Sem responsável definido'}
-            </p>
-            
-            <div className="space-y-3">
-              <div className="flex items-center text-gray-500 text-sm">
-                <MapPin className="w-4 h-4 mr-2" />
-                <span>{gabinete.municipio ? `${gabinete.municipio}, ${gabinete.estado}` : 'Localização não definida'}</span>
-              </div>
-
-              {gabinete.telefone && (
-                <div className="flex items-center text-gray-500 text-sm">
-                  <Phone className="w-4 h-4 mr-2" />
-                  <span>{gabinete.telefone}</span>
-                </div>
-              )}
-              
-              <div className="flex items-center justify-between">
-                <div className="flex items-center text-gray-500 text-sm">
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  <span>{gabinete.profiles.length} membros vinculados</span>
-                </div>
-                
-                <div className="flex gap-2">
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <Eye className="h-4 w-4 text-gray-500" />
-                  </Button>
-                  
-                  <Button variant="ghost" size="icon" className="h-8 w-8">
-                    <PlusCircle className="h-4 w-4 text-gray-500" />
-                  </Button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
+import GabineteCard from '@/components/gabinetes/GabineteCard';
+import NovoGabineteModal from '@/components/gabinetes/NovoGabineteModal';
+import useGabinetes from '@/hooks/useGabinetes';
 
 const Gabinetes: React.FC = () => {
-  const [searchTerm, setSearchTerm] = useState('');
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [estados, setEstados] = useState<Estado[]>([]);
-  const [municipios, setMunicipios] = useState<Municipio[]>([]);
-  const [selectedEstado, setSelectedEstado] = useState<string>('');
+  const { gabinetes, isLoading, refetch, searchTerm, setSearchTerm } = useGabinetes();
   
-  const form = useForm<z.infer<typeof formSchema>>({
-    resolver: zodResolver(formSchema),
-    defaultValues: {
-      gabinete: "",
-      responsavel: "",
-      municipio: "",
-      estado: "",
-      telefone: ""
-    }
-  });
-
-  const { data: gabinetes, isLoading, refetch } = useQuery({
-    queryKey: ['gabinetes'],
-    queryFn: async () => {
-      const { data, error } = await supabase
-        .from('gabinetes')
-        .select('*, profiles(id, nome)')
-        .order('gabinete');
-        
-      if (error) {
-        toast.error('Erro ao carregar gabinetes: ' + error.message);
-        console.error('Erro ao carregar gabinetes:', error);
-        return [];
-      }
-      
-      return data || [];
-    }
-  });
-  
-  // Carregar estados do Brasil via API do IBGE
-  useEffect(() => {
-    const fetchEstados = async () => {
-      try {
-        const response = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados');
-        if (!response.ok) {
-          throw new Error('Falha ao carregar estados');
-        }
-        const data = await response.json();
-        // Ordenar estados por nome
-        const estadosOrdenados = data.sort((a: Estado, b: Estado) => a.nome.localeCompare(b.nome));
-        setEstados(estadosOrdenados);
-      } catch (error) {
-        console.error('Erro ao buscar estados:', error);
-        toast.error('Não foi possível carregar a lista de estados.');
-      }
-    };
-
-    fetchEstados();
-  }, []);
-
-  // Carregar municípios quando um estado for selecionado
-  useEffect(() => {
-    if (!selectedEstado) {
-      setMunicipios([]);
-      return;
-    }
-
-    const fetchMunicipios = async () => {
-      try {
-        const response = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedEstado}/municipios`);
-        if (!response.ok) {
-          throw new Error('Falha ao carregar municípios');
-        }
-        const data = await response.json();
-        // Ordenar municípios por nome
-        const municipiosOrdenados = data.sort((a: Municipio, b: Municipio) => a.nome.localeCompare(b.nome));
-        setMunicipios(municipiosOrdenados);
-      } catch (error) {
-        console.error('Erro ao buscar municípios:', error);
-        toast.error('Não foi possível carregar a lista de municípios.');
-      }
-    };
-
-    fetchMunicipios();
-  }, [selectedEstado]);
-
-  // Handler para mudança de estado
-  const handleEstadoChange = (value: string) => {
-    setSelectedEstado(value);
-    // Limpar o campo de município quando o estado mudar
-    form.setValue('municipio', '');
-  };
-  
-  const filteredGabinetes = gabinetes?.filter(gabinete =>
-    gabinete.gabinete.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (gabinete.responsavel && gabinete.responsavel.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    (gabinete.municipio && gabinete.municipio.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
-  const onSubmit = async (values: z.infer<typeof formSchema>) => {
-    // Encontrar o nome do estado a partir da sigla
-    const estadoNome = estados.find(estado => estado.sigla === values.estado)?.nome || values.estado;
-    
-    const { error } = await supabase
-      .from('gabinetes')
-      .insert([
-        {
-          gabinete: values.gabinete,
-          responsavel: values.responsavel || null,
-          municipio: values.municipio,
-          estado: estadoNome, // Salvar o nome do estado, não a sigla
-          telefone: values.telefone || null
-        }
-      ]);
-
-    if (error) {
-      toast.error('Erro ao criar gabinete: ' + error.message);
-      return;
-    }
-
-    toast.success('Gabinete criado com sucesso!');
-    form.reset();
-    setIsModalOpen(false);
+  const handleSuccess = () => {
     refetch();
   };
 
@@ -266,11 +64,11 @@ const Gabinetes: React.FC = () => {
             </div>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredGabinetes?.map((gabinete) => (
+              {gabinetes?.map((gabinete) => (
                 <GabineteCard key={gabinete.id} gabinete={gabinete} />
               ))}
               
-              {filteredGabinetes?.length === 0 && (
+              {gabinetes?.length === 0 && (
                 <div className="col-span-full text-center py-12">
                   <p className="text-gray-500">Nenhum gabinete encontrado com o termo "{searchTerm}"</p>
                 </div>
@@ -281,138 +79,11 @@ const Gabinetes: React.FC = () => {
       </div>
 
       {/* Modal para criar novo gabinete */}
-      <Sheet open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <SheetContent className="w-full sm:max-w-md overflow-y-auto">
-          <SheetHeader className="mb-6">
-            <SheetTitle>Novo Gabinete</SheetTitle>
-            <SheetDescription>
-              Preencha os campos para criar um novo gabinete.
-            </SheetDescription>
-          </SheetHeader>
-          
-          <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-              <FormField
-                control={form.control}
-                name="gabinete"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Nome do Gabinete</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome do gabinete" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="responsavel"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Responsável</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Nome do responsável" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="estado"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Estado</FormLabel>
-                    <Select 
-                      onValueChange={(value) => {
-                        field.onChange(value);
-                        handleEstadoChange(value);
-                      }}
-                      value={field.value}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Selecione um estado" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {estados.map((estado) => (
-                          <SelectItem key={estado.id} value={estado.sigla}>
-                            {estado.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="municipio"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Município</FormLabel>
-                    <Select
-                      onValueChange={field.onChange}
-                      value={field.value}
-                      disabled={!selectedEstado}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder={selectedEstado ? "Selecione um município" : "Selecione um estado primeiro"} />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {municipios.map((municipio) => (
-                          <SelectItem key={municipio.id} value={municipio.nome}>
-                            {municipio.nome}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <FormField
-                control={form.control}
-                name="telefone"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Telefone</FormLabel>
-                    <FormControl>
-                      <Input placeholder="Telefone de contato" {...field} />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-
-              <div className="flex justify-end gap-2 pt-4">
-                <Button 
-                  type="button" 
-                  variant="outline"
-                  onClick={() => setIsModalOpen(false)}
-                >
-                  Cancelar
-                </Button>
-                <Button 
-                  type="submit" 
-                  className="bg-resolve-green hover:bg-green-700"
-                >
-                  Salvar
-                </Button>
-              </div>
-            </form>
-          </Form>
-        </SheetContent>
-      </Sheet>
+      <NovoGabineteModal 
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        onSuccess={handleSuccess}
+      />
     </div>
   );
 };
