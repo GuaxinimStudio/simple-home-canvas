@@ -76,7 +76,7 @@ const Notificacoes: React.FC = () => {
             </CardHeader>
             <CardContent>
               <p className="text-gray-600">
-                Notificações são mensagens importantes que serão enviadas para os contatos registrados. 
+                Notificações são mensagens importantes que serão enviadas para os contatos registrados no Resolve Leg. 
                 Utilize este recurso para enviar alertas, lembretes ou informações importantes.
               </p>
             </CardContent>
