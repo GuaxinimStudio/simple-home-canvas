@@ -12,13 +12,18 @@ const RecentProblemsTable: React.FC<RecentProblemsTableProps> = ({ limit = 5 }) 
   const location = useLocation();
   const { problems, isLoading, error, refreshData } = useProblems(limit);
   
-  // Atualizar os dados quando retornar à página inicial
+  // Atualizamos os dados apenas uma vez quando a página carrega
   useEffect(() => {
-    // Se estamos na página inicial, atualizamos os dados
+    // Verificamos se estamos na página inicial antes de atualizar
     if (location.pathname === '/') {
-      refreshData();
+      // Definimos um pequeno atraso para evitar múltiplas chamadas em sequência
+      const timer = setTimeout(() => {
+        refreshData();
+      }, 300);
+      
+      return () => clearTimeout(timer);
     }
-  }, [location.pathname, refreshData]);
+  }, [location.pathname]);
   
   return (
     <ProblemsTableContainer 
