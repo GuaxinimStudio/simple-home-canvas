@@ -41,20 +41,6 @@ export const ProblemFilters: React.FC<ProblemFiltersProps> = ({
           </SelectContent>
         </Select>
       </div>
-      <div className="w-64">
-        <Select disabled>
-          <SelectTrigger>
-            <SelectValue placeholder="Todas as secretarias" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="todas">Todas as secretarias</SelectItem>
-            <SelectItem value="obras">Secretaria de Obras</SelectItem>
-            <SelectItem value="saude">Secretaria de Saúde</SelectItem>
-            <SelectItem value="educacao">Secretaria de Educação</SelectItem>
-            <SelectItem value="meio-ambiente">Secretaria de Meio Ambiente</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
       <div className="flex-1 text-right">
         <span className="text-gray-600">{totalProblems} problema(s) encontrado(s)</span>
       </div>
