@@ -12,7 +12,7 @@ import RelatoriosStatusCards from '../components/RelatoriosStatusCards';
 import RelatoriosGrafico from '../components/RelatoriosGrafico';
 import RelatoriosResolvidosPrazo from '../components/RelatoriosResolvidosPrazo';
 import RelatoriosTabela from '../components/RelatoriosTabela';
-import VisualizacaoRelatorio from '../components/relatorios/VisualizacaoRelatorio';
+import VisualizacaoRelatorio from '../components/relatorios/visualizacao/VisualizacaoRelatorio';
 import RelatorioImpressao from '../components/relatorios/RelatorioImpressao';
 
 // Hook personalizado para gerenciar dados dos relatórios

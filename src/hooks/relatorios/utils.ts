@@ -63,6 +63,15 @@ export const calcularEstatisticas = (problemasFiltrados: Problema[]): Relatorios
   const informacoesInsuficientes = problemasFiltrados.filter(p => p.status === 'Informações Insuficientes').length;
   const resolvidosNoPrazo = problemasFiltrados.filter(p => p.resolvido_no_prazo === true).length;
   
+  // Calcular média de dias de atraso
+  const problemasComAtraso = problemasFiltrados.filter(p => p.dias_atraso_resolucao !== null && p.dias_atraso_resolucao > 0);
+  let diasAtrasoMedio = 0;
+  
+  if (problemasComAtraso.length > 0) {
+    const somaAtrasos = problemasComAtraso.reduce((soma, p) => soma + (p.dias_atraso_resolucao || 0), 0);
+    diasAtrasoMedio = Math.round(somaAtrasos / problemasComAtraso.length);
+  }
+  
   return {
     pendentes,
     emAndamento,
@@ -71,5 +80,6 @@ export const calcularEstatisticas = (problemasFiltrados: Problema[]): Relatorios
     total: problemasFiltrados.length,
     resolvidosNoPrazo,
     totalResolvidos: resolvidos,
+    diasAtrasoMedio
   };
 };

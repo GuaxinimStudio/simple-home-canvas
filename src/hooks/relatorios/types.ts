@@ -25,6 +25,7 @@ export interface RelatoriosStats {
   total: number;
   resolvidosNoPrazo: number;
   totalResolvidos: number;
+  diasAtrasoMedio?: number; // Novo campo para média de dias de atraso
 }
 
 export interface FiltrosRelatorios {
