@@ -71,7 +71,6 @@ const RelatoriosFiltros: React.FC<RelatoriosFiltrosProps> = ({
 }) => {
   const anos = gerarAnos();
   const [secretarias, setSecretarias] = useState<{value: string, label: string}[]>([]);
-  const [filtrosAplicados, setFiltrosAplicados] = useState<boolean>(false);
   
   // Verificar que filtros não é undefined antes de prosseguir
   if (!filtros) {
@@ -112,7 +111,6 @@ const RelatoriosFiltros: React.FC<RelatoriosFiltrosProps> = ({
   const handleFiltroChange = (campo: keyof FiltrosRelatorios, valor: any) => {
     const novosFiltros = { ...filtros, [campo]: valor };
     onFiltrosChange(novosFiltros);
-    setFiltrosAplicados(true);
   };
   
   const handleTipoFiltroChange = (tipo: "mes_ano" | "intervalo") => {
@@ -121,7 +119,6 @@ const RelatoriosFiltros: React.FC<RelatoriosFiltrosProps> = ({
       tipoFiltro: tipo 
     };
     onFiltrosChange(novosFiltros);
-    setFiltrosAplicados(true);
   };
 
   const handleTextoBuscaChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,14 +130,15 @@ const RelatoriosFiltros: React.FC<RelatoriosFiltrosProps> = ({
     return meses.find(mes => mes.value === mesNumero)?.label || "Selecione o mês";
   };
 
-  const temFiltrosAplicados = filtrosAplicados || 
-    (filtros.textoBusca && filtros.textoBusca.length > 0) || 
-    filtros.secretaria || 
-    filtros.status || 
-    filtros.mes || 
-    filtros.ano || 
-    filtros.dataInicio || 
-    filtros.dataFim;
+  // Nova lógica: verificar se o mês ou ano selecionado é diferente do atual
+  const mesAtual = (new Date().getMonth() + 1).toString();
+  const anoAtual = new Date().getFullYear().toString();
+  
+  const mesDiferenteDoAtual = filtros.mes !== null && filtros.mes !== mesAtual;
+  const anoDiferenteDoAtual = filtros.ano !== null && filtros.ano !== anoAtual;
+  
+  // Mostrar botão de limpar apenas se o mês ou ano for diferente do atual
+  const mostrarBotaoLimpar = mesDiferenteDoAtual || anoDiferenteDoAtual;
 
   return (
     <Card className="mb-6">
@@ -148,7 +146,7 @@ const RelatoriosFiltros: React.FC<RelatoriosFiltrosProps> = ({
         <div className="flex justify-between items-center mb-4">
           <h2 className="text-lg font-medium">Filtros</h2>
           
-          {temFiltrosAplicados && (
+          {mostrarBotaoLimpar && (
             <Button 
               variant="outline" 
               size="sm"
@@ -181,7 +179,6 @@ const RelatoriosFiltros: React.FC<RelatoriosFiltrosProps> = ({
                   <SelectValue placeholder="Todos os municípios" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todos_municipios">Todos os municípios</SelectItem>
                   {secretarias.map((secretaria) => (
                     <SelectItem key={secretaria.value} value={secretaria.value}>
                       {secretaria.label}
@@ -200,7 +197,6 @@ const RelatoriosFiltros: React.FC<RelatoriosFiltrosProps> = ({
                   <SelectValue placeholder="Todos os status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="todos_status">Todos os status</SelectItem>
                   <SelectItem value="Pendente">Pendente</SelectItem>
                   <SelectItem value="Em andamento">Em andamento</SelectItem>
                   <SelectItem value="Resolvido">Resolvido</SelectItem>
