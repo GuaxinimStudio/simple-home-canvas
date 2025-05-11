@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { useForm, Controller } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -11,7 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import useGabinetes from '@/hooks/useGabinetes';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
 import { Input } from '@/components/ui/input';
-import { X } from 'lucide-react';
+import { X, Upload, FileIcon, FileCheck, Image } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
   gabinete_id: z.string().optional(),
@@ -26,9 +27,13 @@ type NovaNotificacaoModalProps = {
 
 const NovaNotificacaoModal: React.FC<NovaNotificacaoModalProps> = ({ isOpen, onClose }) => {
   const { gabinetes = [], isLoading: isLoadingGabinetes } = useGabinetes();
-  const { criarNotificacao, isCreating } = useNotificacoes();
-  const [telefones, setTelefones] = React.useState<string[]>([]);
-  const [telefoneInput, setTelefoneInput] = React.useState('');
+  const { criarNotificacao, isCreating, isUploading } = useNotificacoes();
+  const [telefones, setTelefones] = useState<string[]>([]);
+  const [telefoneInput, setTelefoneInput] = useState('');
+  const [arquivo, setArquivo] = useState<File | null>(null);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  const isLoading = isCreating || isUploading;
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -41,13 +46,23 @@ const NovaNotificacaoModal: React.FC<NovaNotificacaoModalProps> = ({ isOpen, onC
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     await criarNotificacao({
-      gabinete_id: values.gabinete_id || null,
-      informacao: values.informacao,
-      telefones: values.telefones
+      novaNotificacao: {
+        gabinete_id: values.gabinete_id || null,
+        informacao: values.informacao,
+        telefones: values.telefones
+      },
+      arquivo: arquivo || undefined
     });
+    resetForm();
+    onClose();
+  };
+
+  const resetForm = () => {
     form.reset();
     setTelefones([]);
-    onClose();
+    setTelefoneInput('');
+    setArquivo(null);
+    setPreviewUrl(null);
   };
 
   const adicionarTelefone = () => {
@@ -63,6 +78,45 @@ const NovaNotificacaoModal: React.FC<NovaNotificacaoModalProps> = ({ isOpen, onC
     const novosTelefones = telefones.filter((_, i) => i !== index);
     setTelefones(novosTelefones);
     form.setValue('telefones', novosTelefones);
+  };
+
+  const handleArquivoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setArquivo(file);
+
+    // Criar preview para imagens
+    if (file.type.startsWith('image/')) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewUrl(reader.result as string);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPreviewUrl(null);
+    }
+  };
+
+  const removerArquivo = () => {
+    setArquivo(null);
+    setPreviewUrl(null);
+    
+    // Reset do input de arquivo
+    const fileInput = document.getElementById('arquivo') as HTMLInputElement;
+    if (fileInput) fileInput.value = '';
+  };
+
+  const getArquivoIcon = () => {
+    if (!arquivo) return null;
+    
+    if (arquivo.type.startsWith('image/')) {
+      return <Image className="h-5 w-5 text-blue-500" />;
+    } else if (arquivo.type === 'application/pdf') {
+      return <FileIcon className="h-5 w-5 text-red-500" />;
+    } else {
+      return <FileCheck className="h-5 w-5 text-green-500" />;
+    }
   };
 
   return (
@@ -86,7 +140,7 @@ const NovaNotificacaoModal: React.FC<NovaNotificacaoModalProps> = ({ isOpen, onC
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
-                    disabled={isLoadingGabinetes}
+                    disabled={isLoadingGabinetes || isLoading}
                   >
                     <FormControl>
                       <SelectTrigger>
@@ -117,12 +171,73 @@ const NovaNotificacaoModal: React.FC<NovaNotificacaoModalProps> = ({ isOpen, onC
                       placeholder="Digite a mensagem a ser enviada"
                       className="min-h-32"
                       {...field}
+                      disabled={isLoading}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
+
+            {/* Upload de arquivo */}
+            <div className="space-y-2">
+              <FormLabel htmlFor="arquivo">Arquivo ou Imagem (Opcional)</FormLabel>
+              
+              {arquivo ? (
+                <div className="flex items-center justify-between bg-gray-100 p-3 rounded-md">
+                  <div className="flex items-center space-x-2">
+                    {getArquivoIcon()}
+                    <span className="text-sm text-gray-700 truncate max-w-[180px]">
+                      {arquivo.name}
+                    </span>
+                    <span className="text-xs text-gray-500">
+                      {(arquivo.size / 1024).toFixed(1)} KB
+                    </span>
+                  </div>
+                  <Button 
+                    type="button" 
+                    variant="ghost" 
+                    size="sm" 
+                    onClick={removerArquivo}
+                    disabled={isLoading}
+                  >
+                    <X className="h-4 w-4" />
+                  </Button>
+                </div>
+              ) : (
+                <div className="flex items-center justify-center border-2 border-dashed border-gray-300 rounded-md p-4">
+                  <label 
+                    htmlFor="arquivo" 
+                    className={cn(
+                      "flex flex-col items-center justify-center w-full h-full cursor-pointer",
+                      isLoading && "opacity-50 cursor-not-allowed"
+                    )}
+                  >
+                    <Upload className="h-6 w-6 mb-2 text-gray-500" />
+                    <span className="text-sm text-gray-600">Clique para escolher um arquivo</span>
+                    <input
+                      id="arquivo"
+                      type="file"
+                      className="hidden"
+                      onChange={handleArquivoChange}
+                      accept="image/*,application/pdf"
+                      disabled={isLoading}
+                    />
+                  </label>
+                </div>
+              )}
+              
+              {/* Preview da imagem */}
+              {previewUrl && (
+                <div className="mt-2">
+                  <img 
+                    src={previewUrl} 
+                    alt="Preview" 
+                    className="max-h-36 rounded-md mx-auto border border-gray-200"
+                  />
+                </div>
+              )}
+            </div>
 
             <FormField
               control={form.control}
@@ -137,11 +252,12 @@ const NovaNotificacaoModal: React.FC<NovaNotificacaoModalProps> = ({ isOpen, onC
                         onChange={(e) => setTelefoneInput(e.target.value)}
                         placeholder="Digite um telefone"
                         className="flex-1"
+                        disabled={isLoading}
                       />
                       <Button 
                         type="button" 
                         onClick={adicionarTelefone}
-                        disabled={telefoneInput.length < 10}
+                        disabled={telefoneInput.length < 10 || isLoading}
                       >
                         Adicionar
                       </Button>
@@ -156,15 +272,16 @@ const NovaNotificacaoModal: React.FC<NovaNotificacaoModalProps> = ({ isOpen, onC
                             variant="ghost"
                             size="sm"
                             onClick={() => removerTelefone(index)}
+                            disabled={isLoading}
                           >
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
                       ))}
                     </div>
-                    {!telefones.length && (
+                    {!telefones.length && !form.getValues('gabinete_id') && (
                       <p className="text-sm text-muted-foreground">
-                        Adicione pelo menos um telefone para enviar a notificação.
+                        Adicione pelo menos um telefone ou selecione um gabinete para enviar a notificação.
                       </p>
                     )}
                     <FormMessage />
@@ -174,15 +291,20 @@ const NovaNotificacaoModal: React.FC<NovaNotificacaoModalProps> = ({ isOpen, onC
             />
 
             <div className="flex justify-end space-x-2 pt-4">
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={onClose}
+                disabled={isLoading}
+              >
                 Cancelar
               </Button>
               <Button 
                 type="submit" 
-                disabled={isCreating || telefones.length === 0}
+                disabled={isLoading || (telefones.length === 0 && !form.getValues('gabinete_id'))}
                 className="bg-green-500 hover:bg-green-600"
               >
-                {isCreating ? 'Enviando...' : 'Enviar Notificação'}
+                {isLoading ? 'Enviando...' : 'Enviar Notificação'}
               </Button>
             </div>
           </form>

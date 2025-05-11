@@ -4,7 +4,7 @@ import Sidebar from '../components/Sidebar';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Trash2, MessageCircle, Bell, Plus, Search } from 'lucide-react';
+import { Trash2, MessageCircle, Bell, Plus, Search, FileText, Image as ImageIcon } from 'lucide-react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
 import NovaNotificacaoModal from '@/components/notificacoes/NovaNotificacaoModal';
@@ -25,6 +25,18 @@ const Notificacoes: React.FC = () => {
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return format(date, "dd/MM/yyyy 'às' HH:mm", { locale: ptBR });
+  };
+
+  const getArquivoIcon = (tipo: string | null | undefined) => {
+    if (!tipo) return null;
+    
+    if (tipo.startsWith('image/')) {
+      return <ImageIcon className="h-4 w-4 text-blue-500 mr-1" />;
+    } else if (tipo === 'application/pdf') {
+      return <FileText className="h-4 w-4 text-red-500 mr-1" />;
+    }
+    
+    return null;
   };
 
   return (
@@ -133,6 +145,22 @@ const Notificacoes: React.FC = () => {
                     
                     {/* Texto da notificação */}
                     <p className="mb-4 line-clamp-3">{notificacao.informacao}</p>
+                    
+                    {/* Arquivo (se existir) */}
+                    {notificacao.arquivo_url && (
+                      <div className="flex items-center text-sm text-blue-600 mb-3">
+                        {getArquivoIcon(notificacao.arquivo_tipo)}
+                        <a 
+                          href={notificacao.arquivo_url} 
+                          target="_blank" 
+                          rel="noopener noreferrer"
+                          className="underline hover:text-blue-800"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          Ver arquivo anexado
+                        </a>
+                      </div>
+                    )}
                     
                     {/* Secretaria */}
                     {notificacao.gabinete && (
