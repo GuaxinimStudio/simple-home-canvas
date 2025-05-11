@@ -68,6 +68,8 @@ export type Database = {
       }
       notificacao: {
         Row: {
+          arquivo_tipo: string | null
+          arquivo_url: string | null
           created_at: string
           gabinete_id: string | null
           id: string
@@ -76,6 +78,8 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          arquivo_tipo?: string | null
+          arquivo_url?: string | null
           created_at?: string
           gabinete_id?: string | null
           id?: string
@@ -84,6 +88,8 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          arquivo_tipo?: string | null
+          arquivo_url?: string | null
           created_at?: string
           gabinete_id?: string | null
           id?: string
