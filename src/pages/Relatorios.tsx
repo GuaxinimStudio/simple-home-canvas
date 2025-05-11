@@ -12,6 +12,7 @@ import RelatoriosTabela from '../components/RelatoriosTabela';
 
 // Hook personalizado para gerenciar dados dos relatórios
 import { useRelatoriosData } from '@/hooks/useRelatoriosData';
+import { FiltrosRelatorios } from '@/components/relatorios/types';
 
 const Relatorios: React.FC = () => {
   const { 
@@ -23,7 +24,7 @@ const Relatorios: React.FC = () => {
     limparFiltros 
   } = useRelatoriosData();
 
-  const handleFiltrosChange = (novosFiltros: any) => {
+  const handleFiltrosChange = (novosFiltros: FiltrosRelatorios) => {
     setFiltros(novosFiltros);
   };
 
