@@ -1,159 +1,89 @@
 
 import { useState } from 'react';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { supabase } from "@/integrations/supabase/client";
-import { OcorrenciaData } from '@/types/ocorrencia';
-import { OcorrenciaState, isStatusRequireResponse } from './ocorrenciaTypes';
+import { StatusType } from '@/types/ocorrencia';
 
-export const useOcorrenciaSave = (
-  id: string | undefined, 
-  state: OcorrenciaState, 
-  setState: (state: Partial<OcorrenciaState>) => void
-) => {
-  const [isSaved, setIsSaved] = useState<boolean>(false);
-  
-  const { 
-    currentStatus, 
-    problemData, 
-    prazoEstimado, 
-    descricaoResolvido, 
-    imagemResolvido 
-  } = state;
+export const useOcorrenciaSave = (id: string) => {
+  const [isSaving, setIsSaving] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
 
-  // Quando carrega os dados iniciais, verifica se já está resolvido e salvo
-  useState(() => {
-    if (problemData && isStatusRequireResponse(problemData.status as any)) {
-      setIsSaved(true);
-    }
-  });
+  // Função para calcular se a resolução foi feita no prazo
+  const calcularResolvidoNoPrazo = (prazoEstimado: string | null): boolean | null => {
+    if (!prazoEstimado) return null;
+    
+    const dataPrazo = new Date(prazoEstimado);
+    const dataAtual = new Date();
+    
+    // Se o prazo é posterior à data atual, foi resolvido no prazo
+    return dataPrazo >= dataAtual;
+  };
 
-  const handleSalvar = async () => {
+  // Função para calcular os dias de atraso na resolução
+  const calcularDiasAtraso = (prazoEstimado: string | null): number | null => {
+    if (!prazoEstimado) return null;
+    
+    const dataPrazo = new Date(prazoEstimado);
+    const dataAtual = new Date();
+    
+    // Se foi resolvido no prazo, não há atraso
+    if (dataPrazo >= dataAtual) return 0;
+    
+    // Calcula a diferença em dias
+    const diffTime = Math.abs(dataAtual.getTime() - dataPrazo.getTime());
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    
+    return diffDays;
+  };
+
+  const saveProblema = async (
+    status: StatusType,
+    prazoEstimado: string | null,
+    departamento: string,
+    descricaoResolvido: string,
+    imagemResolvidoUrl: string | null
+  ) => {
+    setIsSaving(true);
     try {
-      if (!id) {
-        throw new Error('ID não fornecido');
-      }
-
-      if (currentStatus !== 'Pendente' && !prazoEstimado) {
-        toast.error('É necessário definir um prazo antes de alterar o status.');
-        return;
-      }
-
-      // Verifica se precisa de descrição detalhada para status de Resolvido ou Informações Insuficientes
-      if (isStatusRequireResponse(currentStatus) && !descricaoResolvido?.trim()) {
-        toast.error(`É necessário fornecer ${currentStatus === 'Resolvido' ? 'detalhes da resolução' : 'orientações para o cidadão'}.`);
-        return;
-      }
-
-      // Se estiver resolvendo e não tiver imagem, exigir uma imagem
-      if (currentStatus === 'Resolvido' && !imagemResolvido && !problemData?.imagem_resolvido) {
-        toast.error('É necessário fornecer uma imagem de comprovação da resolução.');
-        return;
-      }
-
-      console.log('Salvando alterações no banco de dados...');
-      console.log('Status:', currentStatus);
-      console.log('Prazo estimado:', prazoEstimado);
+      // Determina se o status representa uma finalização
+      const isStatusFinalizado = status === 'Resolvido' || status === 'Informações Insuficientes';
       
-      const updateData: Record<string, any> = {
-        status: currentStatus,
-        prazo_estimado: prazoEstimado ? new Date(prazoEstimado).toISOString() : null
-      };
+      // Se o status indica finalização, calcula se foi resolvido no prazo
+      let resolvidoNoPrazo = null;
+      let diasAtrasoResolucao = null;
       
-      if (descricaoResolvido?.trim()) {
-        updateData.descricao_resolvido = descricaoResolvido;
+      if (isStatusFinalizado && prazoEstimado) {
+        resolvidoNoPrazo = calcularResolvidoNoPrazo(prazoEstimado);
+        diasAtrasoResolucao = calcularDiasAtraso(prazoEstimado);
       }
-      
-      // Se o status for alterado para Resolvido ou Informações Insuficientes,
-      // atualizamos a data de resolução automaticamente
-      const shouldUpdateResolvedAt = isStatusRequireResponse(currentStatus) && 
-        !isStatusRequireResponse(problemData?.status as any);
-        
-      if (shouldUpdateResolvedAt) {
-        // A data de atualização (updated_at) será atualizada automaticamente pelo trigger do banco
-        toast.success(
-          currentStatus === 'Resolvido' 
-            ? 'Problema resolvido! O contador de tempo foi parado.' 
-            : 'Informações insuficientes registradas! O contador de tempo foi parado.'
-        );
-      }
-      
-      // Se tiver uma nova imagem para upload
-      if (imagemResolvido) {
-        // Converter imagem para base64 para salvar no banco
-        const reader = new FileReader();
-        reader.readAsDataURL(imagemResolvido);
-        reader.onload = async () => {
-          updateData.imagem_resolvido = reader.result;
-          
-          // Atualizar o banco de dados com todos os dados
-          const { error } = await supabase
-            .from('problemas')
-            .update(updateData)
-            .eq('id', id);
 
-          if (error) {
-            console.error('Erro ao salvar alterações:', error);
-            throw error;
-          }
+      const { error } = await supabase
+        .from('problemas')
+        .update({
+          status,
+          prazo_estimado: prazoEstimado,
+          gabinete_id: departamento || null,
+          descricao_resolvido: isStatusFinalizado ? descricaoResolvido : null,
+          imagem_resolvido: isStatusFinalizado ? imagemResolvidoUrl : null,
+          // Adicionamos os novos campos apenas se o status for de finalização
+          resolvido_no_prazo: isStatusFinalizado ? resolvidoNoPrazo : null,
+          dias_atraso_resolucao: isStatusFinalizado ? diasAtrasoResolucao : null
+        })
+        .eq('id', id);
 
-          // Atualizar o problemData localmente para refletir mudanças imediatamente
-          if (problemData) {
-            const updatedProblem = {
-              ...problemData,
-              ...updateData,
-              prazo_estimado: prazoEstimado ? new Date(prazoEstimado).toISOString() : null,
-              updated_at: shouldUpdateResolvedAt 
-                ? new Date().toISOString() 
-                : problemData.updated_at
-            };
-            setState({ problemData: updatedProblem });
-            
-            // Atualizar o estado de salvamento se foi resolvido ou informações insuficientes
-            if (isStatusRequireResponse(currentStatus)) {
-              setIsSaved(true);
-            }
-          }
+      if (error) throw error;
 
-          toast.success('Alterações salvas com sucesso!');
-        };
-      } else {
-        // Se não houver nova imagem, apenas atualizamos os outros dados
-        console.log('Dados de atualização:', updateData);
-        
-        const { error } = await supabase
-          .from('problemas')
-          .update(updateData)
-          .eq('id', id);
-
-        if (error) {
-          console.error('Erro ao salvar alterações:', error);
-          throw error;
-        }
-
-        // Atualizar o problemData localmente para refletir mudanças imediatamente
-        if (problemData) {
-          const updatedProblem = {
-            ...problemData,
-            ...updateData,
-            updated_at: shouldUpdateResolvedAt 
-              ? new Date().toISOString() 
-              : problemData.updated_at
-          };
-          setState({ problemData: updatedProblem });
-          
-          // Atualizar o estado de salvamento se foi resolvido ou informações insuficientes
-          if (isStatusRequireResponse(currentStatus)) {
-            setIsSaved(true);
-          }
-        }
-
-        toast.success('Alterações salvas com sucesso!');
-      }
-    } catch (err: any) {
-      console.error('Erro ao salvar alterações:', err);
-      toast.error(`Erro ao salvar: ${err.message}`);
+      toast.success('Problema atualizado com sucesso!');
+      setIsSaved(true);
+    } catch (error: any) {
+      console.error('Erro ao salvar problema:', error);
+      toast.error(`Falha ao atualizar problema: ${error.message}`);
+    } finally {
+      setIsSaving(false);
     }
   };
 
-  return { handleSalvar, isSaved };
+  const resetSavedState = () => setIsSaved(false);
+
+  return { saveProblema, isSaving, isSaved, resetSavedState };
 };
