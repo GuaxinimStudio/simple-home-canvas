@@ -30,7 +30,10 @@ export const useFetchOcorrencia = (id: string | undefined, setState: (state: Par
       }
 
       // Se temos os dados básicos, podemos usá-los
-      let fullData = basicData as OcorrenciaData;
+      let fullData = {
+        ...basicData,
+        gabinete: null
+      } as OcorrenciaData;
       
       // Agora tentamos buscar o gabinete separadamente se temos um gabinete_id
       if (basicData.gabinete_id) {
@@ -46,8 +49,7 @@ export const useFetchOcorrencia = (id: string | undefined, setState: (state: Par
             fullData = {
               ...basicData,
               gabinete: {
-                gabinete: gabineteData.gabinete,
-                municipio: gabineteData.municipio
+                gabinete: gabineteData.gabinete
               }
             } as OcorrenciaData;
           }

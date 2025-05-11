@@ -40,7 +40,7 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
   }, []);
 
   // Obter os dados iniciais da ocorrência
-  useFetchOcorrencia(id, updateState);
+  const { ocorrencia, isLoading, error, refetchOcorrencia } = useFetchOcorrencia(id, updateState);
 
   // Gerenciar status e prazo
   const { 
@@ -54,18 +54,35 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
   const imageManager = useOcorrenciaImages(state.imagemResolvidoPreview);
   
   // Gerenciar salvamento de alterações
-  const { handleSalvar, isSaved } = useOcorrenciaSave(id, {
-    ...state,
-    currentStatus,
-    prazoEstimado,
-    imagemResolvido: imageManager.imagemResolvido,
-    imagemResolvidoPreview: imageManager.imagemResolvidoPreview
-  }, updateState);
+  const { saveProblema, isSaving, isSaved, resetSavedState } = useOcorrenciaSave(id || '');
+
+  // Adicionar função handleSalvar usando saveProblema
+  const handleSalvar = async () => {
+    if (!id) return;
+    
+    // Upload da imagem de resolução, se houver
+    let imagemResolvidoUrl = null;
+    if (imageManager.imagemResolvido && imageManager.uploadImagemResolvido) {
+      imagemResolvidoUrl = await imageManager.uploadImagemResolvido(id);
+    }
+    
+    // Salvar problema
+    await saveProblema(
+      currentStatus as StatusType,
+      prazoEstimado,
+      state.selectedDepartamento,
+      state.descricaoResolvido,
+      imagemResolvidoUrl
+    );
+    
+    // Atualizar dados
+    refetchOcorrencia();
+  };
 
   // Verificar se já está salvo como resolvido e se a resposta já foi enviada quando carregar os dados
   useState(() => {
     if (state.problemData) {
-      if (isStatusRequireResponse(state.problemData.status as any)) {
+      if (isStatusRequireResponse(state.problemData.status as StatusType)) {
         updateState({ isSaved: true });
       }
       if (state.problemData.resposta_enviada) {
@@ -103,7 +120,7 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     prazoEstimado,
     imagemResolvido: imageManager.imagemResolvido,
     imagemResolvidoPreview: imageManager.imagemResolvidoPreview,
-    isSaved: isSaved || (state.problemData && isStatusRequireResponse(state.problemData.status as any)), 
+    isSaved: isSaved || (state.problemData && isStatusRequireResponse(state.problemData.status as StatusType)), 
     respostaEnviada: state.respostaEnviada || (state.problemData?.resposta_enviada === true),
     handleStatusChange,
     handlePrazoChange,

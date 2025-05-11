@@ -40,23 +40,34 @@ const DetalhesOcorrencia: React.FC = () => {
     }));
   };
   
+  // Definindo formatPrazoToInput antes de usar
+  const formatPrazoToInput = (prazoString: string | null): string => {
+    if (!prazoString) return '';
+    try {
+      return new Date(prazoString).toISOString().split('T')[0];
+    } catch (error) {
+      console.error('Erro ao formatar prazo:', error);
+      return '';
+    }
+  };
+  
   // Hook para buscar dados da ocorrência
   const { ocorrencia, isLoading, error, refetchOcorrencia } = useFetchOcorrencia(id, updateState);
   
   // Hook para gerenciar status da ocorrência
-  const { currentStatus, setCurrentStatus, handleStatusChange, statusHistory } = useOcorrenciaStatus(
+  const { currentStatus, setCurrentStatus, handleStatusChange } = useOcorrenciaStatus(
     ocorrencia?.status as StatusType
   );
   
   // Hook para gerenciar o prazo estimado
-  const { prazoEstimado, setPrazoEstimado, handlePrazoChange, formatPrazoToInput } = usePrazoEstimado(
+  const { prazoEstimado, setPrazoEstimado, handlePrazoChange } = usePrazoEstimado(
     ocorrencia?.prazo_estimado ? formatPrazoToInput(ocorrencia.prazo_estimado) : ''
   );
   
   // Hook para gerenciar imagens da ocorrência
   const { 
     handleImagemResolvidoChange, 
-    imagemResolvidoPreview, 
+    imagemResolvidoPreview,
     uploadImagemResolvido
   } = useOcorrenciaImages(ocorrencia?.imagem_resolvido || null);
   

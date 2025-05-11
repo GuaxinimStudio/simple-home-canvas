@@ -16,7 +16,7 @@ export interface OcorrenciaItem {
   municipio: string | null;
   foto_url: string | null;
   gabinete_id: string | null;
-  gabinete: {
+  gabinete?: {
     gabinete: string;
   } | null;
   descricao_resolvido: string | null;
