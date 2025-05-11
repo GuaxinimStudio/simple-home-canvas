@@ -2,89 +2,8 @@
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useElapsedTimeCounter } from '@/hooks/useElapsedTimeCounter';
-import { Check, X } from 'lucide-react'; // Adicionando os ícones
-
-// Dados de exemplo para a tabela detalhada
-const tabelaData = [
-  { 
-    id: 1, 
-    data: '09/05/25',
-    created_at: '2025-05-09T10:00:00',
-    updated_at: '2025-05-10T15:00:00',
-    municipio: 'Uruaçu', 
-    secretaria: 'Secretaria de Saúde', 
-    status: 'Resolvido', 
-    prazo: '14/05/25', 
-    resolvidoNoPrazo: 'Sim',
-    diasDeAtraso: '-',
-    alteracoesDePrazo: '1 vez' 
-  },
-  { 
-    id: 2, 
-    data: '07/05/25',
-    created_at: '2025-05-07T09:00:00',
-    updated_at: '2025-05-08T14:00:00', 
-    municipio: 'Uruaçu', 
-    secretaria: 'Secretaria de Educação', 
-    status: 'Resolvido', 
-    prazo: '14/05/25', 
-    resolvidoNoPrazo: 'Sim',
-    diasDeAtraso: '-',
-    alteracoesDePrazo: '1 vez' 
-  },
-  { 
-    id: 3, 
-    data: '07/05/25',
-    created_at: '2025-05-07T14:00:00',
-    updated_at: null, 
-    municipio: 'Uruaçu', 
-    secretaria: 'Secretaria de Infraestrutura', 
-    status: 'Pendente', 
-    prazo: '15/05/25', 
-    resolvidoNoPrazo: '-',
-    diasDeAtraso: '-',
-    alteracoesDePrazo: '1 vez' 
-  },
-  { 
-    id: 4, 
-    data: '07/05/25',
-    created_at: '2025-05-07T10:30:00',
-    updated_at: '2025-05-07T18:00:00', 
-    municipio: 'Uruaçu', 
-    secretaria: 'Secretaria de Finanças', 
-    status: 'Resolvido', 
-    prazo: '12/05/25', 
-    resolvidoNoPrazo: 'Sim',
-    diasDeAtraso: '-',
-    alteracoesDePrazo: '1 vez' 
-  },
-  { 
-    id: 5, 
-    data: '05/05/25',
-    created_at: '2025-05-05T08:30:00',
-    updated_at: null, 
-    municipio: 'Uruaçu', 
-    secretaria: 'Secretaria de Cultura', 
-    status: 'Pendente', 
-    prazo: '15/05/25', 
-    resolvidoNoPrazo: '-',
-    diasDeAtraso: '-',
-    alteracoesDePrazo: '1 vez' 
-  },
-  { 
-    id: 6, 
-    data: '05/05/25',
-    created_at: '2025-05-05T16:45:00', 
-    updated_at: null,
-    municipio: 'Uruaçu', 
-    secretaria: 'Secretaria de Esportes', 
-    status: 'Pendente', 
-    prazo: '09/05/25', 
-    resolvidoNoPrazo: '-',
-    diasDeAtraso: '-',
-    alteracoesDePrazo: '1 vez' 
-  }
-];
+import { Check, X } from 'lucide-react';
+import { Problema } from '@/hooks/useRelatoriosData';
 
 // Componente para exibir o tempo decorrido com atualização em tempo real como cronômetro
 const ElapsedTimeDisplay = ({ createdAt, updatedAt, isResolved }: { 
@@ -106,16 +25,42 @@ const ElapsedTimeDisplay = ({ createdAt, updatedAt, isResolved }: {
 };
 
 // Componente para renderizar o ícone do status de resolução conforme prazo
-const ResolvidoNoPrazoIcon = ({ resolvidoNoPrazo }: { resolvidoNoPrazo: string }) => {
-  if (resolvidoNoPrazo === 'Sim') {
+const ResolvidoNoPrazoIcon = ({ resolvidoNoPrazo }: { resolvidoNoPrazo: boolean | null }) => {
+  if (resolvidoNoPrazo === true) {
     return <Check className="w-4 h-4 text-green-600 ml-1" />;
-  } else if (resolvidoNoPrazo === 'Não') {
+  } else if (resolvidoNoPrazo === false) {
     return <X className="w-4 h-4 text-red-600 ml-1" />;
   }
   return null;
 };
 
-const RelatoriosTabela: React.FC = () => {
+interface RelatoriosTabelaProps {
+  problemas: Problema[];
+  isLoading: boolean;
+}
+
+const RelatoriosTabela: React.FC<RelatoriosTabelaProps> = ({ problemas, isLoading }) => {
+  if (isLoading) {
+    return (
+      <div className="bg-white p-6 rounded-lg border">
+        <div className="flex justify-center items-center h-64">
+          <p className="text-gray-500">Carregando dados...</p>
+        </div>
+      </div>
+    );
+  }
+  
+  if (!problemas.length) {
+    return (
+      <div className="bg-white p-6 rounded-lg border">
+        <div className="flex flex-col justify-center items-center h-64">
+          <p className="text-gray-500 text-center">Nenhum problema encontrado com os filtros atuais.</p>
+          <p className="text-gray-400 text-sm mt-2">Tente ajustar os filtros para ver mais resultados.</p>
+        </div>
+      </div>
+    );
+  }
+  
   return (
     <div className="bg-white p-6 rounded-lg border">
       <Table>
@@ -133,16 +78,20 @@ const RelatoriosTabela: React.FC = () => {
           </TableRow>
         </TableHeader>
         <TableBody>
-          {tabelaData.map((item) => (
+          {problemas.map((item) => (
             <TableRow key={item.id}>
               <TableCell>{item.data}</TableCell>
-              <TableCell>{item.municipio}</TableCell>
-              <TableCell>{item.secretaria}</TableCell>
+              <TableCell>{item.municipio || '-'}</TableCell>
+              <TableCell>{item.secretaria || '-'}</TableCell>
               <TableCell>
                 <span className={`inline-flex px-2.5 py-1 rounded-full text-xs ${
                   item.status === 'Resolvido' 
                     ? "bg-green-100 text-green-800" 
-                    : "bg-yellow-100 text-yellow-800"
+                    : item.status === 'Pendente'
+                      ? "bg-yellow-100 text-yellow-800"
+                      : item.status === 'Em andamento'
+                        ? "bg-blue-100 text-blue-800"
+                        : "bg-purple-100 text-purple-800"
                 }`}>
                   {item.status}
                 </span>
@@ -155,16 +104,17 @@ const RelatoriosTabela: React.FC = () => {
                 />
               </TableCell>
               <TableCell className="flex items-center">
-                {item.prazo}
-                {item.status === 'Resolvido' && <ResolvidoNoPrazoIcon resolvidoNoPrazo={item.resolvidoNoPrazo} />}
+                {item.prazo_estimado ? new Date(item.prazo_estimado).toLocaleDateString('pt-BR') : '-'}
+                {item.status === 'Resolvido' && <ResolvidoNoPrazoIcon resolvidoNoPrazo={item.resolvido_no_prazo} />}
               </TableCell>
               <TableCell className={`${
-                item.resolvidoNoPrazo === 'Sim' ? "text-green-600 font-medium" : ""
+                item.resolvido_no_prazo === true ? "text-green-600 font-medium" : 
+                item.resolvido_no_prazo === false ? "text-red-600 font-medium" : ""
               }`}>
-                {item.resolvidoNoPrazo}
+                {item.resolvido_no_prazo !== null ? (item.resolvido_no_prazo ? 'Sim' : 'Não') : '-'}
               </TableCell>
-              <TableCell>{item.diasDeAtraso}</TableCell>
-              <TableCell>{item.alteracoesDePrazo}</TableCell>
+              <TableCell>{item.dias_atraso_resolucao !== null ? `${item.dias_atraso_resolucao} dias` : '-'}</TableCell>
+              <TableCell>{item.prazo_alteracoes || 0}</TableCell>
             </TableRow>
           ))}
         </TableBody>

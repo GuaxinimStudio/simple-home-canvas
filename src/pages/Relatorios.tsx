@@ -10,7 +10,23 @@ import RelatoriosGrafico from '../components/RelatoriosGrafico';
 import RelatoriosResolvidosPrazo from '../components/RelatoriosResolvidosPrazo';
 import RelatoriosTabela from '../components/RelatoriosTabela';
 
+// Hook personalizado para gerenciar dados dos relatórios
+import { useRelatoriosData } from '@/hooks/useRelatoriosData';
+
 const Relatorios: React.FC = () => {
+  const { 
+    problemas, 
+    stats, 
+    isLoading, 
+    filtros, 
+    setFiltros,
+    limparFiltros 
+  } = useRelatoriosData();
+
+  const handleFiltrosChange = (novosFiltros: any) => {
+    setFiltros(novosFiltros);
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
@@ -20,7 +36,11 @@ const Relatorios: React.FC = () => {
           <h1 className="text-2xl font-bold mb-6">Relatórios</h1>
           
           {/* Seção de Filtros */}
-          <RelatoriosFiltros />
+          <RelatoriosFiltros 
+            filtros={filtros} 
+            onFiltrosChange={handleFiltrosChange}
+            onLimparFiltros={limparFiltros}
+          />
           
           {/* Tabs de navegação */}
           <Tabs defaultValue="resumo" className="mb-6">
@@ -41,17 +61,17 @@ const Relatorios: React.FC = () => {
             
             <TabsContent value="resumo" className="mt-4">
               {/* Cards de status */}
-              <RelatoriosStatusCards />
+              <RelatoriosStatusCards stats={stats} isLoading={isLoading} />
               
               {/* Gráficos e Estatísticas */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <RelatoriosGrafico />
-                <RelatoriosResolvidosPrazo />
+                <RelatoriosGrafico problemas={problemas} isLoading={isLoading} />
+                <RelatoriosResolvidosPrazo stats={stats} isLoading={isLoading} />
               </div>
             </TabsContent>
             
             <TabsContent value="detalhada">
-              <RelatoriosTabela />
+              <RelatoriosTabela problemas={problemas} isLoading={isLoading} />
             </TabsContent>
           </Tabs>
         </div>
