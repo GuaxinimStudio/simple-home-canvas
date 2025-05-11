@@ -1,11 +1,13 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Bell } from 'lucide-react';
 
 const NotificacoesInfo: React.FC = () => {
   return (
     <Card className="mb-8">
-      <CardHeader>
+      <CardHeader className="flex flex-row items-center gap-2">
+        <Bell className="h-5 w-5 text-green-600" />
         <CardTitle>Sobre Notificações</CardTitle>
       </CardHeader>
       <CardContent>
