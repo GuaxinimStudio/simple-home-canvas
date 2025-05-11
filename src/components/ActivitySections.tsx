@@ -1,15 +1,9 @@
 
 import React from 'react';
-import ActiveSecretariesSection from './ActiveSecretariesSection';
-import RecentActivitySection from './RecentActivitySection';
 
+// Componente vazio já que vamos remover as seções
 const ActivitySections: React.FC = () => {
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-      <ActiveSecretariesSection />
-      <RecentActivitySection />
-    </div>
-  );
+  return null;
 };
 
 export default ActivitySections;

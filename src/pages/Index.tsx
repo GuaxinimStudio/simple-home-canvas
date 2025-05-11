@@ -4,7 +4,6 @@ import Sidebar from '../components/Sidebar';
 import HeroBanner from '../components/HeroBanner';
 import StatusCardsSection from '../components/StatusCardsSection';
 import RecentProblemsTable from '../components/RecentProblemsTable';
-import ActivitySections from '../components/ActivitySections';
 
 const Index = () => {
   return (
@@ -24,9 +23,6 @@ const Index = () => {
 
           {/* Problemas Recentes Table - agora apenas passamos o limite */}
           <RecentProblemsTable limit={5} />
-
-          {/* Activity Sections */}
-          <ActivitySections />
         </div>
       </div>
     </div>
