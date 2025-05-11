@@ -22,281 +22,305 @@ interface ProblemaRequest {
   municipio?: string;
 }
 
-serve(async (req) => {
-  // Tratamento para requisições OPTIONS (CORS preflight)
-  if (req.method === "OPTIONS") {
-    return new Response(null, { headers: corsHeaders });
+/**
+ * Manipula requisições OPTIONS para CORS preflight
+ */
+function handleOptionsRequest(): Response {
+  return new Response(null, { headers: corsHeaders });
+}
+
+/**
+ * Verifica a validade do token JWT
+ * @param authHeader - Cabeçalho de autorização
+ * @returns true se o token for válido, lança erro caso contrário
+ */
+async function verificarToken(authHeader: string | null): Promise<boolean> {
+  if (!authHeader || !authHeader.startsWith("Bearer ")) {
+    throw new Error("Token de autenticação ausente ou inválido");
+  }
+
+  const token = authHeader.split(" ")[1];
+  
+  try {
+    // Importa a chave para verificação
+    const key = await crypto.subtle.importKey(
+      "raw",
+      new TextEncoder().encode(SECRET_KEY),
+      { name: "HMAC", hash: "SHA-256" },
+      false,
+      ["sign", "verify"]
+    );
+    
+    // Verifica o token
+    await verify(token, key);
+    return true;
+  } catch (error) {
+    console.error("Erro na verificação do token:", error);
+    throw new Error("Token inválido ou expirado");
+  }
+}
+
+/**
+ * Cria ou verifica a existência do bucket para armazenamento de imagens
+ * @param supabaseClient - Cliente Supabase
+ */
+async function verificarOuCriarBucket(supabaseClient: any): Promise<void> {
+  try {
+    const { data: bucketData, error: bucketError } = await supabaseClient
+      .storage
+      .getBucket('problema-imagens');
+      
+    if (bucketError && bucketError.message.includes('not found')) {
+      console.log("Bucket não encontrado, criando...");
+      await supabaseClient
+        .storage
+        .createBucket('problema-imagens', {
+          public: true,
+          fileSizeLimit: 5242880 // 5MB
+        });
+    }
+  } catch (bucketErr) {
+    console.error("Erro ao verificar/criar bucket:", bucketErr);
+  }
+}
+
+/**
+ * Processa uma URL externa de imagem
+ * @param supabaseClient - Cliente Supabase
+ * @param imageUrl - URL externa da imagem
+ * @returns URL pública da imagem armazenada ou a URL original em caso de erro
+ */
+async function processarImagemExterna(supabaseClient: any, imageUrl: string): Promise<string> {
+  try {
+    console.log("Processando URL externa da imagem:", imageUrl);
+    
+    // Fazer download da imagem externa
+    const imageResponse = await fetch(imageUrl);
+    
+    if (!imageResponse.ok) {
+      throw new Error(`Falha ao baixar imagem: ${imageResponse.status}`);
+    }
+    
+    const imageBlob = await imageResponse.blob();
+    const arrayBuffer = await imageBlob.arrayBuffer();
+    const imageBytes = new Uint8Array(arrayBuffer);
+    
+    return await enviarImagemParaBucket(supabaseClient, imageBytes);
+  } catch (downloadErr) {
+    console.error("Erro ao processar download/upload de imagem externa:", downloadErr);
+    // Usa a URL original como fallback
+    console.log("Usando URL original como fallback:", imageUrl);
+    return imageUrl;
+  }
+}
+
+/**
+ * Processa uma imagem em formato base64
+ * @param supabaseClient - Cliente Supabase
+ * @param base64Data - Dados da imagem em base64
+ * @returns URL pública da imagem ou null em caso de erro
+ */
+async function processarImagemBase64(supabaseClient: any, base64Data: string): Promise<string | null> {
+  try {
+    console.log("Processando imagem em base64");
+    
+    // Extrair dados do base64 e converter para Uint8Array
+    const cleanBase64 = base64Data.split(',')[1] || base64Data;
+    const byteString = atob(cleanBase64);
+    const arrayBuffer = new Uint8Array(byteString.length);
+    
+    for (let i = 0; i < byteString.length; i++) {
+      arrayBuffer[i] = byteString.charCodeAt(i);
+    }
+    
+    return await enviarImagemParaBucket(supabaseClient, arrayBuffer);
+  } catch (uploadErr) {
+    console.error("Erro ao processar upload de imagem base64:", uploadErr);
+    return null;
+  }
+}
+
+/**
+ * Envia uma imagem para o bucket de armazenamento
+ * @param supabaseClient - Cliente Supabase
+ * @param imageData - Dados da imagem em formato Uint8Array
+ * @returns URL pública da imagem armazenada ou null em caso de erro
+ */
+async function enviarImagemParaBucket(supabaseClient: any, imageData: Uint8Array): Promise<string | null> {
+  // Gerar um nome único para o arquivo
+  const timestamp = new Date().getTime();
+  const rand = Math.floor(Math.random() * 1000);
+  const fileName = `problema-${timestamp}-${rand}.jpg`;
+  
+  // Fazer o upload da imagem para o bucket
+  const { data: uploadData, error: uploadError } = await supabaseClient
+    .storage
+    .from('problema-imagens')
+    .upload(fileName, imageData, {
+      contentType: 'image/jpeg',
+      upsert: false
+    });
+    
+  if (uploadError) {
+    console.error("Erro ao fazer upload da imagem:", uploadError);
+    return null;
+  }
+  
+  // Obter URL pública da imagem
+  const { data: publicUrlData } = supabaseClient
+    .storage
+    .from('problema-imagens')
+    .getPublicUrl(fileName);
+    
+  const publicUrl = publicUrlData.publicUrl;
+  console.log("URL da imagem salva no bucket:", publicUrl);
+  return publicUrl;
+}
+
+/**
+ * Verifica e valida o gabinete_id fornecido
+ * @param supabaseClient - Cliente Supabase
+ * @param gabineteId - ID do gabinete a ser validado
+ * @returns O ID do gabinete validado ou null se inválido
+ */
+async function verificarGabinete(supabaseClient: any, gabineteId?: string): Promise<string | null> {
+  if (!gabineteId) {
+    return null;
   }
   
   try {
-    // Verificação do token de autenticação
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader || !authHeader.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({ erro: "Token de autenticação ausente ou inválido" }),
-        { 
-          status: 401, 
-          headers: { 
-            "Content-Type": "application/json",
-            ...corsHeaders 
-          }
-        }
-      );
-    }
-
-    const token = authHeader.split(" ")[1];
-    
-    try {
-      // Importa a chave para verificação
-      const key = await crypto.subtle.importKey(
-        "raw",
-        new TextEncoder().encode(SECRET_KEY),
-        { name: "HMAC", hash: "SHA-256" },
-        false,
-        ["sign", "verify"]
-      );
-      
-      // Verifica o token
-      await verify(token, key);
-    } catch (error) {
-      console.error("Erro na verificação do token:", error);
-      return new Response(
-        JSON.stringify({ erro: "Token inválido ou expirado" }),
-        { 
-          status: 401, 
-          headers: { 
-            "Content-Type": "application/json",
-            ...corsHeaders 
-          }
-        }
-      );
-    }
-
-    // Criação do cliente Supabase com as credenciais do ambiente
-    const supabaseClient = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
-    );
-
-    // Extraindo os dados do corpo da requisição
-    const problemaData: ProblemaRequest = await req.json();
-    
-    // Validações básicas dos campos obrigatórios
-    if (!problemaData.telefone || !problemaData.descricao) {
-      return new Response(
-        JSON.stringify({ 
-          erro: "Os campos telefone e descrição são obrigatórios" 
-        }),
-        { 
-          status: 400, 
-          headers: { 
-            "Content-Type": "application/json",
-            ...corsHeaders 
-          }
-        }
-      );
-    }
-    
-    let foto_url = null;
-    
-    // Verificar se o bucket existe, caso contrário, criá-lo
-    try {
-      const { data: bucketData, error: bucketError } = await supabaseClient
-        .storage
-        .getBucket('problema-imagens');
-        
-      if (bucketError && bucketError.message.includes('not found')) {
-        console.log("Bucket não encontrado, criando...");
-        await supabaseClient
-          .storage
-          .createBucket('problema-imagens', {
-            public: true,
-            fileSizeLimit: 5242880 // 5MB
-          });
-      }
-    } catch (bucketErr) {
-      console.error("Erro ao verificar/criar bucket:", bucketErr);
-    }
-    
-    // CASO 1: Se receber uma URL externa de imagem
-    if (problemaData.foto_url) {
-      try {
-        console.log("Processando URL externa da imagem:", problemaData.foto_url);
-        
-        // Fazer download da imagem externa
-        const imageResponse = await fetch(problemaData.foto_url);
-        
-        if (!imageResponse.ok) {
-          throw new Error(`Falha ao baixar imagem: ${imageResponse.status}`);
-        }
-        
-        const imageBlob = await imageResponse.blob();
-        const arrayBuffer = await imageBlob.arrayBuffer();
-        const imageBytes = new Uint8Array(arrayBuffer);
-        
-        // Gerar um nome único para o arquivo
-        const timestamp = new Date().getTime();
-        const rand = Math.floor(Math.random() * 1000);
-        const fileName = `problema-${timestamp}-${rand}.jpg`;
-        
-        // Fazer o upload da imagem para o bucket
-        const { data: uploadData, error: uploadError } = await supabaseClient
-          .storage
-          .from('problema-imagens')
-          .upload(fileName, imageBytes, {
-            contentType: 'image/jpeg',
-            upsert: false
-          });
-          
-        if (uploadError) {
-          console.error("Erro ao fazer upload da imagem externa:", uploadError);
-          // Usa a URL original como fallback
-          foto_url = problemaData.foto_url;
-        } else {
-          // Obter URL pública da imagem
-          const { data: publicUrlData } = supabaseClient
-            .storage
-            .from('problema-imagens')
-            .getPublicUrl(fileName);
-            
-          foto_url = publicUrlData.publicUrl;
-          console.log("URL da imagem externa salva no bucket:", foto_url);
-        }
-      } catch (downloadErr) {
-        console.error("Erro ao processar download/upload de imagem externa:", downloadErr);
-        // Usa a URL original como fallback
-        foto_url = problemaData.foto_url;
-        console.log("Usando URL original como fallback:", foto_url);
-      }
-    }
-    // CASO 2: Se receber uma imagem em base64
-    else if (problemaData.foto_base64) {
-      try {
-        console.log("Processando imagem em base64");
-        
-        // Extrair dados do base64 e converter para Uint8Array
-        const base64Data = problemaData.foto_base64.split(',')[1] || problemaData.foto_base64;
-        const byteString = atob(base64Data);
-        const arrayBuffer = new Uint8Array(byteString.length);
-        
-        for (let i = 0; i < byteString.length; i++) {
-          arrayBuffer[i] = byteString.charCodeAt(i);
-        }
-        
-        // Gerar um nome único para o arquivo
-        const timestamp = new Date().getTime();
-        const rand = Math.floor(Math.random() * 1000);
-        const fileName = `problema-${timestamp}-${rand}.jpg`;
-        
-        // Fazer o upload da imagem para o bucket
-        const { data: uploadData, error: uploadError } = await supabaseClient
-          .storage
-          .from('problema-imagens')
-          .upload(fileName, arrayBuffer, {
-            contentType: 'image/jpeg',
-            upsert: false
-          });
-          
-        if (uploadError) {
-          console.error("Erro ao fazer upload da imagem base64:", uploadError);
-        } else {
-          // Obter URL pública da imagem
-          const { data: publicUrlData } = supabaseClient
-            .storage
-            .from('problema-imagens')
-            .getPublicUrl(fileName);
-            
-          foto_url = publicUrlData.publicUrl;
-          console.log("URL da imagem base64 salva no bucket:", foto_url);
-        }
-      } catch (uploadErr) {
-        console.error("Erro ao processar upload de imagem base64:", uploadErr);
-      }
-    }
-    
-    // Verificar e validar o gabinete_id se fornecido
-    let gabineteId = null;
-    if (problemaData.gabinete_id) {
-      // Verificamos se o gabinete existe no banco de dados
-      try {
-        const { data: gabineteData, error: gabineteError } = await supabaseClient
-          .from('gabinetes')
-          .select('id')
-          .eq('id', problemaData.gabinete_id)
-          .single();
-          
-        if (gabineteError || !gabineteData) {
-          console.warn("Gabinete não encontrado, ignorando:", problemaData.gabinete_id);
-          // Não interrompemos o fluxo, apenas ignoramos o gabinete_id inválido
-        } else {
-          console.log("Gabinete encontrado, associando ao problema:", gabineteData.id);
-          gabineteId = gabineteData.id;
-        }
-      } catch (gabErr) {
-        console.warn("Erro ao verificar gabinete:", gabErr);
-        // Não interrompemos o fluxo, apenas ignoramos o gabinete_id com erro
-      }
-    }
-    
-    // Preparando o objeto para inserção
-    const novoProblema = {
-      telefone: problemaData.telefone,
-      descricao: problemaData.descricao,
-      gabinete_id: gabineteId,
-      foto_url: foto_url,
-      municipio: problemaData.municipio || null,
-      status: "Pendente"
-    };
-    
-    console.log("Inserindo problema com dados:", novoProblema);
-    
-    // Inserção do problema na tabela
-    const { data: problema, error } = await supabaseClient
-      .from("problemas")
-      .insert(novoProblema)
-      .select()
+    const { data: gabineteData, error: gabineteError } = await supabaseClient
+      .from('gabinetes')
+      .select('id')
+      .eq('id', gabineteId)
       .single();
-    
-    if (error) {
-      console.error("Erro ao inserir problema:", error);
-      return new Response(
-        JSON.stringify({ erro: "Erro ao inserir problema", detalhes: error.message }),
-        { 
-          status: 500, 
-          headers: { 
-            "Content-Type": "application/json",
-            ...corsHeaders 
-          }
-        }
-      );
+      
+    if (gabineteError || !gabineteData) {
+      console.warn("Gabinete não encontrado, ignorando:", gabineteId);
+      return null;
     }
     
-    console.log("Problema inserido com sucesso:", problema);
-    
-    // Resposta de sucesso
-    return new Response(
-      JSON.stringify({ 
-        mensagem: "Problema registrado com sucesso", 
-        problema 
-      }),
-      { 
-        status: 201, 
-        headers: { 
-          "Content-Type": "application/json",
-          ...corsHeaders 
-        }
+    console.log("Gabinete encontrado, associando ao problema:", gabineteData.id);
+    return gabineteData.id;
+  } catch (gabErr) {
+    console.warn("Erro ao verificar gabinete:", gabErr);
+    return null;
+  }
+}
+
+/**
+ * Insere o problema no banco de dados
+ * @param supabaseClient - Cliente Supabase
+ * @param dadosProblema - Dados do problema a ser inserido
+ * @returns O problema inserido
+ */
+async function inserirProblema(supabaseClient: any, dadosProblema: any) {
+  console.log("Inserindo problema com dados:", dadosProblema);
+  
+  const { data: problema, error } = await supabaseClient
+    .from("problemas")
+    .insert(dadosProblema)
+    .select()
+    .single();
+  
+  if (error) {
+    console.error("Erro ao inserir problema:", error);
+    throw new Error(`Erro ao inserir problema: ${error.message}`);
+  }
+  
+  console.log("Problema inserido com sucesso:", problema);
+  return problema;
+}
+
+/**
+ * Função principal para processar o recebimento de um problema
+ */
+async function processarProblema(req: Request) {
+  // Verificação do token de autenticação
+  await verificarToken(req.headers.get("Authorization"));
+  
+  // Criação do cliente Supabase com as credenciais do ambiente
+  const supabaseClient = createClient(
+    Deno.env.get("SUPABASE_URL") ?? "",
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? ""
+  );
+
+  // Extraindo os dados do corpo da requisição
+  const problemaData: ProblemaRequest = await req.json();
+  
+  // Validações básicas dos campos obrigatórios
+  if (!problemaData.telefone || !problemaData.descricao) {
+    throw new Error("Os campos telefone e descrição são obrigatórios");
+  }
+  
+  // Verificar e criar o bucket se necessário
+  await verificarOuCriarBucket(supabaseClient);
+  
+  let foto_url = null;
+  
+  // Processamento da imagem (URL externa ou base64)
+  if (problemaData.foto_url) {
+    foto_url = await processarImagemExterna(supabaseClient, problemaData.foto_url);
+  } else if (problemaData.foto_base64) {
+    foto_url = await processarImagemBase64(supabaseClient, problemaData.foto_base64);
+  }
+  
+  // Verificação do gabinete
+  const gabineteId = await verificarGabinete(supabaseClient, problemaData.gabinete_id);
+  
+  // Preparando o objeto para inserção
+  const novoProblema = {
+    telefone: problemaData.telefone,
+    descricao: problemaData.descricao,
+    gabinete_id: gabineteId,
+    foto_url: foto_url,
+    municipio: problemaData.municipio || null,
+    status: "Pendente"
+  };
+  
+  // Inserção do problema na tabela
+  const problema = await inserirProblema(supabaseClient, novoProblema);
+  
+  // Resposta de sucesso
+  return new Response(
+    JSON.stringify({ 
+      mensagem: "Problema registrado com sucesso", 
+      problema 
+    }),
+    { 
+      status: 201, 
+      headers: { 
+        "Content-Type": "application/json",
+        ...corsHeaders 
       }
-    );
+    }
+  );
+}
+
+/**
+ * Handler principal da Edge Function
+ */
+serve(async (req) => {
+  // Tratamento para requisições OPTIONS (CORS preflight)
+  if (req.method === "OPTIONS") {
+    return handleOptionsRequest();
+  }
+  
+  try {
+    return await processarProblema(req);
   } catch (error) {
     console.error("Erro na função receber-problema:", error);
     
+    const status = error.message.includes("Token") ? 401 : 500;
+    const mensagemErro = error.message || "Erro interno no servidor";
+    
     return new Response(
       JSON.stringify({ 
-        erro: "Erro interno no servidor", 
+        erro: mensagemErro, 
         detalhes: error.message 
       }),
       { 
-        status: 500, 
+        status,
         headers: { 
           "Content-Type": "application/json",
           ...corsHeaders 
