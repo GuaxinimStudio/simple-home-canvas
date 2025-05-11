@@ -1,17 +1,19 @@
 
 import React from 'react';
-import { Calendar } from 'lucide-react';
+import { Calendar, Check, X } from 'lucide-react';
 
 interface OcorrenciaPrazoProps {
   prazoEstimado: string;
   onPrazoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   isResolvido: boolean;
+  resolvidoNoPrazo?: boolean;
 }
 
 export const OcorrenciaPrazo: React.FC<OcorrenciaPrazoProps> = ({
   prazoEstimado,
   onPrazoChange,
-  isResolvido
+  isResolvido,
+  resolvidoNoPrazo
 }) => {
   return (
     <div>
@@ -31,6 +33,21 @@ export const OcorrenciaPrazo: React.FC<OcorrenciaPrazoProps> = ({
           onChange={onPrazoChange}
           disabled={isResolvido}
         />
+        
+        {/* Exibir ícone de status do prazo quando resolvido */}
+        {isResolvido && typeof resolvidoNoPrazo === 'boolean' && (
+          <div className="absolute inset-y-0 right-2 flex items-center">
+            {resolvidoNoPrazo ? (
+              <div className="flex items-center text-green-600" title="Resolvido no prazo">
+                <Check className="w-5 h-5" />
+              </div>
+            ) : (
+              <div className="flex items-center text-red-600" title="Não resolvido no prazo">
+                <X className="w-5 h-5" />
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

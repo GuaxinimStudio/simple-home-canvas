@@ -103,7 +103,11 @@ export const ProblemRow: React.FC<ProblemRowProps> = ({ problem }) => {
           {getTimeDisplay()}
         </TableCell>
         <TableCell>
-          <ProblemDeadlineBadge deadline={problem.prazo_estimado} />
+          <ProblemDeadlineBadge 
+            deadline={problem.prazo_estimado} 
+            isResolved={problem.status === 'Resolvido'}
+            resolvedOnTime={problem.resolvido_no_prazo}
+          />
         </TableCell>
         <TableCell className="text-sm">{formatDate(problem.created_at)}</TableCell>
         <TableCell className="text-sm">

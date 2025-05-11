@@ -1,6 +1,8 @@
+
 import React from 'react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useElapsedTimeCounter } from '@/hooks/useElapsedTimeCounter';
+import { Check, X } from 'lucide-react'; // Adicionando os ícones
 
 // Dados de exemplo para a tabela detalhada
 const tabelaData = [
@@ -103,6 +105,16 @@ const ElapsedTimeDisplay = ({ createdAt, updatedAt, isResolved }: {
   return <span className="text-red-500">Recebido há {elapsedTime}</span>;
 };
 
+// Componente para renderizar o ícone do status de resolução conforme prazo
+const ResolvidoNoPrazoIcon = ({ resolvidoNoPrazo }: { resolvidoNoPrazo: string }) => {
+  if (resolvidoNoPrazo === 'Sim') {
+    return <Check className="w-4 h-4 text-green-600 ml-1" />;
+  } else if (resolvidoNoPrazo === 'Não') {
+    return <X className="w-4 h-4 text-red-600 ml-1" />;
+  }
+  return null;
+};
+
 const RelatoriosTabela: React.FC = () => {
   return (
     <div className="bg-white p-6 rounded-lg border">
@@ -142,7 +154,10 @@ const RelatoriosTabela: React.FC = () => {
                   isResolved={item.status === 'Resolvido'}
                 />
               </TableCell>
-              <TableCell>{item.prazo}</TableCell>
+              <TableCell className="flex items-center">
+                {item.prazo}
+                {item.status === 'Resolvido' && <ResolvidoNoPrazoIcon resolvidoNoPrazo={item.resolvidoNoPrazo} />}
+              </TableCell>
               <TableCell className={`${
                 item.resolvidoNoPrazo === 'Sim' ? "text-green-600 font-medium" : ""
               }`}>
