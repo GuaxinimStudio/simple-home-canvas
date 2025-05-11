@@ -1,6 +1,6 @@
 
 import React, { useState } from 'react';
-import { useForm, Controller } from 'react-hook-form';
+import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from '@/components/ui/sheet';
@@ -10,14 +10,12 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import useGabinetes from '@/hooks/useGabinetes';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
-import { Input } from '@/components/ui/input';
-import { X, Upload, FileIcon, FileCheck, Image } from 'lucide-react';
+import { X, Upload, FileIcon, Image } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const formSchema = z.object({
-  gabinete_id: z.string().optional(),
-  informacao: z.string().min(1, 'A mensagem é obrigatória'),
-  telefones: z.array(z.string().min(10, 'Telefone inválido'))
+  gabinete_id: z.string().min(1, 'Selecione um gabinete'),
+  informacao: z.string().min(1, 'A mensagem é obrigatória')
 });
 
 type NovaNotificacaoModalProps = {
@@ -28,8 +26,6 @@ type NovaNotificacaoModalProps = {
 const NovaNotificacaoModal: React.FC<NovaNotificacaoModalProps> = ({ isOpen, onClose }) => {
   const { gabinetes = [], isLoading: isLoadingGabinetes } = useGabinetes();
   const { criarNotificacao, isCreating, isUploading } = useNotificacoes();
-  const [telefones, setTelefones] = useState<string[]>([]);
-  const [telefoneInput, setTelefoneInput] = useState('');
   const [arquivo, setArquivo] = useState<File | null>(null);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
@@ -38,18 +34,16 @@ const NovaNotificacaoModal: React.FC<NovaNotificacaoModalProps> = ({ isOpen, onC
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      gabinete_id: undefined,
-      informacao: '',
-      telefones: []
+      gabinete_id: '',
+      informacao: ''
     }
   });
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     await criarNotificacao({
       novaNotificacao: {
-        gabinete_id: values.gabinete_id || null,
-        informacao: values.informacao,
-        telefones: values.telefones
+        gabinete_id: values.gabinete_id,
+        informacao: values.informacao
       },
       arquivo: arquivo || undefined
     });
@@ -59,25 +53,8 @@ const NovaNotificacaoModal: React.FC<NovaNotificacaoModalProps> = ({ isOpen, onC
 
   const resetForm = () => {
     form.reset();
-    setTelefones([]);
-    setTelefoneInput('');
     setArquivo(null);
     setPreviewUrl(null);
-  };
-
-  const adicionarTelefone = () => {
-    if (telefoneInput.length >= 10) {
-      const novosTelefones = [...telefones, telefoneInput];
-      setTelefones(novosTelefones);
-      form.setValue('telefones', novosTelefones);
-      setTelefoneInput('');
-    }
-  };
-
-  const removerTelefone = (index: number) => {
-    const novosTelefones = telefones.filter((_, i) => i !== index);
-    setTelefones(novosTelefones);
-    form.setValue('telefones', novosTelefones);
   };
 
   const handleArquivoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,7 +92,7 @@ const NovaNotificacaoModal: React.FC<NovaNotificacaoModalProps> = ({ isOpen, onC
     } else if (arquivo.type === 'application/pdf') {
       return <FileIcon className="h-5 w-5 text-red-500" />;
     } else {
-      return <FileCheck className="h-5 w-5 text-green-500" />;
+      return <FileIcon className="h-5 w-5 text-green-500" />;
     }
   };
 
@@ -125,7 +102,7 @@ const NovaNotificacaoModal: React.FC<NovaNotificacaoModalProps> = ({ isOpen, onC
         <SheetHeader className="mb-4">
           <SheetTitle>Nova Notificação</SheetTitle>
           <SheetDescription>
-            Envie uma notificação para os contatos selecionados.
+            Envie uma notificação para os contatos cadastrados no gabinete.
           </SheetDescription>
         </SheetHeader>
 
@@ -136,7 +113,7 @@ const NovaNotificacaoModal: React.FC<NovaNotificacaoModalProps> = ({ isOpen, onC
               name="gabinete_id"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Gabinete (opcional)</FormLabel>
+                  <FormLabel>Gabinete</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     value={field.value}
@@ -239,57 +216,6 @@ const NovaNotificacaoModal: React.FC<NovaNotificacaoModalProps> = ({ isOpen, onC
               )}
             </div>
 
-            <FormField
-              control={form.control}
-              name="telefones"
-              render={() => (
-                <FormItem>
-                  <FormLabel>Telefones</FormLabel>
-                  <div className="space-y-2">
-                    <div className="flex space-x-2">
-                      <Input
-                        value={telefoneInput}
-                        onChange={(e) => setTelefoneInput(e.target.value)}
-                        placeholder="Digite um telefone"
-                        className="flex-1"
-                        disabled={isLoading}
-                      />
-                      <Button 
-                        type="button" 
-                        onClick={adicionarTelefone}
-                        disabled={telefoneInput.length < 10 || isLoading}
-                      >
-                        Adicionar
-                      </Button>
-                    </div>
-                    
-                    <div className="space-y-2">
-                      {telefones.map((telefone, index) => (
-                        <div key={index} className="flex items-center justify-between bg-gray-100 p-2 rounded">
-                          <span>{telefone}</span>
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => removerTelefone(index)}
-                            disabled={isLoading}
-                          >
-                            <X className="h-4 w-4" />
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                    {!telefones.length && !form.getValues('gabinete_id') && (
-                      <p className="text-sm text-muted-foreground">
-                        Adicione pelo menos um telefone ou selecione um gabinete para enviar a notificação.
-                      </p>
-                    )}
-                    <FormMessage />
-                  </div>
-                </FormItem>
-              )}
-            />
-
             <div className="flex justify-end space-x-2 pt-4">
               <Button 
                 type="button" 
@@ -301,7 +227,7 @@ const NovaNotificacaoModal: React.FC<NovaNotificacaoModalProps> = ({ isOpen, onC
               </Button>
               <Button 
                 type="submit" 
-                disabled={isLoading || (telefones.length === 0 && !form.getValues('gabinete_id'))}
+                disabled={isLoading}
                 className="bg-green-500 hover:bg-green-600"
               >
                 {isLoading ? 'Enviando...' : 'Enviar Notificação'}

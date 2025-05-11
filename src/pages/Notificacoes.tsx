@@ -5,9 +5,9 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Trash2, MessageCircle, Bell, Plus, Search, FileText, Image as ImageIcon } from 'lucide-react';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { useNotificacoes } from '@/hooks/useNotificacoes';
 import NovaNotificacaoModal from '@/components/notificacoes/NovaNotificacaoModal';
+import DetalhesNotificacaoModal from '@/components/notificacoes/DetalhesNotificacaoModal';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 
@@ -19,7 +19,9 @@ const Notificacoes: React.FC = () => {
     error, 
     searchTerm, 
     setSearchTerm,
-    excluirNotificacao
+    excluirNotificacao,
+    selectedNotificacao,
+    setSelectedNotificacao 
   } = useNotificacoes();
 
   const formatDate = (dateString: string) => {
@@ -117,7 +119,11 @@ const Notificacoes: React.FC = () => {
           {!isLoading && !error && (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {notificacoes?.map((notificacao) => (
-                <Card key={notificacao.id} className="relative hover:shadow-md transition-shadow cursor-pointer">
+                <Card 
+                  key={notificacao.id} 
+                  className="relative hover:shadow-md transition-shadow cursor-pointer"
+                  onClick={() => setSelectedNotificacao(notificacao)}
+                >
                   <CardContent className="pt-6">
                     {/* Ícone de lixeira */}
                     <button 
@@ -146,19 +152,22 @@ const Notificacoes: React.FC = () => {
                     {/* Texto da notificação */}
                     <p className="mb-4 line-clamp-3">{notificacao.informacao}</p>
                     
-                    {/* Arquivo (se existir) */}
-                    {notificacao.arquivo_url && (
+                    {/* Exibir uma prévia da imagem se for uma imagem */}
+                    {notificacao.arquivo_url && notificacao.arquivo_tipo?.startsWith('image/') && (
+                      <div className="mb-3">
+                        <img 
+                          src={notificacao.arquivo_url} 
+                          alt="Imagem anexada" 
+                          className="h-24 object-cover rounded-md mx-auto"
+                        />
+                      </div>
+                    )}
+                    
+                    {/* Ícone do arquivo se não for imagem */}
+                    {notificacao.arquivo_url && !notificacao.arquivo_tipo?.startsWith('image/') && (
                       <div className="flex items-center text-sm text-blue-600 mb-3">
                         {getArquivoIcon(notificacao.arquivo_tipo)}
-                        <a 
-                          href={notificacao.arquivo_url} 
-                          target="_blank" 
-                          rel="noopener noreferrer"
-                          className="underline hover:text-blue-800"
-                          onClick={(e) => e.stopPropagation()}
-                        >
-                          Ver arquivo anexado
-                        </a>
+                        <span>Arquivo anexado</span>
                       </div>
                     )}
                     
@@ -181,6 +190,13 @@ const Notificacoes: React.FC = () => {
       
       {/* Modal para Nova Notificação */}
       <NovaNotificacaoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
+      
+      {/* Modal para Detalhes da Notificação */}
+      <DetalhesNotificacaoModal
+        notificacao={selectedNotificacao}
+        isOpen={!!selectedNotificacao}
+        onClose={() => setSelectedNotificacao(null)}
+      />
     </div>
   );
 };

@@ -23,6 +23,7 @@ export const useNotificacoes = () => {
   const queryClient = useQueryClient();
   const [searchTerm, setSearchTerm] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [selectedNotificacao, setSelectedNotificacao] = useState<Notificacao | null>(null);
 
   // Buscar notificações
   const { data: notificacoes, isLoading, error } = useQuery({
@@ -124,7 +125,7 @@ export const useNotificacoes = () => {
       novaNotificacao,
       arquivo
     }: {
-      novaNotificacao: Omit<Notificacao, 'id' | 'created_at' | 'updated_at' | 'arquivo_url' | 'arquivo_tipo'>;
+      novaNotificacao: Omit<Notificacao, 'id' | 'created_at' | 'updated_at' | 'arquivo_url' | 'arquivo_tipo' | 'telefones'>;
       arquivo?: File;
     }) => {
       let arquivoInfo = null;
@@ -134,8 +135,8 @@ export const useNotificacoes = () => {
         arquivoInfo = await uploadArquivo(arquivo);
       }
       
-      // Obter contatos do gabinete se necessário
-      let todosTelefones = [...novaNotificacao.telefones];
+      // Obter contatos do gabinete
+      let todosTelefones: string[] = [];
       
       if (novaNotificacao.gabinete_id) {
         try {
@@ -145,8 +146,7 @@ export const useNotificacoes = () => {
             .contains('gabinetes_ids', [novaNotificacao.gabinete_id]);
             
           if (contatos && contatos.length > 0) {
-            const telefonesDosContatos = contatos.map(c => c.telefone);
-            todosTelefones = [...todosTelefones, ...telefonesDosContatos];
+            todosTelefones = contatos.map(c => c.telefone);
           }
         } catch (error) {
           console.error('Erro ao buscar contatos do gabinete:', error);
@@ -225,6 +225,8 @@ export const useNotificacoes = () => {
     criarNotificacao,
     excluirNotificacao,
     isCreating,
-    isUploading
+    isUploading,
+    selectedNotificacao,
+    setSelectedNotificacao
   };
 };
