@@ -17,6 +17,8 @@ const Relatorios: React.FC = () => {
       
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-7xl mx-auto">
+          <h1 className="text-2xl font-bold mb-6">Relatórios</h1>
+          
           {/* Seção de Filtros */}
           <RelatoriosFiltros />
           
