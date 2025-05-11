@@ -4,10 +4,16 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ProblemItem } from './types';
 
-export const useProblems = (limit = 5) => {
+export const useProblems = (limit = 5, forceRefresh = false) => {
   const [problems, setProblems] = useState<ProblemItem[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [lastRefresh, setLastRefresh] = useState<number>(Date.now());
+
+  // Função para forçar uma atualização dos dados
+  const refreshData = () => {
+    setLastRefresh(Date.now());
+  };
 
   useEffect(() => {
     const fetchProblemas = async () => {
@@ -52,7 +58,7 @@ export const useProblems = (limit = 5) => {
     };
     
     fetchProblemas();
-  }, [limit]);
+  }, [limit, lastRefresh, forceRefresh]);
 
-  return { problems, isLoading, error };
+  return { problems, isLoading, error, refreshData };
 };

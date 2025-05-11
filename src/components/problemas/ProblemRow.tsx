@@ -18,13 +18,18 @@ export const ProblemRow: React.FC<ProblemRowProps> = ({ problem }) => {
   const navigate = useNavigate();
   const [isImageModalOpen, setIsImageModalOpen] = useState(false);
   
-  // Utilizamos o hook para atualizar o tempo em tempo real como um cronômetro
+  // Determinar se o problema está finalizado (Resolvido ou Informações Insuficientes)
+  const isFinished = problem.status === 'Resolvido' || problem.status === 'Informações Insuficientes';
+  
+  // Utilizamos o hook para atualizar o tempo a cada segundo como um cronômetro
+  // Passando o status atual para que ele saiba quando parar a contagem
   const elapsedTime = useElapsedTimeCounter(
     problem.created_at, 
-    problem.status === 'Resolvido' ? problem.updated_at : null,
-    1000 // Atualizar a cada 1 segundo
+    isFinished ? problem.updated_at : null,
+    1000, // Atualizar a cada 1 segundo para funcionar como cronômetro
+    problem.status as any // Passamos o status para o hook
   );
-  
+
   const formatDate = (dateString: string) => {
     try {
       return format(new Date(dateString), 'dd MMM yyyy, HH:mm', {
@@ -37,10 +42,10 @@ export const ProblemRow: React.FC<ProblemRowProps> = ({ problem }) => {
 
   // Método para formatar o tempo para problemas resolvidos
   const getTimeDisplay = () => {
-    if (problem.status === 'Resolvido') {
+    if (isFinished) {
       return (
         <span className="text-green-500">
-          Resolvido após {elapsedTime}
+          {problem.status === 'Resolvido' ? 'Resolvido' : 'Finalizado'} após {elapsedTime}
         </span>
       );
     }
