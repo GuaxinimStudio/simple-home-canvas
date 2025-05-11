@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { FileText, Image as ImageIcon } from 'lucide-react';
-import { Notificacao } from '@/hooks/useNotificacoes';
+import { Notificacao } from '@/hooks/notificacoes/types';
 
 type DetalhesNotificacaoModalProps = {
   notificacao: Notificacao | null;
