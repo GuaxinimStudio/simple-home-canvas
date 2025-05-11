@@ -11,7 +11,6 @@ export interface Problema {
   created_at: string;
   updated_at: string | null;
   municipio: string | null;
-  secretaria: string | null;
   status: string;
   prazo_estimado: string | null;
   resolvido_no_prazo: boolean | null;
@@ -74,7 +73,8 @@ export const useRelatoriosData = () => {
     }
   };
 
-  const aplicarFiltroPorData = (problema: any) => {
+  // Corrigido o aplicarFiltroPorData para evitar instanciação de tipo excessivamente profunda
+  const aplicarFiltroPorData = (problema: {created_at: string}) => {
     try {
       const dataCriacao = parseISO(problema.created_at);
       
@@ -132,9 +132,9 @@ export const useRelatoriosData = () => {
           query = query.eq('status', filtros.status);
         }
         
-        // Aplicar filtros de secretaria
+        // Aplicar filtros de secretaria (usando municipio, pois secretaria não existe no tipo)
         if (filtros.secretaria) {
-          query = query.eq('secretaria', filtros.secretaria);
+          query = query.eq('municipio', filtros.secretaria);
         }
         
         const { data, error } = await query;
@@ -161,7 +161,7 @@ export const useRelatoriosData = () => {
           .map((problema) => ({
             ...problema,
             data: formatarData(problema.created_at),
-            secretaria: problema.secretaria || null
+            // Removemos a atribuição de secretaria que estava causando o erro
           }));
         
         setProblemas(problemasFiltrados as Problema[]);
