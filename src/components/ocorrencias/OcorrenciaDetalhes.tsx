@@ -15,14 +15,16 @@ export const OcorrenciaDetalhes: React.FC<OcorrenciaDetalhesProps> = ({
   problemData,
   onImageClick
 }) => {
-  // Determinar se o problema está resolvido
-  const isResolved = problemData.status === 'Resolvido';
+  // Determinar se o problema está finalizado (Resolvido ou Informações Insuficientes)
+  const isFinished = problemData.status === 'Resolvido' || problemData.status === 'Informações Insuficientes';
   
   // Utilizamos o hook para atualizar o tempo a cada segundo como um cronômetro
+  // Passando o status atual para que ele saiba quando parar a contagem
   const elapsedTime = useElapsedTimeCounter(
     problemData.created_at,
-    isResolved ? problemData.updated_at : null,
-    1000 // Atualizar a cada 1 segundo para funcionar como cronômetro
+    isFinished ? problemData.updated_at : null,
+    1000, // Atualizar a cada 1 segundo para funcionar como cronômetro
+    problemData.status // Passamos o status para o hook
   );
 
   return (
@@ -81,11 +83,11 @@ export const OcorrenciaDetalhes: React.FC<OcorrenciaDetalhesProps> = ({
 
         <div>
           <h3 className="font-medium mb-2">Tempo Decorrido</h3>
-          <div className={`flex items-center ${isResolved ? "text-green-500" : "text-red-500"}`}>
+          <div className={`flex items-center ${isFinished ? "text-green-500" : "text-red-500"}`}>
             <Clock className="w-4 h-4 mr-2" />
-            {isResolved ? (
+            {isFinished ? (
               <span>
-                Resolvido após {elapsedTime}
+                {problemData.status === 'Resolvido' ? 'Resolvido' : 'Finalizado'} após {elapsedTime}
               </span>
             ) : (
               <span>
@@ -102,20 +104,24 @@ export const OcorrenciaDetalhes: React.FC<OcorrenciaDetalhesProps> = ({
           </div>
         )}
         
-        {/* Seção de detalhes da resolução (quando resolvido) */}
-        {isResolved && problemData.descricao_resolvido && (
+        {/* Seção de detalhes da resolução (quando resolvido ou informações insuficientes) */}
+        {isFinished && problemData.descricao_resolvido && (
           <div className="mt-4 border-t pt-4">
-            <h3 className="font-medium mb-2 text-green-600">Detalhes da Resolução</h3>
+            <h3 className="font-medium mb-2 text-green-600">
+              {problemData.status === 'Resolvido' ? 'Detalhes da Resolução' : 'Orientações Enviadas'}
+            </h3>
             <p className="bg-green-50 p-3 rounded text-gray-700 border border-green-100">
               {problemData.descricao_resolvido}
             </p>
             
             {problemData.imagem_resolvido && (
               <div className="mt-3">
-                <h4 className="text-sm font-medium mb-2">Comprovação da Resolução</h4>
+                <h4 className="text-sm font-medium mb-2">
+                  {problemData.status === 'Resolvido' ? 'Comprovação da Resolução' : 'Imagem de Apoio'}
+                </h4>
                 <div className="p-3 bg-green-50 rounded-md border border-green-100 flex items-center">
                   <CheckCircle className="text-green-500 w-5 h-5 mr-2" />
-                  <span className="text-gray-700">Imagem de comprovação anexada</span>
+                  <span className="text-gray-700">Imagem anexada</span>
                 </div>
               </div>
             )}

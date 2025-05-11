@@ -73,7 +73,7 @@ export const useOcorrenciaSave = (
         toast.success(
           currentStatus === 'Resolvido' 
             ? 'Problema resolvido! O contador de tempo foi parado.' 
-            : 'Informações insuficientes registradas! O cidadão será notificado.'
+            : 'Informações insuficientes registradas! O contador de tempo foi parado.'
         );
       }
       
