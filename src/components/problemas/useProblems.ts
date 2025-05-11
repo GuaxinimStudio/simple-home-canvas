@@ -38,7 +38,8 @@ export const useProblems = (limit = 5, forceRefresh = false) => {
             telefone,
             prazo_estimado,
             municipio,
-            foto_url
+            foto_url,
+            resolvido_no_prazo
           `)
           .order('created_at', { ascending: false })
           .limit(limit);

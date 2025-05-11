@@ -26,6 +26,7 @@ export interface ProblemItem {
   prazo_estimado: string | null;
   municipio: string | null;
   foto_url: string | null;
+  resolvido_no_prazo: boolean | null;
   gabinete: {
     gabinete: string;
   } | null;
