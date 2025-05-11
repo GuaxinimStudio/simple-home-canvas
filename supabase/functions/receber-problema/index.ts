@@ -214,10 +214,29 @@ serve(async (req) => {
       }
     }
     
-    // Verificar se o gabinete_id é um UUID válido ou null
-    const gabineteId = problemaData.gabinete_id && problemaData.gabinete_id !== "id-do-gabinete" 
-      ? problemaData.gabinete_id 
-      : null;
+    // Verificar e validar o gabinete_id se fornecido
+    let gabineteId = null;
+    if (problemaData.gabinete_id) {
+      // Verificamos se o gabinete existe no banco de dados
+      try {
+        const { data: gabineteData, error: gabineteError } = await supabaseClient
+          .from('gabinetes')
+          .select('id')
+          .eq('id', problemaData.gabinete_id)
+          .single();
+          
+        if (gabineteError || !gabineteData) {
+          console.warn("Gabinete não encontrado, ignorando:", problemaData.gabinete_id);
+          // Não interrompemos o fluxo, apenas ignoramos o gabinete_id inválido
+        } else {
+          console.log("Gabinete encontrado, associando ao problema:", gabineteData.id);
+          gabineteId = gabineteData.id;
+        }
+      } catch (gabErr) {
+        console.warn("Erro ao verificar gabinete:", gabErr);
+        // Não interrompemos o fluxo, apenas ignoramos o gabinete_id com erro
+      }
+    }
     
     // Preparando o objeto para inserção
     const novoProblema = {
