@@ -119,9 +119,12 @@ export const OcorrenciaDetalhes: React.FC<OcorrenciaDetalhesProps> = ({
                 <h4 className="text-sm font-medium mb-2">
                   {problemData.status === 'Resolvido' ? 'Comprovação da Resolução' : 'Imagem de Apoio'}
                 </h4>
-                <div className="p-3 bg-green-50 rounded-md border border-green-100 flex items-center">
-                  <CheckCircle className="text-green-500 w-5 h-5 mr-2" />
-                  <span className="text-gray-700">Imagem anexada</span>
+                <div className="bg-green-50 rounded-md border border-green-100 overflow-hidden">
+                  <img 
+                    src={problemData.imagem_resolvido} 
+                    alt={problemData.status === 'Resolvido' ? 'Comprovação da resolução' : 'Imagem de apoio'}
+                    className="w-full h-48 object-cover"
+                  />
                 </div>
               </div>
             )}
