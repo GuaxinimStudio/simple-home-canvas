@@ -65,12 +65,18 @@ export const useEnviarRespostaCidadao = (
         
       toast.success(mensagemSucesso);
       
+      return true; // Adicionando retorno para indicar sucesso
     } catch (err: any) {
       console.error('Erro ao enviar resposta ao cidadão:', err);
       toast.dismiss();
       toast.error(`Erro ao enviar informações: ${err.message}`);
+      return false; // Adicionando retorno para indicar falha
     }
   };
 
-  return { handleEnviarRespostaCidadao };
+  return { 
+    handleEnviarRespostaCidadao,
+    enviarResposta: handleEnviarRespostaCidadao, // Alias para compatibilidade
+    isEnviando: false // Propriedade para compatibilidade
+  };
 };

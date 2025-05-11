@@ -25,3 +25,6 @@ export interface OcorrenciaItem {
   resolvido_no_prazo: boolean | null;
   dias_atraso_resolucao: number | null;
 }
+
+// Adicionando a interface OcorrenciaData que estava faltando
+export type OcorrenciaData = OcorrenciaItem;

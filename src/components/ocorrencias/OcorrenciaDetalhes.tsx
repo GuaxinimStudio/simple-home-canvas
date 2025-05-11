@@ -3,11 +3,11 @@ import React from 'react';
 import { Card } from "@/components/ui/card";
 import { Image, Clock, CheckCircle } from 'lucide-react';
 import { formatDate } from '@/utils/dateUtils';
-import { OcorrenciaData } from '@/types/ocorrencia';
+import { OcorrenciaItem } from '@/types/ocorrencia';
 import { useElapsedTimeCounter } from '@/hooks/useElapsedTimeCounter';
 
 interface OcorrenciaDetalhesProps {
-  problemData: OcorrenciaData;
+  problemData: OcorrenciaItem;
   onImageClick: () => void;
 }
 

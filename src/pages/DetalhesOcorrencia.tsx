@@ -1,7 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { useParams } from 'react-router-dom';
-import { useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import Sidebar from '../components/Sidebar';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
@@ -14,59 +13,72 @@ import { usePrazoEstimado } from '@/hooks/ocorrencia/usePrazoEstimado';
 import { useOcorrenciaImages } from '@/hooks/ocorrencia/useOcorrenciaImages';
 import { useOcorrenciaSave } from '@/hooks/ocorrencia/useOcorrenciaSave';
 import { useEnviarRespostaCidadao } from '@/hooks/ocorrencia/useEnviarRespostaCidadao';
-import { StatusType } from '@/types/ocorrencia';
+import { StatusType, OcorrenciaData } from '@/types/ocorrencia';
 
 const DetalhesOcorrencia: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   
-  const [selectedDepartamento, setSelectedDepartamento] = useState('');
-  const [descricaoResolvido, setDescricaoResolvido] = useState('');
-  const [isSaved, setIsSaved] = useState(false);
+  // Estado local
+  const [state, setState] = useState({
+    selectedDepartamento: '',
+    descricaoResolvido: '',
+    isSaved: false,
+    problemData: null as OcorrenciaData | null
+  });
+  
+  // Função para atualizar o estado parcialmente
+  const updateState = (newState: Partial<typeof state>) => {
+    setState(prevState => ({ ...prevState, ...newState }));
+  };
+  
+  // Função para atualizar problemData
+  const updateProblemData = (data: Partial<OcorrenciaData>) => {
+    setState(prevState => ({
+      ...prevState,
+      problemData: prevState.problemData ? { ...prevState.problemData, ...data } : null
+    }));
+  };
   
   // Hook para buscar dados da ocorrência
-  const { ocorrencia, isLoading, error, refetchOcorrencia } = useFetchOcorrencia(id || '');
-
+  const { ocorrencia, isLoading, error, refetchOcorrencia } = useFetchOcorrencia(id, updateState);
+  
   // Hook para gerenciar status da ocorrência
-  const { currentStatus, setCurrentStatus, statusHistory } = useOcorrenciaStatus(ocorrencia?.status as StatusType);
+  const { currentStatus, setCurrentStatus, handleStatusChange, statusHistory } = useOcorrenciaStatus(
+    ocorrencia?.status as StatusType
+  );
   
   // Hook para gerenciar o prazo estimado
-  const { prazoEstimado, setPrazoEstimado, formatPrazoToInput } = usePrazoEstimado(ocorrencia?.prazo_estimado);
+  const { prazoEstimado, setPrazoEstimado, handlePrazoChange, formatPrazoToInput } = usePrazoEstimado(
+    ocorrencia?.prazo_estimado ? formatPrazoToInput(ocorrencia.prazo_estimado) : ''
+  );
   
   // Hook para gerenciar imagens da ocorrência
   const { 
     handleImagemResolvidoChange, 
     imagemResolvidoPreview, 
-    uploadImagemResolvido 
-  } = useOcorrenciaImages();
-
+    uploadImagemResolvido
+  } = useOcorrenciaImages(ocorrencia?.imagem_resolvido || null);
+  
   // Hook para salvar alterações
-  const { saveProblema, isSaving } = useOcorrenciaSave(id || '');
+  const { saveProblema, isSaving, isSaved } = useOcorrenciaSave(id || '');
   
   // Hook para enviar resposta ao cidadão
-  const { enviarResposta, isEnviando } = useEnviarRespostaCidadao(id || '');
-
+  const { handleEnviarRespostaCidadao } = useEnviarRespostaCidadao(ocorrencia, updateProblemData);
+  
   // Atualizar estados quando os dados da ocorrência forem carregados
   useEffect(() => {
     if (ocorrencia) {
-      setSelectedDepartamento(ocorrencia.gabinete_id || '');
-      setDescricaoResolvido(ocorrencia.descricao_resolvido || '');
-      setPrazoEstimado(formatPrazoToInput(ocorrencia.prazo_estimado));
-      setIsSaved(!!ocorrencia.descricao_resolvido && 
-        (ocorrencia.status === 'Resolvido' || ocorrencia.status === 'Informações Insuficientes'));
+      updateState({
+        selectedDepartamento: ocorrencia.gabinete_id || '',
+        descricaoResolvido: ocorrencia.descricao_resolvido || '',
+        isSaved: !!ocorrencia.descricao_resolvido && 
+          (ocorrencia.status === 'Resolvido' || ocorrencia.status === 'Informações Insuficientes'),
+        problemData: ocorrencia
+      });
     }
   }, [ocorrencia]);
-
-  // Função para lidar com alterações no departamento
-  const handleDepartamentoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setSelectedDepartamento(e.target.value);
-  };
-
-  // Função para lidar com alterações na descrição da resolução
-  const handleDescricaoResolvidoChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    setDescricaoResolvido(e.target.value);
-  };
-
+  
   // Função para salvar as alterações
   const handleSalvar = async () => {
     if (!id) return;
@@ -76,33 +88,29 @@ const DetalhesOcorrencia: React.FC = () => {
     if (imagemResolvidoPreview) {
       imagemResolvidoUrl = await uploadImagemResolvido(id);
     }
-
+    
     // Salvar problema
     await saveProblema(
       currentStatus as StatusType,
       prazoEstimado,
-      selectedDepartamento,
-      descricaoResolvido,
+      state.selectedDepartamento,
+      state.descricaoResolvido,
       imagemResolvidoUrl
     );
     
     // Atualizar dados
     refetchOcorrencia();
-    setIsSaved(true);
+    updateState({ isSaved: true });
   };
-
-  // Função para enviar resposta ao cidadão
-  const handleEnviarRespostaCidadao = async () => {
-    if (!id) return;
-    
-    await enviarResposta(
-      descricaoResolvido,
-      imagemResolvidoPreview,
-      ocorrencia?.telefone || ''
-    );
-    
-    // Atualizar dados
-    refetchOcorrencia();
+  
+  // Função para lidar com alterações no departamento
+  const handleDepartamentoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    updateState({ selectedDepartamento: e.target.value });
+  };
+  
+  // Função para lidar com alterações na descrição da resolução
+  const handleDescricaoResolvidoChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    updateState({ descricaoResolvido: e.target.value });
   };
 
   // Se estiver carregando, mostrar skeleton
@@ -152,6 +160,12 @@ const DetalhesOcorrencia: React.FC = () => {
     );
   }
 
+  // Função para lidar com cliques na imagem
+  const handleImageClick = () => {
+    // Implementar lógica de visualização de imagem
+    console.log('Imagem clicada');
+  };
+
   return (
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
@@ -175,19 +189,8 @@ const DetalhesOcorrencia: React.FC = () => {
             {/* Coluna da esquerda - 2/3 da largura em desktop */}
             <div className="lg:col-span-2 space-y-6">
               <OcorrenciaDetalhes 
-                descricao={ocorrencia.descricao}
-                fotoUrl={ocorrencia.foto_url}
-                telefone={ocorrencia.telefone}
-                dataRecebimento={ocorrencia.created_at}
-                municipio={ocorrencia.municipio}
-                status={ocorrencia.status as StatusType}
-                prazoEstimado={ocorrencia.prazo_estimado}
-                statusHistory={statusHistory}
-                descricaoResolvido={ocorrencia.descricao_resolvido}
-                imagemResolvido={ocorrencia.imagem_resolvido}
-                gabinete={ocorrencia.gabinete?.gabinete || 'Não atribuído'}
-                resolvidoNoPrazo={ocorrencia.resolvido_no_prazo}
-                diasAtraso={ocorrencia.dias_atraso_resolucao}
+                problemData={ocorrencia}
+                onImageClick={handleImageClick}
               />
             </div>
             
@@ -195,18 +198,18 @@ const DetalhesOcorrencia: React.FC = () => {
             <div className="space-y-6">
               <OcorrenciaGerenciamento 
                 currentStatus={currentStatus as StatusType}
-                onStatusChange={setCurrentStatus}
+                onStatusChange={handleStatusChange}
                 prazoEstimado={prazoEstimado}
-                onPrazoChange={(e) => setPrazoEstimado(e.target.value)}
-                selectedDepartamento={selectedDepartamento}
+                onPrazoChange={handlePrazoChange}
+                selectedDepartamento={state.selectedDepartamento}
                 onDepartamentoChange={handleDepartamentoChange}
                 onSalvar={handleSalvar}
-                descricaoResolvido={descricaoResolvido}
+                descricaoResolvido={state.descricaoResolvido}
                 onDescricaoResolvidoChange={handleDescricaoResolvidoChange}
                 onImagemResolvidoChange={handleImagemResolvidoChange}
                 imagemResolvidoPreview={imagemResolvidoPreview}
                 onEnviarRespostaCidadao={handleEnviarRespostaCidadao}
-                isSaved={isSaved}
+                isSaved={state.isSaved || isSaved}
                 respostaEnviada={ocorrencia.resposta_enviada || false}
                 resolvidoNoPrazo={ocorrencia.resolvido_no_prazo}
               />

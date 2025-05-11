@@ -11,6 +11,7 @@ export const useOcorrenciaStatus = (
 ) => {
   // Gerenciar o status atual
   const [currentStatus, setCurrentStatus] = useState<StatusType>(initialStatus);
+  const [statusHistory, setStatusHistory] = useState<Array<{status: StatusType, date: string}>>([]);
   
   // Utilizar hooks específicos para gerenciamento de prazo
   const { prazoEstimado, setPrazoEstimado, handlePrazoChange, isPrazoDefinido } = usePrazoEstimado(initialPrazo);
@@ -20,6 +21,11 @@ export const useOcorrenciaStatus = (
   useEffect(() => {
     if (initialStatus) {
       setCurrentStatus(initialStatus);
+      // Inicializa o histórico com o status atual
+      setStatusHistory([{
+        status: initialStatus,
+        date: new Date().toISOString()
+      }]);
     }
   }, [initialStatus]);
 
@@ -32,12 +38,23 @@ export const useOcorrenciaStatus = (
     }
     
     setCurrentStatus(value as StatusType);
+    
+    // Adicionar ao histórico
+    setStatusHistory(prev => [
+      ...prev, 
+      {
+        status: value as StatusType,
+        date: new Date().toISOString()
+      }
+    ]);
+    
     console.log('Status alterado para:', value);
   };
 
   return {
     currentStatus,
     setCurrentStatus,
+    statusHistory,
     prazoEstimado,
     setPrazoEstimado,
     handleStatusChange,
