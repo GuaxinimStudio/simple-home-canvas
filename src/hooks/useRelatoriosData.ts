@@ -16,6 +16,8 @@ export interface Problema {
   resolvido_no_prazo: boolean | null;
   dias_atraso_resolucao: number | null;
   prazo_alteracoes: number | null;
+  descricao?: string;
+  imagem_url?: string;
 }
 
 export interface RelatoriosStats {

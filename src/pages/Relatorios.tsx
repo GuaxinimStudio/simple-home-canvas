@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Sidebar from '../components/Sidebar';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,7 @@ import RelatoriosStatusCards from '../components/RelatoriosStatusCards';
 import RelatoriosGrafico from '../components/RelatoriosGrafico';
 import RelatoriosResolvidosPrazo from '../components/RelatoriosResolvidosPrazo';
 import RelatoriosTabela from '../components/RelatoriosTabela';
+import VisualizacaoRelatorio from '../components/relatorios/VisualizacaoRelatorio';
 
 // Hook personalizado para gerenciar dados dos relatórios
 import { useRelatoriosData } from '@/hooks/useRelatoriosData';
@@ -26,9 +27,15 @@ const Relatorios: React.FC = () => {
     setFiltros,
     limparFiltros 
   } = useRelatoriosData();
+  
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   const handleFiltrosChange = (novosFiltros: FiltrosRelatorios) => {
     setFiltros(novosFiltros);
+  };
+  
+  const handleVisualizarRelatorio = () => {
+    setIsPreviewOpen(true);
   };
   
   const handleGerarRelatorio = () => {
@@ -68,6 +75,7 @@ const Relatorios: React.FC = () => {
       link.click();
       document.body.removeChild(link);
       
+      setIsPreviewOpen(false);
       toast.success("Relatório gerado com sucesso!");
     } catch (error) {
       console.error("Erro ao gerar relatório:", error);
@@ -85,7 +93,7 @@ const Relatorios: React.FC = () => {
             <h1 className="text-2xl font-bold">Relatórios</h1>
             
             <Button 
-              onClick={handleGerarRelatorio}
+              onClick={handleVisualizarRelatorio}
               className="bg-resolve-green hover:bg-green-600"
               disabled={isLoading || problemas.length === 0}
             >
@@ -135,6 +143,16 @@ const Relatorios: React.FC = () => {
           </Tabs>
         </div>
       </div>
+      
+      {/* Modal de visualização do relatório */}
+      <VisualizacaoRelatorio
+        isOpen={isPreviewOpen}
+        onOpenChange={setIsPreviewOpen}
+        problemas={problemas}
+        stats={stats}
+        filtros={filtros}
+        onConfirmarExportacao={handleGerarRelatorio}
+      />
     </div>
   );
 };
