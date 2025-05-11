@@ -39,6 +39,18 @@ const RelatoriosStatusCards: React.FC<RelatoriosStatusCardsProps> = ({ stats, is
     );
   }
   
+  if (!stats) {
+    return (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[...Array(4)].map((_, index) => (
+          <div key={index} className="p-6 rounded-lg bg-gray-50 h-32 flex items-center justify-center">
+            <span className="text-gray-400">Sem dados</span>
+          </div>
+        ))}
+      </div>
+    );
+  }
+  
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
       <StatusCard 

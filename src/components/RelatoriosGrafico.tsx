@@ -19,7 +19,7 @@ const mesesAbreviados = [
 const RelatoriosGrafico: React.FC<RelatoriosGraficoProps> = ({ problemas, isLoading }) => {
   const chartData = useMemo(() => {
     // Se não há dados ou está carregando, retorna array vazio
-    if (isLoading || !problemas.length) {
+    if (isLoading || !problemas || problemas.length === 0) {
       return [];
     }
 
@@ -72,6 +72,19 @@ const RelatoriosGrafico: React.FC<RelatoriosGraficoProps> = ({ problemas, isLoad
         <CardContent className="p-6">
           <h3 className="text-lg font-medium mb-4">Distribuição por Status</h3>
           <div className="h-72 bg-gray-50 animate-pulse rounded"></div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!problemas) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <h3 className="text-lg font-medium mb-4">Distribuição por Status</h3>
+          <div className="h-72 flex items-center justify-center">
+            <p className="text-gray-500">Nenhum dado disponível</p>
+          </div>
         </CardContent>
       </Card>
     );

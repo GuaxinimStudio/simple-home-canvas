@@ -74,7 +74,7 @@ export const useRelatoriosData = () => {
     }
   };
 
-  const aplicarFiltroPorData = (problema: Problema) => {
+  const aplicarFiltroPorData = (problema: any) => {
     try {
       const dataCriacao = parseISO(problema.created_at);
       
@@ -123,8 +123,8 @@ export const useRelatoriosData = () => {
           .order('created_at', { ascending: false });
         
         // Aplicar filtros de texto
-        if (filtros.textoBusca) {
-          query = query.or(`descricao.ilike.%${filtros.textoBusca}%,municipio.ilike.%${filtros.textoBusca}%,secretaria.ilike.%${filtros.textoBusca}%`);
+        if (filtros.textoBusca && filtros.textoBusca.trim() !== '') {
+          query = query.or(`descricao.ilike.%${filtros.textoBusca}%,municipio.ilike.%${filtros.textoBusca}%`);
         }
         
         // Aplicar filtros de status
@@ -161,9 +161,10 @@ export const useRelatoriosData = () => {
           .map((problema) => ({
             ...problema,
             data: formatarData(problema.created_at),
+            secretaria: problema.secretaria || null
           }));
         
-        setProblemas(problemasFiltrados);
+        setProblemas(problemasFiltrados as Problema[]);
         
         // Calcular estatísticas
         const pendentes = problemasFiltrados.filter(p => p.status === 'Pendente').length;

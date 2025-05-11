@@ -73,30 +73,36 @@ const RelatoriosFiltros: React.FC<RelatoriosFiltrosProps> = ({
   const [secretarias, setSecretarias] = useState<{value: string, label: string}[]>([]);
   const [filtrosAplicados, setFiltrosAplicados] = useState<boolean>(false);
   
+  // Verificar que filtros não é undefined antes de prosseguir
+  if (!filtros) {
+    return <div>Carregando filtros...</div>;
+  }
+  
   // Buscar secretarias únicas do banco de dados
   useEffect(() => {
     const carregarSecretarias = async () => {
       try {
+        // Usar municipio em vez de secretaria já que secretaria não existe na tabela
         const { data, error } = await supabase
           .from('problemas')
-          .select('secretaria')
-          .not('secretaria', 'is', null)
-          .order('secretaria');
+          .select('municipio')
+          .not('municipio', 'is', null)
+          .order('municipio');
         
         if (error) throw error;
         
         // Filtrar valores únicos
-        const secretariasUnicas = Array.from(new Set(data.map(item => item.secretaria)))
+        const municipiosUnicos = Array.from(new Set(data.map(item => item.municipio)))
           .filter(Boolean)
-          .map(secretaria => ({
-            value: secretaria,
-            label: secretaria
+          .map(municipio => ({
+            value: municipio,
+            label: municipio
           }));
         
-        setSecretarias(secretariasUnicas);
+        setSecretarias(municipiosUnicos);
       } catch (error: any) {
-        console.error('Erro ao carregar secretarias:', error);
-        toast.error('Não foi possível carregar a lista de secretarias');
+        console.error('Erro ao carregar municípios:', error);
+        toast.error('Não foi possível carregar a lista de municípios');
       }
     };
     
@@ -128,7 +134,7 @@ const RelatoriosFiltros: React.FC<RelatoriosFiltrosProps> = ({
   };
 
   const temFiltrosAplicados = filtrosAplicados || 
-    filtros.textoBusca || 
+    (filtros.textoBusca && filtros.textoBusca.length > 0) || 
     filtros.secretaria || 
     filtros.status || 
     filtros.mes || 
@@ -160,7 +166,7 @@ const RelatoriosFiltros: React.FC<RelatoriosFiltrosProps> = ({
             <Input 
               placeholder="Pesquisar por descrição ou secretaria..." 
               className="max-w-full"
-              value={filtros.textoBusca}
+              value={filtros.textoBusca || ''}
               onChange={handleTextoBuscaChange}
             />
           </div>
@@ -168,14 +174,14 @@ const RelatoriosFiltros: React.FC<RelatoriosFiltrosProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
               <Select 
-                value={filtros.secretaria || ''} 
+                value={filtros.secretaria || undefined} 
                 onValueChange={(value) => handleFiltroChange('secretaria', value || null)}
               >
                 <SelectTrigger className="w-full">
-                  <SelectValue placeholder="Todas as secretarias" />
+                  <SelectValue placeholder="Todos os municípios" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todas as secretarias</SelectItem>
+                  <SelectItem value="todos_municipios">Todos os municípios</SelectItem>
                   {secretarias.map((secretaria) => (
                     <SelectItem key={secretaria.value} value={secretaria.value}>
                       {secretaria.label}
@@ -187,14 +193,14 @@ const RelatoriosFiltros: React.FC<RelatoriosFiltrosProps> = ({
             
             <div>
               <Select 
-                value={filtros.status || ''} 
+                value={filtros.status || undefined} 
                 onValueChange={(value) => handleFiltroChange('status', value || null)}
               >
                 <SelectTrigger className="w-full">
                   <SelectValue placeholder="Todos os status" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">Todos os status</SelectItem>
+                  <SelectItem value="todos_status">Todos os status</SelectItem>
                   <SelectItem value="Pendente">Pendente</SelectItem>
                   <SelectItem value="Em andamento">Em andamento</SelectItem>
                   <SelectItem value="Resolvido">Resolvido</SelectItem>
@@ -235,7 +241,7 @@ const RelatoriosFiltros: React.FC<RelatoriosFiltrosProps> = ({
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <Select 
-                  value={filtros.mes || ''} 
+                  value={filtros.mes || undefined} 
                   onValueChange={(value) => handleFiltroChange('mes', value || null)}
                 >
                   <SelectTrigger className="w-full">
@@ -253,7 +259,7 @@ const RelatoriosFiltros: React.FC<RelatoriosFiltrosProps> = ({
               
               <div>
                 <Select 
-                  value={filtros.ano || ''} 
+                  value={filtros.ano || undefined} 
                   onValueChange={(value) => handleFiltroChange('ano', value || null)}
                 >
                   <SelectTrigger className="w-full">

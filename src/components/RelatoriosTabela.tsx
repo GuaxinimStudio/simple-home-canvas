@@ -50,7 +50,7 @@ const RelatoriosTabela: React.FC<RelatoriosTabelaProps> = ({ problemas, isLoadin
     );
   }
   
-  if (!problemas.length) {
+  if (!problemas || problemas.length === 0) {
     return (
       <div className="bg-white p-6 rounded-lg border">
         <div className="flex flex-col justify-center items-center h-64">
@@ -68,7 +68,6 @@ const RelatoriosTabela: React.FC<RelatoriosTabelaProps> = ({ problemas, isLoadin
           <TableRow>
             <TableHead>Data</TableHead>
             <TableHead>Município</TableHead>
-            <TableHead>Secretaria</TableHead>
             <TableHead>Status</TableHead>
             <TableHead>Tempo</TableHead>
             <TableHead>Prazo</TableHead>
@@ -82,7 +81,6 @@ const RelatoriosTabela: React.FC<RelatoriosTabelaProps> = ({ problemas, isLoadin
             <TableRow key={item.id}>
               <TableCell>{item.data}</TableCell>
               <TableCell>{item.municipio || '-'}</TableCell>
-              <TableCell>{item.secretaria || '-'}</TableCell>
               <TableCell>
                 <span className={`inline-flex px-2.5 py-1 rounded-full text-xs ${
                   item.status === 'Resolvido' 
