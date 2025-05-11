@@ -33,7 +33,10 @@ const Problemas: React.FC = () => {
           />
 
           {/* Tabela de problemas */}
-          <ProblemTable problems={filteredProblems} isLoading={isLoading} />
+          <ProblemTable 
+            problems={filteredProblems} 
+            isLoading={isLoading} 
+          />
         </div>
       </div>
     </div>

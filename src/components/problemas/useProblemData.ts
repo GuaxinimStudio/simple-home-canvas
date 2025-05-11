@@ -6,7 +6,7 @@ import { ProblemItem } from './types';
 
 export const useProblemData = () => {
   const [problems, setProblems] = useState<ProblemItem[]>([]);
-  const [selectedStatus, setSelectedStatus] = useState('Todos');
+  const [selectedStatus, setSelectedStatus] = useState('todos');
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -53,11 +53,11 @@ export const useProblemData = () => {
     fetchProblemas();
   }, []);
 
-  const filteredProblems = selectedStatus === 'Todos'
+  const filteredProblems = selectedStatus === 'todos'
     ? problems
     : problems.filter(problem => problem.status === selectedStatus);
   
-  const totalProblems = problems.length;
+  const totalProblems = filteredProblems.length;
   
   return { 
     filteredProblems, 

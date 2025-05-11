@@ -34,15 +34,15 @@ export const ProblemFilters: React.FC<ProblemFiltersProps> = ({
                 Todos os status
               </div>
             </SelectItem>
-            <SelectItem value="pendente">Pendente</SelectItem>
-            <SelectItem value="em andamento">Em andamento</SelectItem>
-            <SelectItem value="resolvido">Resolvido</SelectItem>
-            <SelectItem value="informações insuficientes">Informações Insuficientes</SelectItem>
+            <SelectItem value="Pendente">Pendente</SelectItem>
+            <SelectItem value="Em andamento">Em andamento</SelectItem>
+            <SelectItem value="Resolvido">Resolvido</SelectItem>
+            <SelectItem value="Informações Insuficientes">Informações Insuficientes</SelectItem>
           </SelectContent>
         </Select>
       </div>
       <div className="w-64">
-        <Select>
+        <Select disabled>
           <SelectTrigger>
             <SelectValue placeholder="Todas as secretarias" />
           </SelectTrigger>
