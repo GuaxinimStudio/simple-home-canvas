@@ -2,6 +2,9 @@
 import React from 'react';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import Sidebar from '../components/Sidebar';
+import { Button } from '@/components/ui/button';
+import { Download } from 'lucide-react';
+import { toast } from 'sonner';
 
 // Componentes refatorados
 import RelatoriosFiltros from '../components/RelatoriosFiltros';
@@ -27,6 +30,50 @@ const Relatorios: React.FC = () => {
   const handleFiltrosChange = (novosFiltros: FiltrosRelatorios) => {
     setFiltros(novosFiltros);
   };
+  
+  const handleGerarRelatorio = () => {
+    toast.success("Gerando relatório...");
+    
+    try {
+      // Preparar dados para exportação
+      const dataAtual = new Date().toLocaleDateString('pt-BR');
+      
+      // Criar string CSV
+      let csv = 'Data,Município,Status,Prazo,Resolvido no Prazo,Dias de Atraso,Alterações de Prazo\n';
+      
+      problemas.forEach((problema) => {
+        const linha = [
+          problema.data,
+          problema.municipio || '-',
+          problema.status,
+          problema.prazo_estimado ? new Date(problema.prazo_estimado).toLocaleDateString('pt-BR') : '-',
+          problema.resolvido_no_prazo !== null ? (problema.resolvido_no_prazo ? 'Sim' : 'Não') : '-',
+          problema.dias_atraso_resolucao !== null ? problema.dias_atraso_resolucao : '-',
+          problema.prazo_alteracoes || '0'
+        ].join(',');
+        
+        csv += linha + '\n';
+      });
+      
+      // Criar blob e link para download
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      
+      link.setAttribute('href', url);
+      link.setAttribute('download', `relatorio-problemas-${dataAtual}.csv`);
+      link.style.visibility = 'hidden';
+      
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast.success("Relatório gerado com sucesso!");
+    } catch (error) {
+      console.error("Erro ao gerar relatório:", error);
+      toast.error("Erro ao gerar relatório. Tente novamente.");
+    }
+  };
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -34,7 +81,18 @@ const Relatorios: React.FC = () => {
       
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-7xl mx-auto">
-          <h1 className="text-2xl font-bold mb-6">Relatórios</h1>
+          <div className="flex justify-between items-center mb-6">
+            <h1 className="text-2xl font-bold">Relatórios</h1>
+            
+            <Button 
+              onClick={handleGerarRelatorio}
+              className="bg-resolve-green hover:bg-green-600"
+              disabled={isLoading || problemas.length === 0}
+            >
+              <Download className="mr-2 h-4 w-4" />
+              Gerar Relatório
+            </Button>
+          </div>
           
           {/* Seção de Filtros */}
           <RelatoriosFiltros 
