@@ -66,6 +66,16 @@ const VisualizacaoRelatorio: React.FC<VisualizacaoRelatorioProps> = ({
     if (total === 0) return '0%';
     return `${Math.round((valor / total) * 100)}%`;
   };
+
+  // Obter informações de média de dias de atraso
+  const calculaMediaAtraso = () => {
+    const problemasComAtraso = problemas.filter(p => p.dias_atraso_resolucao !== null && p.dias_atraso_resolucao > 0);
+    
+    if (problemasComAtraso.length === 0) return 0;
+    
+    const somaAtrasos = problemasComAtraso.reduce((soma, p) => soma + (p.dias_atraso_resolucao || 0), 0);
+    return Math.round(somaAtrasos / problemasComAtraso.length);
+  };
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -132,17 +142,31 @@ const VisualizacaoRelatorio: React.FC<VisualizacaoRelatorioProps> = ({
                     <span className="text-sm text-gray-500">({calculaPorcentagem(stats.resolvidos, stats.total)})</span>
                   </div>
                 </div>
-                
-                <div className="border rounded-md p-3 col-span-2">
-                  <p className="text-sm text-gray-600 mb-1">Informações Insuficientes:</p>
-                  <div className="flex items-baseline">
-                    <p className="text-2xl font-medium text-purple-600 mr-2">
-                      {stats.informacoesInsuficientes}
-                    </p>
-                    <span className="text-sm text-gray-500">
-                      ({calculaPorcentagem(stats.informacoesInsuficientes, stats.total)})
-                    </span>
-                  </div>
+              </div>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-3">
+              <div className="border rounded-md p-3">
+                <p className="text-sm text-gray-600 mb-1">Resolvidos no Prazo:</p>
+                <div className="flex items-baseline">
+                  <p className="text-2xl font-medium text-green-600 mr-2">
+                    {stats.totalResolvidos > 0 
+                      ? `${Math.round((stats.resolvidosNoPrazo / stats.totalResolvidos) * 100)}%` 
+                      : '0%'}
+                  </p>
+                  <span className="text-sm text-gray-500">
+                    ({stats.resolvidosNoPrazo} de {stats.totalResolvidos})
+                  </span>
+                </div>
+              </div>
+              
+              <div className="border rounded-md p-3">
+                <p className="text-sm text-gray-600 mb-1">Média de Atraso:</p>
+                <div className="flex items-baseline">
+                  <p className="text-2xl font-medium text-red-600 mr-2">
+                    {calculaMediaAtraso()}
+                  </p>
+                  <span className="text-sm text-gray-500">dias em média</span>
                 </div>
               </div>
             </div>
@@ -177,9 +201,9 @@ const VisualizacaoRelatorio: React.FC<VisualizacaoRelatorioProps> = ({
                     
                     <div className="row-span-2">
                       <p className="text-sm text-gray-600 mb-1">Foto do Problema</p>
-                      {problema.imagem_url ? (
+                      {problema.foto_url ? (
                         <img 
-                          src={problema.imagem_url} 
+                          src={problema.foto_url} 
                           alt="Foto do problema" 
                           className="w-full h-32 object-cover rounded-md" 
                         />
@@ -222,6 +246,13 @@ const VisualizacaoRelatorio: React.FC<VisualizacaoRelatorioProps> = ({
                       </div>
                     )}
                   </div>
+                  
+                  {problema.status === 'Resolvido' && problema.descricao_resolvido && (
+                    <div className="mt-4 p-3 bg-green-50 border border-green-100 rounded-md">
+                      <p className="text-sm text-green-700 font-medium mb-1">Solução Implementada</p>
+                      <p className="text-sm">{problema.descricao_resolvido}</p>
+                    </div>
+                  )}
                 </div>
               ))
             ) : (

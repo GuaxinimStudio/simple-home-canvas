@@ -17,7 +17,10 @@ export interface Problema {
   dias_atraso_resolucao: number | null;
   prazo_alteracoes: number | null;
   descricao?: string;
-  imagem_url?: string;
+  foto_url?: string;
+  telefone: string;
+  descricao_resolvido?: string | null;
+  imagem_resolvido?: string | null;
 }
 
 export interface RelatoriosStats {
@@ -134,10 +137,7 @@ export const useRelatoriosData = () => {
           query = query.eq('status', filtros.status);
         }
         
-        // Aplicar filtros de secretaria (usando municipio, pois secretaria não existe no tipo)
-        if (filtros.secretaria) {
-          query = query.eq('municipio', filtros.secretaria);
-        }
+        // Removido filtro de secretaria conforme solicitado
         
         const { data, error } = await query;
         
@@ -163,7 +163,6 @@ export const useRelatoriosData = () => {
           .map((problema) => ({
             ...problema,
             data: formatarData(problema.created_at),
-            // Removida a linha que fazia referência à propriedade secretaria inexistente
           }));
         
         setProblemas(problemasFiltrados as Problema[]);

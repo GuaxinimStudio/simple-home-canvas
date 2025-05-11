@@ -7,7 +7,6 @@ import { FiltrosRelatorios } from './relatorios/types';
 
 // Componentes refatorados
 import FiltroTextoBusca from './relatorios/FiltroTextoBusca';
-import FiltroSecretaria from './relatorios/FiltroSecretaria';
 import FiltroStatus from './relatorios/FiltroStatus';
 import FiltroTipoData from './relatorios/FiltroTipoData';
 import FiltroMesAno from './relatorios/FiltroMesAno';
@@ -50,7 +49,9 @@ const RelatoriosFiltros: React.FC<RelatoriosFiltrosProps> = ({
   const anoDiferenteDoAtual = filtros.ano !== null && filtros.ano !== anoAtual;
   
   // Mostrar botão de limpar apenas se o mês ou ano for diferente do atual
-  const mostrarBotaoLimpar = mesDiferenteDoAtual || anoDiferenteDoAtual;
+  const mostrarBotaoLimpar = mesDiferenteDoAtual || anoDiferenteDoAtual || 
+                            filtros.status !== null || 
+                            (filtros.textoBusca && filtros.textoBusca.trim() !== '');
 
   return (
     <Card className="mb-6">
@@ -76,14 +77,7 @@ const RelatoriosFiltros: React.FC<RelatoriosFiltrosProps> = ({
             onChange={(valor) => handleFiltroChange('textoBusca', valor)} 
           />
           
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div>
-              <FiltroSecretaria 
-                secretaria={filtros.secretaria} 
-                onChange={(valor) => handleFiltroChange('secretaria', valor)} 
-              />
-            </div>
-            
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <FiltroStatus 
                 status={filtros.status} 
