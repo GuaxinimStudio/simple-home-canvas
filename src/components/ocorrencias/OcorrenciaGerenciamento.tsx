@@ -50,21 +50,18 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
   // Verifica se o status requer resposta
   const requiresResponse = isStatusRequireResponse(currentStatus);
   
-  // Verifica se o status requer resposta e já foi finalizado completamente (salvo E resposta enviada)
-  // Só desabilita os campos quando ambas as condições forem atendidas
-  const isFormLocked = requiresResponse && isSaved && respostaEnviada;
-  
-  // Verifica se devemos mostrar os campos adicionais
-  const showAdditionalFields = requiresResponse;
-  
   // Verifica se a descrição é válida (preenchida quando obrigatória)
   const isDescricaoValida = !requiresResponse || (descricaoResolvido.trim() !== '');
   
   // Verifica se a imagem é válida (obrigatória apenas para status Resolvido)
   const isImagemValida = currentStatus !== 'Resolvido' || imagemResolvidoPreview !== null;
   
+  // Determina se os campos devem ser bloqueados
+  // Quando a ocorrência está pronta para ter a resposta enviada ao cidadão
+  const shouldBlockFields = requiresResponse && isSaved && isDescricaoValida && 
+    (currentStatus !== 'Resolvido' || isImagemValida) && !respostaEnviada;
+  
   // Calcula se o formulário é válido para habilitar o botão de salvar
-  // Modificado: Garante que para status "Resolvido", tanto a descrição quanto a imagem são obrigatórias
   const isFormValid = 
     (!requiresResponse) || 
     (currentStatus === 'Resolvido' ? (isDescricaoValida && isImagemValida) : isDescricaoValida);
@@ -91,30 +88,30 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
           currentStatus={currentStatus}
           onStatusChange={onStatusChange}
           isPrazoDefinido={isPrazoDefinido}
-          isResolvido={isFormLocked}
+          isResolvido={respostaEnviada || shouldBlockFields}
         />
 
         <OcorrenciaPrazo 
           prazoEstimado={prazoEstimado}
           onPrazoChange={onPrazoChange}
-          isResolvido={isFormLocked}
+          isResolvido={respostaEnviada || shouldBlockFields}
           resolvidoNoPrazo={resolvidoNoPrazo}
         />
 
         <OcorrenciaDepartamento 
           selectedDepartamento={selectedDepartamento}
           onDepartamentoChange={onDepartamentoChange}
-          isDisabled={isFormLocked}
+          isDisabled={respostaEnviada || shouldBlockFields}
         />
 
-        {showAdditionalFields && (
+        {requiresResponse && (
           <OcorrenciaDetalhesAdicionais 
             currentStatus={currentStatus}
             descricaoResolvido={descricaoResolvido}
             onDescricaoResolvidoChange={onDescricaoResolvidoChange}
             imagemResolvidoPreview={imagemResolvidoPreview}
             onImagemResolvidoChange={onImagemResolvidoChange}
-            isResolvido={isFormLocked}
+            isResolvido={respostaEnviada || shouldBlockFields}
             isRequired={true}
             isDescricaoValida={isDescricaoValida}
             isImagemValida={isImagemValida}

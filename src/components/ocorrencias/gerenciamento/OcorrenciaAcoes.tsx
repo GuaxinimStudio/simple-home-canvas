@@ -58,6 +58,14 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
   // Mensagem quando faltam dados para enviar resposta ao cidadão
   const showRespostaIncompleteMessage = requiresResponse && isSalvo && !respostaEnviada && !isRespostaReady;
   
+  // NOVA LÓGICA: Define quando os campos devem ser bloqueados
+  // Bloqueia os campos quando:
+  // 1. O status requer resposta (está finalizado)
+  // 2. Já está salvo no banco de dados
+  // 3. Todos os campos necessários estão preenchidos (a resposta está pronta para ser enviada)
+  // 4. A resposta ainda não foi enviada
+  const shouldBlockFields = requiresResponse && isSalvo && isRespostaReady && !respostaEnviada;
+  
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3">
@@ -82,6 +90,12 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
             <Send size={16} className="mr-2" />
             Enviar Resposta ao Cidadão
           </Button>
+        )}
+
+        {shouldBlockFields && (
+          <p className="text-blue-600 text-sm">
+            Campos bloqueados. Envie a resposta ao cidadão para finalizar o processo.
+          </p>
         )}
 
         {showRequiredFieldsMessage && (
