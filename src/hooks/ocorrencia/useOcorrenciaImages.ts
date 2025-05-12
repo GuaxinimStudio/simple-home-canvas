@@ -30,10 +30,20 @@ export const useOcorrenciaImages = (initialPreview: string | null = null) => {
         return null;
       }
 
-      // Verificar se o bucket existe, se não existir, cria
+      // Verificar se o bucket existe
       const { data: buckets } = await supabase.storage.listBuckets();
+      
+      // Se o bucket 'resolucoes' não existir, tenta criar
       if (!buckets?.find(b => b.name === 'resolucoes')) {
-        await supabase.storage.createBucket('resolucoes', { public: true });
+        const { error: createError } = await supabase.storage.createBucket('resolucoes', { 
+          public: true,
+          fileSizeLimit: 5242880 // 5MB
+        });
+        
+        if (createError) {
+          console.error("Erro ao criar bucket:", createError);
+          toast.error(`Não foi possível criar o bucket: ${createError.message}`);
+        }
       }
 
       const fileExt = imagemResolvido.name.split('.').pop();
@@ -48,6 +58,7 @@ export const useOcorrenciaImages = (initialPreview: string | null = null) => {
         });
 
       if (error) {
+        console.error("Erro detalhado ao fazer upload:", error);
         toast.error(`Erro ao fazer upload: ${error.message}`);
         return null;
       }

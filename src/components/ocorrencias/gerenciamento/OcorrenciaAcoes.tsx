@@ -3,6 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { StatusType } from '@/types/ocorrencia';
 import { isStatusRequireResponse } from '@/hooks/ocorrencia/ocorrenciaTypes';
+import { Send } from 'lucide-react';
 
 interface OcorrenciaAcoesProps {
   currentStatus: StatusType;
@@ -45,11 +46,12 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
         
         {showResponseButton && onEnviarRespostaCidadao && (
           <Button 
-            variant="secondary" 
+            variant="outline" 
             type="button"
-            className="w-full"
+            className="w-full bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:text-green-800 hover:border-green-300"
             onClick={onEnviarRespostaCidadao}
           >
+            <Send size={16} className="mr-2" />
             Enviar Resposta ao Cidadão
           </Button>
         )}
