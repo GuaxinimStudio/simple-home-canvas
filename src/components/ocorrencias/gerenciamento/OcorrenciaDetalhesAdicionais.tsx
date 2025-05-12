@@ -123,7 +123,7 @@ export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionais
             )}
           </div>
         ) : (
-          <div className={`border-2 border-dashed ${!isImagemValida && isImagemObrigatoria ? 'border-gray-300' : 'border-gray-300'} rounded-md p-6 text-center`}>
+          <div className={`border-2 border-dashed border-gray-300 rounded-md p-6 text-center`}>
             <Input
               id="image-upload"
               type="file"

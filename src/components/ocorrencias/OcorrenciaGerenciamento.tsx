@@ -59,11 +59,14 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
   // Verifica se a descrição é válida (preenchida quando obrigatória)
   const isDescricaoValida = !requiresResponse || (descricaoResolvido.trim() !== '');
   
-  // Verifica se a imagem é válida (só obrigatória para status Resolvido)
-  const isImagemValida = !requiresResponse || currentStatus !== 'Resolvido' || imagemResolvidoPreview !== null;
+  // Verifica se a imagem é válida (obrigatória apenas para status Resolvido)
+  const isImagemValida = currentStatus !== 'Resolvido' || imagemResolvidoPreview !== null;
   
   // Calcula se o formulário é válido para habilitar o botão de salvar
-  const isFormValid = isDescricaoValida && isImagemValida;
+  // Modificado: Garante que para status "Resolvido", tanto a descrição quanto a imagem são obrigatórias
+  const isFormValid = 
+    (!requiresResponse) || 
+    (currentStatus === 'Resolvido' ? (isDescricaoValida && isImagemValida) : isDescricaoValida);
   
   return (
     <Card className="p-6">
