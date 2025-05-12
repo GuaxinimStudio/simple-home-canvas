@@ -25,6 +25,7 @@ interface OcorrenciaGerenciamentoProps {
   isSaved?: boolean;
   respostaEnviada?: boolean;
   resolvidoNoPrazo?: boolean;
+  isEnviandoResposta?: boolean;
 }
 
 export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = ({
@@ -42,7 +43,8 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
   onEnviarRespostaCidadao,
   isSaved = false,
   respostaEnviada = false,
-  resolvidoNoPrazo
+  resolvidoNoPrazo,
+  isEnviandoResposta = false
 }) => {
   // Verifica se um prazo foi definido
   const isPrazoDefinido = prazoEstimado !== '';
@@ -128,6 +130,7 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
           isPrazoDefinido={isPrazoDefinido}
           isDescricaoValida={isDescricaoValida}
           isImagemValida={isImagemValida}
+          isEnviandoResposta={isEnviandoResposta}
         />
       </div>
     </Card>

@@ -73,7 +73,7 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
   }, [state.problemData, updateState]);
 
   // Gerenciar envio de resposta ao cidadão
-  const { handleEnviarRespostaCidadao } = useEnviarRespostaCidadao(
+  const { handleEnviarRespostaCidadao, isEnviando } = useEnviarRespostaCidadao(
     state.problemData,
     updateProblemData
   );
@@ -155,6 +155,7 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     handleDescricaoResolvidoChange,
     handleImagemResolvidoChange: imageManager.handleImagemResolvidoChange,
     setImageModalOpen,
-    handleEnviarRespostaCidadao
+    handleEnviarRespostaCidadao,
+    isEnviandoResposta: isEnviando
   };
 };

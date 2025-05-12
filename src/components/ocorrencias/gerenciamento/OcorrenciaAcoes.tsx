@@ -3,7 +3,7 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { StatusType } from '@/types/ocorrencia';
 import { isStatusRequireResponse } from '@/hooks/ocorrencia/ocorrenciaTypes';
-import { Send, MailCheck } from 'lucide-react';
+import { Send, MailCheck, Loader2 } from 'lucide-react';
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface OcorrenciaAcoesProps {
@@ -16,6 +16,7 @@ interface OcorrenciaAcoesProps {
   isPrazoDefinido: boolean;
   isDescricaoValida?: boolean;
   isImagemValida?: boolean;
+  isEnviandoResposta?: boolean;
 }
 
 export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
@@ -27,7 +28,8 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
   isFormValid = true,
   isPrazoDefinido = false,
   isDescricaoValida = true,
-  isImagemValida = true
+  isImagemValida = true,
+  isEnviandoResposta = false
 }) => {
   // Verifica se é um status que requer resposta (finalizado)
   const requiresResponse = isStatusRequireResponse(currentStatus);
@@ -103,9 +105,19 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
             type="button"
             className="w-full bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:text-green-800 hover:border-green-300"
             onClick={onEnviarRespostaCidadao}
+            disabled={isEnviandoResposta}
           >
-            <Send size={16} className="mr-2" />
-            Enviar Resposta ao Cidadão
+            {isEnviandoResposta ? (
+              <>
+                <Loader2 size={16} className="mr-2 animate-spin" />
+                Enviando resposta...
+              </>
+            ) : (
+              <>
+                <Send size={16} className="mr-2" />
+                Enviar Resposta ao Cidadão
+              </>
+            )}
           </Button>
         )}
 

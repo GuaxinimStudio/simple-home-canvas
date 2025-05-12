@@ -23,6 +23,7 @@ interface DetalhesOcorrenciaLayoutProps {
   respostaEnviada: boolean;
   onImageClick: () => void;
   resolvidoNoPrazo?: boolean;
+  isEnviandoResposta?: boolean;
 }
 
 export const DetalhesOcorrenciaLayout: React.FC<DetalhesOcorrenciaLayoutProps> = ({
@@ -42,7 +43,8 @@ export const DetalhesOcorrenciaLayout: React.FC<DetalhesOcorrenciaLayoutProps> =
   isSaved,
   respostaEnviada,
   onImageClick,
-  resolvidoNoPrazo
+  resolvidoNoPrazo,
+  isEnviandoResposta
 }) => {
   return (
     <div className="max-w-6xl mx-auto">
@@ -73,6 +75,7 @@ export const DetalhesOcorrenciaLayout: React.FC<DetalhesOcorrenciaLayoutProps> =
             isSaved={isSaved}
             respostaEnviada={respostaEnviada}
             resolvidoNoPrazo={resolvidoNoPrazo}
+            isEnviandoResposta={isEnviandoResposta}
           />
         </div>
       </div>

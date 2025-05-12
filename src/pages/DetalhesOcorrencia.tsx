@@ -52,6 +52,7 @@ const DetalhesOcorrencia: React.FC = () => {
           respostaEnviada={ocorrenciaDetails.respostaEnviada}
           onImageClick={handleImageClick}
           resolvidoNoPrazo={ocorrenciaDetails.problemData.resolvido_no_prazo}
+          isEnviandoResposta={ocorrenciaDetails.isEnviandoResposta}
         />
       </div>
     </div>
