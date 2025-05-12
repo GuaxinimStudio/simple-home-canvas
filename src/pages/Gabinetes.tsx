@@ -7,10 +7,12 @@ import { Button } from '@/components/ui/button';
 import GabineteCard from '@/components/gabinetes/GabineteCard';
 import NovoGabineteModal from '@/components/gabinetes/NovoGabineteModal';
 import useGabinetes from '@/hooks/useGabinetes';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Gabinetes: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const { gabinetes, isLoading, refetch, searchTerm, setSearchTerm } = useGabinetes();
+  const isMobile = useIsMobile();
   
   const handleSuccess = () => {
     refetch();
@@ -20,19 +22,19 @@ const Gabinetes: React.FC = () => {
     <div className="flex h-screen bg-gray-50">
       <Sidebar />
       
-      <div className="flex-1 overflow-auto p-6">
+      <div className="flex-1 overflow-auto p-4 md:p-6">
         <div className="max-w-7xl mx-auto">
           {/* Cabeçalho */}
-          <div className="flex justify-between items-center mb-6">
+          <div className="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-6">
             <div>
-              <h1 className="text-2xl font-semibold">Gabinetes</h1>
+              <h1 className="text-xl md:text-2xl font-semibold">Gabinetes</h1>
               <p className="text-gray-600">
                 Gerencie os gabinetes e suas demandas
               </p>
             </div>
             
             <Button 
-              className="bg-resolve-green hover:bg-green-700"
+              className="bg-resolve-green hover:bg-green-700 w-full md:w-auto"
               onClick={() => setIsModalOpen(true)}
             >
               <PlusCircle className="mr-2 h-4 w-4" />
@@ -63,7 +65,7 @@ const Gabinetes: React.FC = () => {
               <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-resolve-green"></div>
             </div>
           ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
               {gabinetes && gabinetes.length > 0 ? (
                 gabinetes.map((gabinete) => (
                   <GabineteCard 

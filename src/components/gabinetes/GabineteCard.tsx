@@ -31,63 +31,72 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete }) => {
   return (
     <Card className="bg-white overflow-hidden">
       <CardContent className="p-6">
-        <div className="flex items-start gap-3">
-          <div className="bg-green-50 p-2 rounded-md">
-            <Building className="h-5 w-5 text-resolve-green" />
-          </div>
-          <div className="flex-1">
-            <h3 className="text-lg font-medium mb-1">{gabinete.gabinete}</h3>
-            <p className="text-gray-500 text-sm mb-4">
-              {gabinete.responsavel ? `Responsável: ${gabinete.responsavel}` : 'Sem responsável definido'}
-            </p>
-            
-            <div className="space-y-3">
-              <div className="flex items-center text-gray-500 text-sm">
-                <MapPin className="w-4 h-4 mr-2" />
-                <span>{gabinete.municipio ? `${gabinete.municipio}, ${gabinete.estado}` : 'Localização não definida'}</span>
+        <div className="flex flex-col gap-3">
+          {/* Cabeçalho do Card com título e botão de exclusão */}
+          <div className="flex justify-between items-start">
+            <div className="flex items-start gap-3">
+              <div className="bg-green-50 p-2 rounded-md">
+                <Building className="h-5 w-5 text-resolve-green" />
               </div>
+              <div>
+                <h3 className="text-lg font-medium mb-1">{gabinete.gabinete}</h3>
+                <p className="text-gray-500 text-sm">
+                  {gabinete.responsavel ? `Responsável: ${gabinete.responsavel}` : 'Sem responsável definido'}
+                </p>
+              </div>
+            </div>
+            
+            {/* Botão de exclusão movido para o topo */}
+            <Button 
+              variant="ghost" 
+              size="icon" 
+              className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+              onClick={() => setIsExcluirDialogOpen(true)}
+            >
+              <Trash2 className="h-4 w-4" />
+            </Button>
+          </div>
+          
+          {/* Conteúdo do Card */}
+          <div className="mt-3 space-y-3">
+            <div className="flex flex-wrap items-center text-gray-500 text-sm">
+              <MapPin className="w-4 h-4 mr-2 flex-shrink-0" />
+              <span className="break-words">{gabinete.municipio ? `${gabinete.municipio}, ${gabinete.estado}` : 'Localização não definida'}</span>
+            </div>
 
-              {gabinete.telefone && (
-                <div className="flex items-center text-gray-500 text-sm">
-                  <Phone className="w-4 h-4 mr-2" />
-                  <span>{gabinete.telefone}</span>
-                </div>
-              )}
+            {gabinete.telefone && (
+              <div className="flex flex-wrap items-center text-gray-500 text-sm">
+                <Phone className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span className="break-words">{gabinete.telefone}</span>
+              </div>
+            )}
+            
+            <div className="flex items-center justify-between flex-wrap gap-2 pt-2">
+              <div className="flex items-center text-gray-500 text-sm">
+                <UserPlus className="w-4 h-4 mr-2 flex-shrink-0" />
+                <span>{profiles.length} membros vinculados</span>
+              </div>
               
-              <div className="flex items-center justify-between">
-                <div className="flex items-center text-gray-500 text-sm">
-                  <UserPlus className="w-4 h-4 mr-2" />
-                  <span>{profiles.length} membros vinculados</span>
-                </div>
+              <div className="flex gap-2">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8"
+                  onClick={() => setIsVerContatosModalOpen(true)}
+                  title="Ver contatos"
+                >
+                  <Eye className="h-4 w-4 text-gray-500" />
+                </Button>
                 
-                <div className="flex gap-2">
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8"
-                    onClick={() => setIsVerContatosModalOpen(true)}
-                  >
-                    <Eye className="h-4 w-4 text-gray-500" />
-                  </Button>
-                  
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8"
-                    onClick={() => setIsNovoContatoModalOpen(true)}
-                  >
-                    <PlusCircle className="h-4 w-4 text-gray-500" />
-                  </Button>
-
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-8 w-8"
-                    onClick={() => setIsExcluirDialogOpen(true)}
-                  >
-                    <Trash2 className="h-4 w-4 text-red-500" />
-                  </Button>
-                </div>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8"
+                  onClick={() => setIsNovoContatoModalOpen(true)}
+                  title="Adicionar contato"
+                >
+                  <PlusCircle className="h-4 w-4 text-gray-500" />
+                </Button>
               </div>
             </div>
           </div>
