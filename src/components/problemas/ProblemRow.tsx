@@ -113,9 +113,6 @@ export const ProblemRow: React.FC<ProblemRowProps> = ({ problem }) => {
         <TableCell className="text-sm">
           {problem.gabinete?.gabinete || 'Não atribuído'}
         </TableCell>
-        <TableCell className="text-sm">
-          {problem.secretaria || 'Não atribuída'}
-        </TableCell>
         <TableCell>
           <button 
             className="p-1.5 bg-gray-100 rounded-full hover:bg-gray-200"

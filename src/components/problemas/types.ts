@@ -30,5 +30,4 @@ export interface ProblemItem {
   gabinete: {
     gabinete: string;
   } | null;
-  secretaria: string | null; // Adicionando campo para secretaria
 }
