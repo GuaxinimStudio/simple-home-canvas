@@ -13,6 +13,9 @@ interface OcorrenciaDetalhesAdicionaisProps {
   imagemResolvidoPreview: string | null;
   onImagemResolvidoChange: (file: File | null) => void;
   isResolvido: boolean;
+  isRequired?: boolean;
+  isDescricaoValida?: boolean;
+  isImagemValida?: boolean;
 }
 
 export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionaisProps> = ({
@@ -21,7 +24,10 @@ export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionais
   onDescricaoResolvidoChange,
   imagemResolvidoPreview,
   onImagemResolvidoChange,
-  isResolvido
+  isResolvido,
+  isRequired = false,
+  isDescricaoValida = true,
+  isImagemValida = true
 }) => {
   // Manipulador de arquivo de imagem
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -66,12 +72,20 @@ export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionais
   return (
     <>
       <div>
-        <h3 className="font-medium mb-2">
-          {titulos.descricao}
-        </h3>
+        <div className="flex justify-between items-center mb-2">
+          <h3 className="font-medium">
+            {titulos.descricao}
+            {isRequired && <span className="text-red-500 ml-1">*</span>}
+          </h3>
+          {!isDescricaoValida && (
+            <span className="text-red-500 text-xs">
+              Campo obrigatório
+            </span>
+          )}
+        </div>
         <Textarea 
           placeholder={titulos.placeholder}
-          className="min-h-[120px] w-full"
+          className={`min-h-[120px] w-full ${!isDescricaoValida ? 'border-red-500' : ''}`}
           value={descricaoResolvido}
           onChange={onDescricaoResolvidoChange}
           disabled={isResolvido}
@@ -82,10 +96,11 @@ export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionais
         <div className="flex justify-between items-center mb-2">
           <h3 className="font-medium">
             {titulos.imagem}
+            {isRequired && isImagemObrigatoria && <span className="text-red-500 ml-1">*</span>}
           </h3>
-          {isImagemObrigatoria && !isResolvido && !imagemResolvidoPreview && (
+          {!isImagemValida && isImagemObrigatoria && (
             <span className="text-red-500 text-xs">
-              *Obrigatório para resolução
+              *Imagem obrigatória
             </span>
           )}
         </div>
@@ -108,7 +123,7 @@ export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionais
             )}
           </div>
         ) : (
-          <div className="border-2 border-dashed border-gray-300 rounded-md p-6 text-center">
+          <div className={`border-2 border-dashed ${!isImagemValida && isImagemObrigatoria ? 'border-red-500' : 'border-gray-300'} rounded-md p-6 text-center`}>
             <Input
               id="image-upload"
               type="file"

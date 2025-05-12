@@ -7,6 +7,7 @@ import { useOcorrenciaStatus } from './ocorrencia/useOcorrenciaStatus';
 import { useOcorrenciaImages } from './ocorrencia/useOcorrenciaImages';
 import { useOcorrenciaSave } from './ocorrencia/useOcorrenciaSave';
 import { useEnviarRespostaCidadao } from './ocorrencia/useEnviarRespostaCidadao';
+import { toast } from 'sonner';
 
 export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & OcorrenciaActions => {
   const [state, setState] = useState<OcorrenciaState>({
@@ -77,9 +78,31 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     updateProblemData
   );
 
+  // Verificar se os campos obrigatórios estão preenchidos
+  const validarCamposObrigatorios = () => {
+    if (isStatusRequireResponse(currentStatus)) {
+      if (!state.descricaoResolvido || state.descricaoResolvido.trim() === '') {
+        toast.error('O campo de descrição é obrigatório para resolução.');
+        return false;
+      }
+
+      // A imagem é obrigatória apenas para o status "Resolvido"
+      if (currentStatus === 'Resolvido' && !imageManager.imagemResolvido && !imageManager.imagemResolvidoPreview) {
+        toast.error('A imagem é obrigatória para resolução.');
+        return false;
+      }
+    }
+    return true;
+  };
+
   // Adicionar função handleSalvar usando saveProblema
   const handleSalvar = async () => {
     if (!id) return;
+    
+    // Validar campos obrigatórios antes de salvar
+    if (!validarCamposObrigatorios()) {
+      return;
+    }
     
     // Upload da imagem de resolução, se houver
     let imagemResolvidoUrl = null;

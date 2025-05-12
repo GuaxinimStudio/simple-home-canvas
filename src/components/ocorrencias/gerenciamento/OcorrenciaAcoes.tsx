@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Button } from "@/components/ui/button";
-import { Send, Save, Check, MailOpen } from "lucide-react";
 import { StatusType } from '@/types/ocorrencia';
 import { isStatusRequireResponse } from '@/hooks/ocorrencia/ocorrenciaTypes';
 
@@ -11,6 +10,7 @@ interface OcorrenciaAcoesProps {
   onSalvar: () => void;
   onEnviarRespostaCidadao?: () => void;
   respostaEnviada?: boolean;
+  isFormValid?: boolean;
 }
 
 export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
@@ -18,45 +18,44 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
   isSalvo,
   onSalvar,
   onEnviarRespostaCidadao,
-  respostaEnviada
+  respostaEnviada = false,
+  isFormValid = true
 }) => {
-  // Verificar se o status atual requer envio de resposta ao cidadão
+  // Verifica se é um status que requer resposta
   const requiresResponse = isStatusRequireResponse(currentStatus);
   
+  // Verifica se deve mostrar o botão de enviar resposta
+  const showResponseButton = requiresResponse && isSalvo && !respostaEnviada;
+  
   return (
-    <div className="mt-6 space-y-4">
-      {/* Botão Salvar aparece enquanto não estiver salvo */}
-      {(!requiresResponse || !isSalvo) && (
+    <div className="space-y-4">
+      <div className="flex flex-col gap-3">
         <Button 
+          type="button"
           onClick={onSalvar}
-          className="w-full bg-green-500 hover:bg-green-600"
+          disabled={requiresResponse && !isFormValid}
+          className="w-full"
         >
-          <Save className="mr-2" />
           Salvar Alterações
         </Button>
-      )}
-      
-      {/* Botão de Enviar Resposta só aparece quando estiver com status que requer resposta, salvo e ainda não enviado resposta */}
-      {requiresResponse && isSalvo && onEnviarRespostaCidadao && !respostaEnviada && (
-        <Button 
-          onClick={onEnviarRespostaCidadao}
-          className="w-full bg-blue-500 hover:bg-blue-600"
-        >
-          <Send className="mr-2" />
-          Enviar {currentStatus === 'Informações Insuficientes' ? 'Orientações' : 'Resposta'} para o Cidadão
-        </Button>
-      )}
+        
+        {showResponseButton && onEnviarRespostaCidadao && (
+          <Button 
+            variant="secondary" 
+            type="button"
+            className="w-full"
+            onClick={onEnviarRespostaCidadao}
+          >
+            Enviar Resposta ao Cidadão
+          </Button>
+        )}
 
-      {/* Mensagem de confirmação que a resposta foi enviada */}
-      {requiresResponse && isSalvo && respostaEnviada && (
-        <div className="p-4 bg-green-50 text-green-700 border border-green-200 rounded-md flex items-center">
-          <MailOpen className="w-5 h-5 mr-2 text-green-500" />
-          <div>
-            <p className="font-medium">Demanda finalizada!</p>
-            <p className="text-sm">O cidadão já foi notificado sobre {currentStatus === 'Informações Insuficientes' ? 'as orientações necessárias' : 'a resolução desta ocorrência'}.</p>
-          </div>
-        </div>
-      )}
+        {requiresResponse && !isFormValid && (
+          <p className="text-red-500 text-sm">
+            Preencha a descrição e adicione uma imagem para salvar as alterações.
+          </p>
+        )}
+      </div>
     </div>
   );
 };
