@@ -3,6 +3,7 @@ import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import GabineteForm from '@/components/gabinetes/GabineteForm';
 import useEditarGabinete from '@/hooks/useEditarGabinete';
+import { ScrollArea } from '@/components/ui/scroll-area';
 
 interface EditarGabineteModalProps {
   isOpen: boolean;
@@ -35,19 +36,21 @@ const EditarGabineteModal: React.FC<EditarGabineteModalProps> = ({ isOpen, onClo
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-[500px]">
+      <DialogContent className="sm:max-w-[425px] max-h-[85vh]">
         <DialogHeader>
           <DialogTitle>Editar Gabinete</DialogTitle>
         </DialogHeader>
-        <div className="mt-4">
-          <GabineteForm 
-            onSuccess={handleFormSubmit}
-            onCancel={onClose}
-            initialData={gabinete}
-            submitButtonText={isUpdating ? 'Atualizando...' : 'Atualizar'}
-            isSubmitting={isUpdating}
-          />
-        </div>
+        <ScrollArea className="max-h-[70vh] pr-4">
+          <div className="py-2">
+            <GabineteForm 
+              onSuccess={handleFormSubmit}
+              onCancel={onClose}
+              initialData={gabinete}
+              submitButtonText={isUpdating ? 'Atualizando...' : 'Atualizar'}
+              isSubmitting={isUpdating}
+            />
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
