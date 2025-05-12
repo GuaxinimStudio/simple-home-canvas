@@ -67,14 +67,14 @@ export const useProblemsStats = () => {
         if (totalError) throw totalError;
         
         // Buscar contagem por status
-        let statusQuery = supabase.from('problemas').select('status');
+        let statusQuery = supabase.from('problemas');
         
         // Aplicar o mesmo filtro de gabinete
         if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
           statusQuery = statusQuery.eq('gabinete_id', userProfile.gabinete_id);
         }
         
-        const { data: statusData, error: statusError } = await statusQuery;
+        const { data: statusData, error: statusError } = await statusQuery.select('status');
         
         if (statusError) throw statusError;
 
