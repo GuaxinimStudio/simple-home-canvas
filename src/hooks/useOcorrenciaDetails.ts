@@ -1,5 +1,5 @@
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { StatusType, OcorrenciaData } from '@/types/ocorrencia';
 import { OcorrenciaState, OcorrenciaActions, isStatusRequireResponse } from './ocorrencia/ocorrenciaTypes';
 import { useFetchOcorrencia } from './ocorrencia/useFetchOcorrencia';
@@ -20,8 +20,8 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     imagemResolvido: null,
     imagemResolvidoPreview: null,
     imageModalOpen: false,
-    isSaved: false,  // Propriedade para controlar se foi salvo como resolvido
-    respostaEnviada: false // Nova propriedade para controlar se a resposta foi enviada
+    isSaved: false,
+    respostaEnviada: false
   });
 
   // Função para atualizar o estado parcialmente
@@ -48,13 +48,34 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     prazoEstimado, 
     handleStatusChange, 
     handlePrazoChange 
-  } = useOcorrenciaStatus(state.currentStatus, state.prazoEstimado);
+  } = useOcorrenciaStatus(
+    state.currentStatus,
+    state.prazoEstimado
+  );
   
   // Gerenciar imagens
   const imageManager = useOcorrenciaImages(state.imagemResolvidoPreview);
   
   // Gerenciar salvamento de alterações
   const { saveProblema, isSaving, isSaved, resetSavedState } = useOcorrenciaSave(id || '');
+
+  // Verificar se já está salvo como resolvido e se a resposta já foi enviada quando carregar os dados
+  useEffect(() => {
+    if (state.problemData) {
+      if (isStatusRequireResponse(state.problemData.status as StatusType)) {
+        updateState({ isSaved: true });
+      }
+      if (state.problemData.resposta_enviada) {
+        updateState({ respostaEnviada: true });
+      }
+    }
+  }, [state.problemData, updateState]);
+
+  // Gerenciar envio de resposta ao cidadão
+  const { handleEnviarRespostaCidadao } = useEnviarRespostaCidadao(
+    state.problemData,
+    updateProblemData
+  );
 
   // Adicionar função handleSalvar usando saveProblema
   const handleSalvar = async () => {
@@ -78,24 +99,6 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     // Atualizar dados
     refetchOcorrencia();
   };
-
-  // Verificar se já está salvo como resolvido e se a resposta já foi enviada quando carregar os dados
-  useState(() => {
-    if (state.problemData) {
-      if (isStatusRequireResponse(state.problemData.status as StatusType)) {
-        updateState({ isSaved: true });
-      }
-      if (state.problemData.resposta_enviada) {
-        updateState({ respostaEnviada: true });
-      }
-    }
-  });
-
-  // Gerenciar envio de resposta ao cidadão
-  const { handleEnviarRespostaCidadao } = useEnviarRespostaCidadao(
-    state.problemData,
-    updateProblemData
-  );
 
   // Gerenciar a descrição resolvido
   const handleDescricaoResolvidoChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
