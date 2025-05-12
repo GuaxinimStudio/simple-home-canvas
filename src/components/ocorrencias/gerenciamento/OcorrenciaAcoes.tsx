@@ -3,7 +3,8 @@ import React from 'react';
 import { Button } from "@/components/ui/button";
 import { StatusType } from '@/types/ocorrencia';
 import { isStatusRequireResponse } from '@/hooks/ocorrencia/ocorrenciaTypes';
-import { Send } from 'lucide-react';
+import { Send, MailCheck } from 'lucide-react';
+import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 
 interface OcorrenciaAcoesProps {
   currentStatus: StatusType;
@@ -46,7 +47,9 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
   // Verifica se deve mostrar o botão de salvar alterações
   // 1. Primeiro verifica se um prazo foi definido
   // 2. Não mostra se o status requer resposta, já está salvo e ainda não foi enviada resposta
-  const showSaveButton = isPrazoDefinido && !(requiresResponse && isSalvo && !respostaEnviada);
+  // 3. NOVA CONDIÇÃO: Não mostra se a resposta já foi enviada
+  const showSaveButton = isPrazoDefinido && 
+    !(requiresResponse && isSalvo && (!respostaEnviada || respostaEnviada));
   
   // Verifica se deve mostrar a mensagem de campos obrigatórios
   // Só mostra se não estiver salvo e o formulário for inválido
@@ -66,8 +69,22 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
   // 4. A resposta ainda não foi enviada
   const shouldBlockFields = requiresResponse && isSalvo && isRespostaReady && !respostaEnviada;
   
+  // Verifica se deve mostrar o card de confirmação de resposta enviada
+  const showResponseSentCard = requiresResponse && respostaEnviada;
+  
   return (
     <div className="space-y-4">
+      {/* Card de confirmação - NOVO */}
+      {showResponseSentCard && (
+        <Alert className="bg-green-50 border-green-200">
+          <MailCheck className="h-5 w-5 text-green-600" />
+          <AlertTitle className="text-green-700 font-medium">Resposta enviada com sucesso!</AlertTitle>
+          <AlertDescription className="text-green-600">
+            A resposta foi enviada ao cidadão e o processo foi finalizado.
+          </AlertDescription>
+        </Alert>
+      )}
+      
       <div className="flex flex-col gap-3">
         {showSaveButton && (
           <Button 
