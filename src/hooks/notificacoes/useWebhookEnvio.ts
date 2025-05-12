@@ -1,8 +1,8 @@
 
 export const useWebhookEnvio = () => {
   // Constante configurável para o intervalo entre envios (em milissegundos)
-  // Valor padrão aumentado de 300ms para 1500ms (1,5 segundos)
-  const DEFAULT_DELAY_BETWEEN_SENDS_MS = 1500;
+  // Valor padrão ajustado para 800ms
+  const DEFAULT_DELAY_BETWEEN_SENDS_MS = 800;
   
   const enviarParaWebhook = async (
     telefones: string[], 
