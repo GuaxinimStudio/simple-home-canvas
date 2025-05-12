@@ -5,11 +5,13 @@ import { toast } from 'sonner';
 import { useArquivoUpload } from './useArquivoUpload';
 import { useWebhookEnvio } from './useWebhookEnvio';
 import { NovaNotificacaoDto } from './types';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useCriarNotificacao = () => {
   const queryClient = useQueryClient();
   const { uploadArquivo, isUploading } = useArquivoUpload();
   const { enviarParaWebhook } = useWebhookEnvio();
+  const { user } = useAuth();
 
   const { mutate: criarNotificacao, isPending: isCreating } = useMutation({
     mutationFn: async ({
@@ -20,21 +22,40 @@ export const useCriarNotificacao = () => {
       arquivo?: File;
     }) => {
       let arquivoInfo = null;
+      let gabineteId = novaNotificacao.gabinete_id;
       
       // Se tem arquivo, faz upload
       if (arquivo) {
         arquivoInfo = await uploadArquivo(arquivo);
       }
       
+      // Se o usuário for vereador, verificar se o gabinete_id corresponde ao dele
+      if (user?.id) {
+        const { data: perfil, error: perfilError } = await supabase
+          .from('profiles')
+          .select('role, gabinete_id')
+          .eq('id', user?.id)
+          .single();
+          
+        if (perfilError) throw perfilError;
+        
+        // Se for vereador, só pode criar notificação para o próprio gabinete
+        if (perfil.role === 'vereador' && perfil.gabinete_id) {
+          if (gabineteId !== perfil.gabinete_id) {
+            throw new Error('Você só pode criar notificações para o seu próprio gabinete');
+          }
+        }
+      }
+      
       // Obter contatos do gabinete
       let todosTelefones: string[] = [];
       
-      if (novaNotificacao.gabinete_id) {
+      if (gabineteId) {
         try {
           const { data: contatos } = await supabase
             .from('contatos_cidadaos')
             .select('telefone')
-            .contains('gabinetes_ids', [novaNotificacao.gabinete_id]);
+            .contains('gabinetes_ids', [gabineteId]);
             
           if (contatos && contatos.length > 0) {
             todosTelefones = contatos.map(c => c.telefone);
@@ -74,9 +95,9 @@ export const useCriarNotificacao = () => {
       toast.success('Notificação criada e enviada com sucesso!');
       queryClient.invalidateQueries({ queryKey: ['notificacoes'] });
     },
-    onError: (error) => {
+    onError: (error: any) => {
       console.error('Erro ao criar notificação:', error);
-      toast.error('Erro ao criar notificação');
+      toast.error(error.message || 'Erro ao criar notificação');
     }
   });
 
