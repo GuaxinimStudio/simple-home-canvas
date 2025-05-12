@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Clock } from 'lucide-react';
+import { Clock, AlertCircle } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Table } from '@/components/ui/table';
 import { ProblemsTableHeader } from './ProblemsTableHeader';
@@ -30,6 +30,7 @@ export const ProblemsTableContainer: React.FC<ProblemsTableContainerProps> = ({
           </div>
         </div>
         <div className="w-full text-center py-8">
+          <div className="inline-block animate-spin rounded-full h-6 w-6 border-b-2 border-green-500 mb-3"></div>
           <p className="text-gray-500">Carregando problemas...</p>
         </div>
       </div>
@@ -41,7 +42,7 @@ export const ProblemsTableContainer: React.FC<ProblemsTableContainerProps> = ({
       <div className="bg-white rounded-lg border shadow-sm p-6">
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
-            <Clock className="h-5 w-5 text-gray-500" />
+            <AlertCircle className="h-5 w-5 text-red-500" />
             <h3 className="font-medium text-lg">Problemas Recentes</h3>
           </div>
         </div>
@@ -62,7 +63,9 @@ export const ProblemsTableContainer: React.FC<ProblemsTableContainerProps> = ({
           </div>
         </div>
         <div className="w-full text-center py-8">
-          <p className="text-gray-500">Nenhum problema registrado ainda.</p>
+          <p className="text-gray-500">
+            Nenhum problema vinculado ao seu gabinete foi registrado ainda.
+          </p>
         </div>
       </div>
     );

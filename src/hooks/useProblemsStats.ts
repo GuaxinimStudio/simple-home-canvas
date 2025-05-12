@@ -22,6 +22,32 @@ export const useProblemsStats = () => {
   });
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
+  const [userProfile, setUserProfile] = useState<{role: string, gabinete_id: string | null} | null>(null);
+
+  // Buscamos o perfil do usuário uma única vez quando o componente é montado
+  useEffect(() => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchUserProfile = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role, gabinete_id')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) throw error;
+        setUserProfile(data);
+      } catch (err: any) {
+        console.error('Erro ao buscar perfil do usuário:', err);
+      }
+    };
+    
+    fetchUserProfile();
+  }, [user]);
 
   // Usando useCallback para evitar recriações desnecessárias da função
   const fetchStats = useCallback(async () => {
@@ -40,24 +66,15 @@ export const useProblemsStats = () => {
     try {
       setIsLoading(true);
       
-      // Primeiro buscamos o perfil do usuário
-      const { data: profileData, error: profileError } = await supabase
-        .from('profiles')
-        .select('role, gabinete_id')
-        .eq('id', user.id)
-        .single();
-        
-      if (profileError) throw profileError;
-      
-      // Preparar query com base no papel do usuário
+      // Preparar query base
       let query = supabase.from('problemas').select('status');
       
       // Se for vereador com gabinete_id, filtrar por gabinete
-      if (profileData?.role === 'vereador' && profileData?.gabinete_id) {
-        query = query.eq('gabinete_id', profileData.gabinete_id);
+      if (userProfile?.role === 'vereador' && userProfile?.gabinete_id) {
+        query = query.eq('gabinete_id', userProfile.gabinete_id);
       }
       
-      // Executar a consulta
+      // Executar a consulta uma única vez
       const { data: problems, error: problemsError } = await query;
       
       if (problemsError) throw problemsError;
@@ -103,12 +120,14 @@ export const useProblemsStats = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user]);
+  }, [user, userProfile]);
 
-  // Usar um único useEffect que chama a função fetchStats
+  // Usamos um único useEffect que chama a função fetchStats apenas quando temos o perfil do usuário
   useEffect(() => {
-    fetchStats();
-  }, [fetchStats]);
+    if (userProfile !== null || !user) {
+      fetchStats();
+    }
+  }, [fetchStats, userProfile, user]);
 
   return { stats, isLoading };
 };

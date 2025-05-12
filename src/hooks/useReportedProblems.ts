@@ -1,8 +1,9 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { formatISO, subDays, startOfDay, endOfDay } from 'date-fns';
+import { useAuth } from '@/contexts/AuthContext';
 
 export interface ReportedProblems {
   today: number;
@@ -19,73 +20,105 @@ export const useReportedProblems = () => {
     total: 0
   });
   const [isLoading, setIsLoading] = useState(true);
+  const { user } = useAuth();
+  const [userProfile, setUserProfile] = useState<{role: string, gabinete_id: string | null} | null>(null);
 
+  // Buscamos o perfil do usuário uma única vez quando o componente é montado
   useEffect(() => {
-    const fetchReportedProblems = async () => {
+    if (!user) {
+      setIsLoading(false);
+      return;
+    }
+
+    const fetchUserProfile = async () => {
       try {
-        setIsLoading(true);
-        
-        const now = new Date();
-        
-        // Início e fim do dia atual
-        const todayStart = formatISO(startOfDay(now));
-        const todayEnd = formatISO(endOfDay(now));
-        
-        // Início da semana (7 dias atrás)
-        const weekStart = formatISO(startOfDay(subDays(now, 7)));
-        
-        // Início do mês (30 dias atrás)
-        const monthStart = formatISO(startOfDay(subDays(now, 30)));
-
-        // Buscar total
-        const { count: total, error: totalError } = await supabase
-          .from('problemas')
-          .select('*', { count: 'exact', head: true });
-        
-        if (totalError) throw totalError;
-
-        // Buscar problemas de hoje
-        const { count: today, error: todayError } = await supabase
-          .from('problemas')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', todayStart)
-          .lte('created_at', todayEnd);
-        
-        if (todayError) throw todayError;
-
-        // Buscar problemas da semana
-        const { count: week, error: weekError } = await supabase
-          .from('problemas')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', weekStart);
-        
-        if (weekError) throw weekError;
-
-        // Buscar problemas do mês
-        const { count: month, error: monthError } = await supabase
-          .from('problemas')
-          .select('*', { count: 'exact', head: true })
-          .gte('created_at', monthStart);
-        
-        if (monthError) throw monthError;
-
-        setStats({
-          today: today || 0,
-          week: week || 0,
-          month: month || 0,
-          total: total || 0
-        });
-
-      } catch (error: any) {
-        console.error('Erro ao buscar estatísticas de problemas reportados:', error);
-        toast.error(`Erro ao carregar estatísticas: ${error.message}`);
-      } finally {
-        setIsLoading(false);
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role, gabinete_id')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) throw error;
+        setUserProfile(data);
+      } catch (err: any) {
+        console.error('Erro ao buscar perfil do usuário:', err);
       }
     };
+    
+    fetchUserProfile();
+  }, [user]);
 
-    fetchReportedProblems();
-  }, []);
+  // Usamos useCallback para memorizar a função e evitar recriações
+  const fetchReportedProblems = useCallback(async () => {
+    if (!user) return;
+
+    try {
+      setIsLoading(true);
+      
+      const now = new Date();
+      
+      // Início e fim do dia atual
+      const todayStart = formatISO(startOfDay(now));
+      const todayEnd = formatISO(endOfDay(now));
+      
+      // Início da semana (7 dias atrás)
+      const weekStart = formatISO(startOfDay(subDays(now, 7)));
+      
+      // Início do mês (30 dias atrás)
+      const monthStart = formatISO(startOfDay(subDays(now, 30)));
+
+      // Preparamos as consultas base que serão usadas para todas as contagens
+      let baseQuery = supabase.from('problemas').select('*', { count: 'exact', head: true });
+      
+      // Se for vereador e tiver gabinete_id, filtramos por esse gabinete
+      if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
+        baseQuery = baseQuery.eq('gabinete_id', userProfile.gabinete_id);
+      }
+
+      // Fazemos quatro consultas em paralelo para melhor performance
+      const [totalResult, todayResult, weekResult, monthResult] = await Promise.all([
+        baseQuery, // Total sem filtro adicional
+        baseQuery.gte('created_at', todayStart).lte('created_at', todayEnd), // Hoje
+        baseQuery.gte('created_at', weekStart), // Semana
+        baseQuery.gte('created_at', monthStart) // Mês
+      ]);
+
+      // Verificamos erros em qualquer uma das consultas
+      if (totalResult.error) throw totalResult.error;
+      if (todayResult.error) throw todayResult.error;
+      if (weekResult.error) throw weekResult.error;
+      if (monthResult.error) throw monthResult.error;
+
+      setStats({
+        today: todayResult.count || 0,
+        week: weekResult.count || 0,
+        month: monthResult.count || 0,
+        total: totalResult.count || 0
+      });
+
+    } catch (error: any) {
+      console.error('Erro ao buscar estatísticas de problemas reportados:', error);
+      toast.error(`Erro ao carregar estatísticas: ${error.message}`);
+    } finally {
+      setIsLoading(false);
+    }
+  }, [user, userProfile]);
+
+  // Efeito para buscar os problemas reportados quando temos o perfil do usuário
+  useEffect(() => {
+    if (user && userProfile !== null) {
+      fetchReportedProblems();
+    } else if (!user) {
+      // Se não houver usuário, definimos valores padrão
+      setStats({
+        today: 0,
+        week: 0,
+        month: 0,
+        total: 0
+      });
+      setIsLoading(false);
+    }
+  }, [user, userProfile, fetchReportedProblems]);
 
   return { stats, isLoading };
 };
