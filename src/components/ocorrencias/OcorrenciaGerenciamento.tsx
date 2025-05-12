@@ -47,12 +47,23 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
   // Verifica se um prazo foi definido
   const isPrazoDefinido = prazoEstimado !== '';
   
-  // Verifica se o status requer resposta e está salvo para bloquear os campos
+  // Verifica se o status requer resposta
   const requiresResponse = isStatusRequireResponse(currentStatus);
+  
+  // Verifica se o status requer resposta e está salvo para bloquear os campos
   const isFormLocked = requiresResponse && isSaved;
   
   // Verifica se devemos mostrar os campos adicionais
   const showAdditionalFields = requiresResponse;
+  
+  // Verifica se a descrição é válida (preenchida quando obrigatória)
+  const isDescricaoValida = !requiresResponse || (descricaoResolvido.trim() !== '');
+  
+  // Verifica se a imagem é válida (só obrigatória para status Resolvido)
+  const isImagemValida = !requiresResponse || currentStatus !== 'Resolvido' || imagemResolvidoPreview !== null;
+  
+  // Calcula se o formulário é válido para habilitar o botão de salvar
+  const isFormValid = isDescricaoValida && isImagemValida;
   
   return (
     <Card className="p-6">
@@ -101,8 +112,8 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
             onImagemResolvidoChange={onImagemResolvidoChange}
             isResolvido={isFormLocked}
             isRequired={true}
-            isDescricaoValida={(requiresResponse && descricaoResolvido.trim() !== '')}
-            isImagemValida={(requiresResponse && imagemResolvidoPreview !== null)}
+            isDescricaoValida={isDescricaoValida}
+            isImagemValida={isImagemValida}
           />
         )}
 
@@ -112,10 +123,7 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
           onSalvar={onSalvar}
           onEnviarRespostaCidadao={onEnviarRespostaCidadao}
           respostaEnviada={respostaEnviada}
-          isFormValid={!requiresResponse || (
-            (requiresResponse && descricaoResolvido.trim() !== '') && 
-            (requiresResponse && (currentStatus !== 'Resolvido' || imagemResolvidoPreview !== null))
-          )}
+          isFormValid={isFormValid}
         />
       </div>
     </Card>

@@ -100,7 +100,7 @@ export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionais
           </h3>
           {!isImagemValida && isImagemObrigatoria && (
             <span className="text-red-500 text-xs">
-              *Imagem obrigatória
+              Imagem obrigatória
             </span>
           )}
         </div>
@@ -138,7 +138,7 @@ export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionais
             >
               <Upload className="w-8 h-8 text-gray-400 mb-2" />
               <span className="text-sm text-gray-500">
-                Clique para fazer upload de imagem
+                {isImagemObrigatoria ? "Clique para adicionar imagem (obrigatório)" : "Clique para fazer upload de imagem"}
               </span>
               <span className="text-xs text-gray-400 mt-1">
                 (Máximo 5MB)

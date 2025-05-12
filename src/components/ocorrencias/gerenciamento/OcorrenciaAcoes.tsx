@@ -21,10 +21,14 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
   respostaEnviada = false,
   isFormValid = true
 }) => {
-  // Verifica se é um status que requer resposta
+  // Verifica se é um status que requer resposta (finalizado)
   const requiresResponse = isStatusRequireResponse(currentStatus);
   
   // Verifica se deve mostrar o botão de enviar resposta
+  // Somente mostra o botão se:
+  // 1. O status requer resposta (está finalizado)
+  // 2. A ocorrência já foi salva com esse status
+  // 3. Ainda não foi enviada resposta ao cidadão
   const showResponseButton = requiresResponse && isSalvo && !respostaEnviada;
   
   return (
@@ -33,7 +37,7 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
         <Button 
           type="button"
           onClick={onSalvar}
-          disabled={requiresResponse && !isFormValid}
+          disabled={!isFormValid}
           className="w-full"
         >
           Salvar Alterações
@@ -52,7 +56,7 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
 
         {requiresResponse && !isFormValid && (
           <p className="text-red-500 text-sm">
-            Preencha a descrição e adicione uma imagem para salvar as alterações.
+            Preencha todos os campos obrigatórios para salvar as alterações.
           </p>
         )}
       </div>
