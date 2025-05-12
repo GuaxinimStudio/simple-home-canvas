@@ -35,8 +35,7 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
   const requiresResponse = isStatusRequireResponse(currentStatus);
   
   // Verifica se todos os dados necessários para enviar a resposta estão preenchidos
-  const isRespostaReady = isDescricaoValida && 
-    (currentStatus !== 'Resolvido' || isImagemValida); // Imagem é obrigatória apenas para status Resolvido
+  const isRespostaReady = isDescricaoValida && isImagemValida;
   
   // Verifica se deve mostrar o botão de enviar resposta
   // Somente mostra o botão se:

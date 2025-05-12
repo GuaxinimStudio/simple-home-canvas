@@ -55,18 +55,21 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
   // Verifica se a descrição é válida (preenchida quando obrigatória)
   const isDescricaoValida = !requiresResponse || (descricaoResolvido.trim() !== '');
   
-  // Verifica se a imagem é válida (obrigatória apenas para status Resolvido)
-  const isImagemValida = currentStatus !== 'Resolvido' || imagemResolvidoPreview !== null;
+  // Verifica se a imagem é válida
+  // Para status "Resolvido", a imagem é obrigatória
+  // Para "Informações Insuficientes", a imagem não é obrigatória, mas o botão de salvar só é habilitado quando anexada
+  const isImagemObrigatoria = currentStatus === 'Resolvido';
+  const isImagemValida = !isImagemObrigatoria || imagemResolvidoPreview !== null;
   
-  // Determina se os campos devem ser bloqueados
-  // Quando a ocorrência está pronta para ter a resposta enviada ao cidadão
-  const shouldBlockFields = requiresResponse && isSaved && isDescricaoValida && 
-    (currentStatus !== 'Resolvido' || isImagemValida) && !respostaEnviada;
-  
-  // Calcula se o formulário é válido para habilitar o botão de salvar
+  // Para "Informações Insuficientes", consideramos o formulário válido se tiver descrição preenchida
+  // E se tiver imagem anexada (mesmo não sendo obrigatória)
   const isFormValid = 
     (!requiresResponse) || 
-    (currentStatus === 'Resolvido' ? (isDescricaoValida && isImagemValida) : isDescricaoValida);
+    (isDescricaoValida && (currentStatus === 'Informações Insuficientes' ? imagemResolvidoPreview !== null : isImagemValida));
+  
+  // Determina se os campos devem ser bloqueados
+  const shouldBlockFields = requiresResponse && isSaved && isDescricaoValida && 
+    (currentStatus !== 'Resolvido' || isImagemValida) && !respostaEnviada;
   
   return (
     <Card className="p-6">

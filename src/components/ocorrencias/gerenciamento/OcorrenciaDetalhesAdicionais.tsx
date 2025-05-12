@@ -53,7 +53,7 @@ export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionais
       return {
         descricao: "Orientações para o Cidadão",
         placeholder: "Explique quais informações são necessárias...",
-        imagem: "Imagem de Apoio (opcional)"
+        imagem: "Imagem de Apoio (recomendado)"
       };
     } else {
       return {
@@ -138,7 +138,12 @@ export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionais
             >
               <Upload className="w-8 h-8 text-gray-400 mb-2" />
               <span className="text-sm text-gray-500">
-                {isImagemObrigatoria ? "Clique para adicionar imagem (obrigatório)" : "Clique para fazer upload de imagem"}
+                {isImagemObrigatoria ? 
+                  "Clique para adicionar imagem (obrigatório)" : 
+                  currentStatus === 'Informações Insuficientes' ? 
+                    "Clique para adicionar imagem (recomendado)" : 
+                    "Clique para fazer upload de imagem"
+                }
               </span>
               <span className="text-xs text-gray-400 mt-1">
                 (Máximo 5MB)
