@@ -66,7 +66,11 @@ const Gabinetes: React.FC = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {gabinetes && gabinetes.length > 0 ? (
                 gabinetes.map((gabinete) => (
-                  <GabineteCard key={gabinete.id} gabinete={gabinete} />
+                  <GabineteCard 
+                    key={gabinete.id} 
+                    gabinete={gabinete} 
+                    onDelete={handleSuccess}
+                  />
                 ))
               ) : (
                 <div className="col-span-full text-center py-12">

@@ -1,10 +1,11 @@
 
 import React, { useState } from 'react';
-import { Building, MapPin, Phone, PlusCircle, Eye, UserPlus } from 'lucide-react';
+import { Building, MapPin, Phone, PlusCircle, Eye, UserPlus, Trash2 } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import VerContatosModal from './VerContatosModal';
 import NovoContatoModal from './NovoContatoModal';
+import ExcluirGabineteDialog from './ExcluirGabineteDialog';
 
 interface GabineteCardProps {
   gabinete: {
@@ -16,11 +17,13 @@ interface GabineteCardProps {
     responsavel: string | null;
     profiles: { id: string; nome: string | null }[] | null;
   };
+  onDelete?: () => void;
 }
 
-const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete }) => {
+const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete }) => {
   const [isVerContatosModalOpen, setIsVerContatosModalOpen] = useState(false);
   const [isNovoContatoModalOpen, setIsNovoContatoModalOpen] = useState(false);
+  const [isExcluirDialogOpen, setIsExcluirDialogOpen] = useState(false);
 
   // Garantir que profiles seja sempre um array, mesmo se for null
   const profiles = gabinete.profiles || [];
@@ -75,6 +78,15 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete }) => {
                   >
                     <PlusCircle className="h-4 w-4 text-gray-500" />
                   </Button>
+
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8"
+                    onClick={() => setIsExcluirDialogOpen(true)}
+                  >
+                    <Trash2 className="h-4 w-4 text-red-500" />
+                  </Button>
                 </div>
               </div>
             </div>
@@ -94,6 +106,14 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete }) => {
         onClose={() => setIsNovoContatoModalOpen(false)}
         gabineteId={gabinete.id}
         gabineteNome={gabinete.gabinete}
+      />
+
+      <ExcluirGabineteDialog
+        isOpen={isExcluirDialogOpen}
+        onClose={() => setIsExcluirDialogOpen(false)}
+        gabineteId={gabinete.id}
+        gabineteNome={gabinete.gabinete}
+        onSuccess={onDelete || (() => {})}
       />
     </Card>
   );
