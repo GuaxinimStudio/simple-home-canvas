@@ -64,20 +64,21 @@ export const useProblemsStats = () => {
         setIsLoading(true);
         
         // Preparar a consulta básica para problemas
-        let problemasQuery = supabase.from('problemas');
+        const query = supabase.from('problemas');
         
         // Se o usuário for vereador e tiver um gabinete associado, filtrar os problemas desse gabinete
+        let filteredQuery = query;
         if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
-          problemasQuery = problemasQuery.eq('gabinete_id', userProfile.gabinete_id);
+          filteredQuery = query.eq('gabinete_id', userProfile.gabinete_id);
         }
         
         // Buscar total de problemas
-        const { count: total, error: totalError } = await problemasQuery.select('*', { count: 'exact', head: true });
+        const { count: total, error: totalError } = await filteredQuery.select('*', { count: 'exact', head: true });
 
         if (totalError) throw totalError;
         
         // Buscar dados para contagem por status
-        const { data: statusData, error: statusError } = await problemasQuery.select('status');
+        const { data: statusData, error: statusError } = await filteredQuery.select('status');
         
         if (statusError) throw statusError;
 
