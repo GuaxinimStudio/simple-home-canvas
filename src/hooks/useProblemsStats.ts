@@ -25,14 +25,14 @@ export const useProblemsStats = () => {
   const [userProfile, setUserProfile] = useState<{role: string, gabinete_id: string | null} | null>(null);
   const [fetchingProfile, setFetchingProfile] = useState(true);
 
-  // Buscar o perfil do usuário para verificar seu papel e gabinete - apenas uma vez
+  // Buscar o perfil do usuário para verificar seu papel e gabinete
   useEffect(() => {
+    if (!user) {
+      setFetchingProfile(false);
+      return;
+    }
+    
     const fetchUserProfile = async () => {
-      if (!user) {
-        setFetchingProfile(false);
-        return;
-      }
-      
       try {
         setFetchingProfile(true);
         
@@ -54,53 +54,46 @@ export const useProblemsStats = () => {
     fetchUserProfile();
   }, [user]);
 
-  // Buscar estatísticas apenas quando o perfil do usuário for carregado ou quando não houver usuário
+  // Buscar estatísticas apenas quando o perfil do usuário estiver carregado
   useEffect(() => {
-    // Não fazer nada se ainda estamos buscando o perfil
     if (fetchingProfile) return;
     
     const fetchStats = async () => {
       try {
         setIsLoading(true);
         
-        // Primeiro criamos a query básica de seleção
-        const baseQuery = supabase.from('problemas').select('*');
+        let totalProblemas = 0;
+        let problemasData: any[] = [];
         
-        // Se o usuário for vereador e tiver um gabinete associado, preparar a condição de filtro
-        let queryWithFilter;
+        // Preparar a query com base no papel do usuário
         if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
-          queryWithFilter = baseQuery.eq('gabinete_id', userProfile.gabinete_id);
+          // Para vereadores, buscamos apenas problemas do gabinete associado
+          const { data, error } = await supabase
+            .from('problemas')
+            .select('status')
+            .eq('gabinete_id', userProfile.gabinete_id);
+            
+          if (error) throw error;
+          problemasData = data || [];
+          totalProblemas = problemasData.length;
         } else {
-          queryWithFilter = baseQuery;
+          // Para administradores ou outros papéis, buscamos todos os problemas
+          const { data, error } = await supabase
+            .from('problemas')
+            .select('status');
+            
+          if (error) throw error;
+          problemasData = data || [];
+          totalProblemas = problemasData.length;
         }
         
-        // Buscar total de problemas
-        const { count: total, error: totalError } = await queryWithFilter.count();
-
-        if (totalError) throw totalError;
-        
-        // Buscar dados para contagem por status - criamos novamente a query para evitar problemas de tipagem
-        const statusQuery = supabase.from('problemas').select('status');
-        
-        // Aplicar o mesmo filtro se necessário
-        let statusQueryWithFilter;
-        if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
-          statusQueryWithFilter = statusQuery.eq('gabinete_id', userProfile.gabinete_id);
-        } else {
-          statusQueryWithFilter = statusQuery;
-        }
-        
-        const { data: statusData, error: statusError } = await statusQueryWithFilter;
-        
-        if (statusError) throw statusError;
-
         // Calcular contagem para cada status
         let pendentes = 0;
         let emAndamento = 0;
         let resolvidos = 0;
         let insuficientes = 0;
 
-        statusData.forEach(problem => {
+        problemasData.forEach(problem => {
           switch (problem.status) {
             case 'Pendente':
               pendentes++;
@@ -116,15 +109,15 @@ export const useProblemsStats = () => {
               break;
           }
         });
-
+        
         setStats({
-          total: total || 0,
+          total: totalProblemas,
           pendentes,
           emAndamento,
           resolvidos,
           insuficientes
         });
-
+        
       } catch (error: any) {
         console.error('Erro ao buscar estatísticas:', error);
         toast.error(`Erro ao carregar estatísticas: ${error.message}`);
@@ -134,7 +127,7 @@ export const useProblemsStats = () => {
     };
 
     fetchStats();
-  }, [userProfile, fetchingProfile]); // Dependência apenas no userProfile e fetchingProfile
+  }, [userProfile, fetchingProfile]);
 
   return { stats, isLoading };
 };
