@@ -63,22 +63,34 @@ export const useProblemsStats = () => {
       try {
         setIsLoading(true);
         
-        // Preparar a consulta básica para problemas
-        const query = supabase.from('problemas');
+        // Primeiro criamos a query básica de seleção
+        const baseQuery = supabase.from('problemas').select('*');
         
-        // Se o usuário for vereador e tiver um gabinete associado, filtrar os problemas desse gabinete
-        let filteredQuery = query;
+        // Se o usuário for vereador e tiver um gabinete associado, preparar a condição de filtro
+        let queryWithFilter;
         if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
-          filteredQuery = query.eq('gabinete_id', userProfile.gabinete_id);
+          queryWithFilter = baseQuery.eq('gabinete_id', userProfile.gabinete_id);
+        } else {
+          queryWithFilter = baseQuery;
         }
         
         // Buscar total de problemas
-        const { count: total, error: totalError } = await filteredQuery.select('*', { count: 'exact', head: true });
+        const { count: total, error: totalError } = await queryWithFilter.count();
 
         if (totalError) throw totalError;
         
-        // Buscar dados para contagem por status
-        const { data: statusData, error: statusError } = await filteredQuery.select('status');
+        // Buscar dados para contagem por status - criamos novamente a query para evitar problemas de tipagem
+        const statusQuery = supabase.from('problemas').select('status');
+        
+        // Aplicar o mesmo filtro se necessário
+        let statusQueryWithFilter;
+        if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
+          statusQueryWithFilter = statusQuery.eq('gabinete_id', userProfile.gabinete_id);
+        } else {
+          statusQueryWithFilter = statusQuery;
+        }
+        
+        const { data: statusData, error: statusError } = await statusQueryWithFilter;
         
         if (statusError) throw statusError;
 
