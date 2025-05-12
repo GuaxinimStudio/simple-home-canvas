@@ -127,6 +127,7 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
           onEnviarRespostaCidadao={onEnviarRespostaCidadao}
           respostaEnviada={respostaEnviada}
           isFormValid={isFormValid}
+          isPrazoDefinido={isPrazoDefinido}
         />
       </div>
     </Card>

@@ -12,6 +12,7 @@ interface OcorrenciaAcoesProps {
   onEnviarRespostaCidadao?: () => void;
   respostaEnviada?: boolean;
   isFormValid?: boolean;
+  isPrazoDefinido: boolean; // Nova prop para verificar se o prazo foi definido
 }
 
 export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
@@ -20,7 +21,8 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
   onSalvar,
   onEnviarRespostaCidadao,
   respostaEnviada = false,
-  isFormValid = true
+  isFormValid = true,
+  isPrazoDefinido = false // Por padrão, consideramos que o prazo não está definido
 }) => {
   // Verifica se é um status que requer resposta (finalizado)
   const requiresResponse = isStatusRequireResponse(currentStatus);
@@ -33,12 +35,16 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
   const showResponseButton = requiresResponse && isSalvo && !respostaEnviada;
 
   // Verifica se deve mostrar o botão de salvar alterações
-  // Não mostra o botão se o status requer resposta, já está salvo e ainda não foi enviada resposta
-  const showSaveButton = !(requiresResponse && isSalvo && !respostaEnviada);
+  // 1. Não mostra se o status requer resposta, já está salvo e ainda não foi enviada resposta
+  // 2. Agora também verifica se o prazo foi definido
+  const showSaveButton = !(requiresResponse && isSalvo && !respostaEnviada) && isPrazoDefinido;
   
   // Verifica se deve mostrar a mensagem de campos obrigatórios
   // Só mostra se não estiver salvo e o formulário for inválido
   const showRequiredFieldsMessage = requiresResponse && !isSalvo && !isFormValid;
+
+  // Mensagem para quando o prazo não está definido
+  const showPrazoMessage = !isPrazoDefinido && !isSalvo;
   
   return (
     <div className="space-y-4">
@@ -69,6 +75,12 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
         {showRequiredFieldsMessage && (
           <p className="text-red-500 text-sm">
             Preencha todos os campos obrigatórios para salvar as alterações.
+          </p>
+        )}
+
+        {showPrazoMessage && (
+          <p className="text-orange-500 text-sm">
+            Defina um prazo estimado para habilitar o botão de salvar.
           </p>
         )}
       </div>
