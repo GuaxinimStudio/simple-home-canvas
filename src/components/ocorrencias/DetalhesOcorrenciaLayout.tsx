@@ -12,7 +12,7 @@ interface DetalhesOcorrenciaLayoutProps {
   prazoEstimado: string;
   onPrazoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   selectedDepartamento: string;
-  onDepartamentoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onDepartamentoChange: (value: string) => void;
   onSalvar: () => void;
   descricaoResolvido: string;
   onDescricaoResolvidoChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;

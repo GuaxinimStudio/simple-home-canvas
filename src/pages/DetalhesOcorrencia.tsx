@@ -41,7 +41,7 @@ const DetalhesOcorrencia: React.FC = () => {
           prazoEstimado={ocorrenciaDetails.prazoEstimado}
           onPrazoChange={ocorrenciaDetails.handlePrazoChange}
           selectedDepartamento={ocorrenciaDetails.selectedDepartamento}
-          onDepartamentoChange={(e) => ocorrenciaDetails.setSelectedDepartamento(e.target.value)}
+          onDepartamentoChange={ocorrenciaDetails.setSelectedDepartamento}
           onSalvar={ocorrenciaDetails.handleSalvar}
           descricaoResolvido={ocorrenciaDetails.descricaoResolvido}
           onDescricaoResolvidoChange={ocorrenciaDetails.handleDescricaoResolvidoChange}
@@ -54,8 +54,6 @@ const DetalhesOcorrencia: React.FC = () => {
           resolvidoNoPrazo={ocorrenciaDetails.problemData.resolvido_no_prazo}
         />
       </div>
-      
-      {/* Aqui poderíamos adicionar o modal de imagem se for necessário */}
     </div>
   );
 };
