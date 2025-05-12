@@ -27,6 +27,7 @@ export interface ProblemItem {
   municipio: string | null;
   foto_url: string | null;
   resolvido_no_prazo: boolean | null;
+  gabinete_id: string | null; // Adicionado o campo gabinete_id
   gabinete: {
     gabinete: string;
   } | null;
