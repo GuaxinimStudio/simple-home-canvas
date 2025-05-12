@@ -14,31 +14,47 @@ export const useWebhookEnvio = () => {
     const webhookUrl = 'https://hook.us1.make.com/4ktz9s09wo5kt8a4fhhsb46pudkwan6u';
     
     try {
-      // Determinar os valores para os campos
-      const notificacaoSimples = !temArquivo;
-      const temImagem = temArquivo && tipoArquivo?.startsWith('image/');
-      const temPdf = temArquivo && tipoArquivo === 'application/pdf';
+      // Verificar se o texto é um JSON válido (novo formato de resposta ao cidadão)
+      let body;
+      try {
+        // Tentar fazer o parse do texto como JSON (formato novo)
+        body = JSON.parse(texto);
+      } catch (e) {
+        // Se falhar, considerar como o formato anterior para notificações
+        // Determinar os valores para os campos
+        const notificacaoSimples = !temArquivo;
+        const temImagem = temArquivo && tipoArquivo?.startsWith('image/');
+        const temPdf = temArquivo && tipoArquivo === 'application/pdf';
+        
+        body = {
+          telefone: telefones[0],
+          texto,
+          notificacao: notificacaoSimples ? 'sim' : 'não',
+          imagem: temImagem ? 'sim' : 'não',
+          pdf: temPdf ? 'sim' : 'não'
+        };
+      }
       
+      // Enviar os dados para cada telefone da lista
       for (const telefone of telefones) {
+        // Se já tiver um objeto JSON montado, apenas adicionar o telefone se não existir
+        if (!body.telefone && !body.valor_5_telefone) {
+          body.telefone = telefone;
+        }
+        
         await fetch(webhookUrl, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            telefone,
-            texto,
-            notificacao: notificacaoSimples ? 'sim' : 'não',
-            imagem: temImagem ? 'sim' : 'não',
-            pdf: temPdf ? 'sim' : 'não'
-          })
+          body: JSON.stringify(body)
         });
         
         // Atraso configurável entre envios para evitar sobrecarga do webhook
         await new Promise(resolve => setTimeout(resolve, delayEntreEnvios));
       }
       
-      console.log('Notificação enviada com sucesso para o webhook');
+      console.log('Notificação enviada com sucesso para o webhook', body);
     } catch (error) {
       console.error('Erro ao enviar para webhook:', error);
       // Continuamos mesmo com erro no webhook para salvar no banco

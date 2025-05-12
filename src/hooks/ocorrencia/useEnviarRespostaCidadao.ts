@@ -25,33 +25,28 @@ export const useEnviarRespostaCidadao = (
 
     try {
       setIsEnviando(true);
-
-      // Preparar o texto da resposta ao cidadão com base no status
-      let textoResposta = '';
       
-      if (problemData.status === 'Resolvido') {
-        textoResposta = `Prezado cidadão, sua ocorrência "${problemData.descricao}" foi resolvida. ${problemData.descricao_resolvido}`;
-      } else if (problemData.status === 'Informações Insuficientes') {
-        textoResposta = `Prezado cidadão, precisamos de mais informações sobre sua ocorrência "${problemData.descricao}". ${problemData.descricao_resolvido}`;
-      } else {
-        textoResposta = `Prezado cidadão, sua ocorrência "${problemData.descricao}" foi ${problemData.status.toLowerCase()}. ${problemData.descricao_resolvido}`;
-      }
-      
-      // Verificar se tem imagem de resolução
-      const temImagem = !!problemData.imagem_resolvido;
-      const tipoArquivo = temImagem ? 'image/jpeg' : null;
+      // Preparar os dados no formato exigido pelo webhook
+      const dadosWebhook = {
+        valor_1_foto_problema: problemData.foto_url || "",
+        valor_2_descricao_problema: problemData.descricao || "",
+        valor_3_foto_resolucao: problemData.imagem_resolvido || "",
+        valor_4_descricao_resolucao: problemData.descricao_resolvido || "",
+        valor_5_telefone: problemData.telefone || "",
+        cidade: problemData.municipio || ""
+      };
       
       // Enviar a resposta para o webhook (integração com plataforma de mensagem)
       if (problemData.telefone) {
         // Formatar o número de telefone se necessário (remover caracteres não numéricos)
         const telefoneFormatado = problemData.telefone.replace(/\D/g, '');
         
-        // Enviar para o webhook com os dados da ocorrência
+        // Enviar para o webhook com os dados da ocorrência no novo formato
         await enviarParaWebhook(
           [telefoneFormatado], 
-          textoResposta,
-          temImagem,
-          tipoArquivo
+          JSON.stringify(dadosWebhook),
+          false,
+          null
         );
       }
 
