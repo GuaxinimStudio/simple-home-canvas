@@ -68,6 +68,9 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
     (!requiresResponse) || 
     (currentStatus === 'Resolvido' ? (isDescricaoValida && isImagemValida) : isDescricaoValida);
   
+  // Verifica se deve mostrar o botão de resposta ao cidadão
+  const showResponseButton = requiresResponse && isSaved && !respostaEnviada;
+  
   return (
     <Card className="p-6">
       <h2 className="text-lg font-medium mb-4">Gerenciamento</h2>
@@ -117,6 +120,8 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
             isRequired={true}
             isDescricaoValida={isDescricaoValida}
             isImagemValida={isImagemValida}
+            onEnviarRespostaCidadao={onEnviarRespostaCidadao}
+            showResponseButton={showResponseButton}
           />
         )}
 
@@ -124,8 +129,6 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
           currentStatus={currentStatus}
           isSalvo={isSaved}
           onSalvar={onSalvar}
-          onEnviarRespostaCidadao={onEnviarRespostaCidadao}
-          respostaEnviada={respostaEnviada}
           isFormValid={isFormValid}
         />
       </div>
