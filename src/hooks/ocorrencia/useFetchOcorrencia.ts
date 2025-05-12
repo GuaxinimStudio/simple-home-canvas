@@ -5,11 +5,36 @@ import { format } from 'date-fns';
 import { supabase } from "@/integrations/supabase/client";
 import { OcorrenciaData } from '@/types/ocorrencia';
 import { OcorrenciaState } from './ocorrenciaTypes';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useFetchOcorrencia = (id: string | undefined, setState: (state: Partial<OcorrenciaState>) => void) => {
   const [ocorrencia, setOcorrencia] = useState<OcorrenciaData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+  const [userProfile, setUserProfile] = useState<{role: string, gabinete_id: string | null} | null>(null);
+
+  // Buscar o perfil do usuário atual
+  useEffect(() => {
+    const fetchUserProfile = async () => {
+      if (!user) return;
+      
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role, gabinete_id')
+          .eq('id', user.id)
+          .single();
+          
+        if (error) throw error;
+        setUserProfile(data);
+      } catch (err: any) {
+        console.error('Erro ao buscar perfil do usuário:', err);
+      }
+    };
+    
+    fetchUserProfile();
+  }, [user]);
 
   const fetchProblemDetails = async () => {
     try {
@@ -27,6 +52,13 @@ export const useFetchOcorrencia = (id: string | undefined, setState: (state: Par
       if (basicError) {
         // Se houver erro na consulta básica, não podemos continuar
         throw basicError;
+      }
+
+      // Verificar se o usuário vereador tem acesso a esse problema
+      if (userProfile?.role === 'vereador' && 
+          userProfile.gabinete_id && 
+          basicData.gabinete_id !== userProfile.gabinete_id) {
+        throw new Error('Você não tem permissão para acessar este problema');
       }
 
       // Se temos os dados básicos, podemos usá-los
@@ -92,8 +124,11 @@ export const useFetchOcorrencia = (id: string | undefined, setState: (state: Par
 
   useEffect(() => {
     setIsLoading(true);
-    fetchProblemDetails();
-  }, [id, setState]);
+    // Só buscar detalhes do problema quando tivermos informação do perfil do usuário
+    if (userProfile || !user) {
+      fetchProblemDetails();
+    }
+  }, [id, setState, userProfile, user]);
   
   const refetchOcorrencia = () => {
     setIsLoading(true);
