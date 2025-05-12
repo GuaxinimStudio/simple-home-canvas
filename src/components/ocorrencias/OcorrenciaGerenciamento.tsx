@@ -100,6 +100,9 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
             imagemResolvidoPreview={imagemResolvidoPreview}
             onImagemResolvidoChange={onImagemResolvidoChange}
             isResolvido={isFormLocked}
+            isRequired={true}
+            isDescricaoValida={(requiresResponse && descricaoResolvido.trim() !== '')}
+            isImagemValida={(requiresResponse && imagemResolvidoPreview !== null)}
           />
         )}
 
@@ -109,6 +112,10 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
           onSalvar={onSalvar}
           onEnviarRespostaCidadao={onEnviarRespostaCidadao}
           respostaEnviada={respostaEnviada}
+          isFormValid={!requiresResponse || (
+            (requiresResponse && descricaoResolvido.trim() !== '') && 
+            (requiresResponse && (currentStatus !== 'Resolvido' || imagemResolvidoPreview !== null))
+          )}
         />
       </div>
     </Card>

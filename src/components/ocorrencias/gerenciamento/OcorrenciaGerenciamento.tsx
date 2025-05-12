@@ -2,12 +2,12 @@
 import React, { useMemo } from 'react';
 import { Card } from "@/components/ui/card";
 import { StatusType } from '@/types/ocorrencia';
-import { OcorrenciaStatus } from './gerenciamento/OcorrenciaStatus';
-import { OcorrenciaPrazo } from './gerenciamento/OcorrenciaPrazo';
-import { OcorrenciaDepartamento } from './gerenciamento/OcorrenciaDepartamento';
-import { OcorrenciaDetalhesAdicionais } from './gerenciamento/OcorrenciaDetalhesAdicionais';
-import { OcorrenciaAcoes } from './gerenciamento/OcorrenciaAcoes';
 import { isStatusRequireResponse } from '@/hooks/ocorrencia/ocorrenciaTypes';
+import { OcorrenciaStatus } from './OcorrenciaStatus';
+import { OcorrenciaPrazo } from './OcorrenciaPrazo';
+import { OcorrenciaDepartamento } from './OcorrenciaDepartamento';
+import { OcorrenciaDetalhesAdicionais } from './OcorrenciaDetalhesAdicionais';
+import { OcorrenciaAcoes } from './OcorrenciaAcoes';
 
 interface OcorrenciaGerenciamentoProps {
   currentStatus: StatusType;
