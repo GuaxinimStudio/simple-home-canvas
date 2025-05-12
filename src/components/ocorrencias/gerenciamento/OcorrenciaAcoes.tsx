@@ -31,18 +31,24 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
   // 2. A ocorrência já foi salva com esse status
   // 3. Ainda não foi enviada resposta ao cidadão
   const showResponseButton = requiresResponse && isSalvo && !respostaEnviada;
+
+  // Verifica se deve mostrar o botão de salvar alterações
+  // Não mostra o botão se o status requer resposta, já está salvo e ainda não foi enviada resposta
+  const showSaveButton = !(requiresResponse && isSalvo && !respostaEnviada);
   
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3">
-        <Button 
-          type="button"
-          onClick={onSalvar}
-          disabled={!isFormValid}
-          className="w-full"
-        >
-          Salvar Alterações
-        </Button>
+        {showSaveButton && (
+          <Button 
+            type="button"
+            onClick={onSalvar}
+            disabled={!isFormValid}
+            className="w-full"
+          >
+            Salvar Alterações
+          </Button>
+        )}
         
         {showResponseButton && onEnviarRespostaCidadao && (
           <Button 
