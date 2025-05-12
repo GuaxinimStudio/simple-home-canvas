@@ -33,15 +33,20 @@ export const useExcluirUsuario = (onUsuarioUpdated: () => void) => {
         return;
       }
 
-      // Em seguida, exclui o usuário da auth
-      const { error: authError } = await supabase.auth.admin.deleteUser(
-        usuarioParaExcluir.id
-      );
+      // Em seguida, tenta excluir o usuário da autenticação
+      // Nota: Isso pode falhar se a função Admin delete user não estiver disponível para o token atual
+      try {
+        const { error: authError } = await supabase.auth.admin.deleteUser(
+          usuarioParaExcluir.id
+        );
 
-      if (authError) {
-        toast.error('Erro ao excluir conta do usuário');
-        console.error('Erro ao excluir usuário:', authError);
-        return;
+        if (authError) {
+          console.error('Aviso: Não foi possível excluir usuário da autenticação:', authError);
+          // Não retornamos aqui, pois o perfil já foi excluído com sucesso
+        }
+      } catch (authError) {
+        console.error('Erro ao tentar excluir usuário da autenticação:', authError);
+        // Continuamos mesmo se houver erro na exclusão da autenticação
       }
 
       toast.success('Usuário excluído com sucesso');

@@ -90,21 +90,47 @@ const NovoUsuarioForm = ({ onSuccess, onClose, gabinetes }: NovoUsuarioFormProps
 
       if (authError) throw authError;
 
-      // Atualizar manualmente o perfil já que o trigger pode não ser confiável
-      // Criamos um registro na tabela profiles manualmente
-      const { error: profileError } = await supabase
+      // Verificar se o perfil já existe
+      const { data: existingProfile } = await supabase
         .from('profiles')
-        .insert({
-          id: authUser.user!.id,
-          nome: values.nome,
-          email: values.email,
-          telefone: values.telefone,
-          role: values.role,
-          gabinete_id: values.gabinete_id || null
-        });
+        .select('id')
+        .eq('id', authUser.user!.id)
+        .maybeSingle();
+
+      let profileError;
+
+      if (existingProfile) {
+        // Se o perfil já existe, atualizar os dados
+        const { error } = await supabase
+          .from('profiles')
+          .update({
+            nome: values.nome,
+            email: values.email,
+            telefone: values.telefone,
+            role: values.role,
+            gabinete_id: values.gabinete_id || null
+          })
+          .eq('id', authUser.user!.id);
+        
+        profileError = error;
+      } else {
+        // Se o perfil não existe, criar um novo
+        const { error } = await supabase
+          .from('profiles')
+          .insert({
+            id: authUser.user!.id,
+            nome: values.nome,
+            email: values.email,
+            telefone: values.telefone,
+            role: values.role,
+            gabinete_id: values.gabinete_id || null
+          });
+        
+        profileError = error;
+      }
 
       if (profileError) {
-        console.error("Erro ao criar perfil:", profileError);
+        console.error("Erro ao criar/atualizar perfil:", profileError);
         throw profileError;
       }
 
