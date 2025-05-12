@@ -1,6 +1,7 @@
 
 import React from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { ScrollArea } from '@/components/ui/scroll-area';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 import { FileText, Image as ImageIcon } from 'lucide-react';
@@ -40,73 +41,76 @@ const DetalhesNotificacaoModal: React.FC<DetalhesNotificacaoModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-md max-h-[80vh] overflow-hidden">
         <DialogHeader>
           <DialogTitle className="flex items-center">
             Detalhes da Notificação
           </DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 mt-4">
-          {/* Data */}
-          <div className="text-sm text-gray-500">
-            Enviada em {formatDate(notificacao.created_at)}
-          </div>
-
-          {/* Gabinete */}
-          {notificacao.gabinete && (
-            <div className="text-sm bg-green-50 p-3 rounded-md">
-              <p className="font-medium text-green-700">Gabinete</p>
-              <p>{notificacao.gabinete.gabinete}</p>
-              {notificacao.gabinete.municipio && (
-                <p className="text-gray-600">{notificacao.gabinete.municipio}</p>
-              )}
+        {/* Área com scroll para o conteúdo */}
+        <ScrollArea className="max-h-[calc(80vh-80px)] pr-4">
+          <div className="space-y-4 pt-2">
+            {/* Data */}
+            <div className="text-sm text-gray-500">
+              Enviada em {formatDate(notificacao.created_at)}
             </div>
-          )}
 
-          {/* Número de destinatários */}
-          <div className="text-sm text-gray-600">
-            Enviada para {notificacao.telefones.length} contato(s)
-          </div>
+            {/* Gabinete */}
+            {notificacao.gabinete && (
+              <div className="text-sm bg-green-50 p-3 rounded-md">
+                <p className="font-medium text-green-700">Gabinete</p>
+                <p>{notificacao.gabinete.gabinete}</p>
+                {notificacao.gabinete.municipio && (
+                  <p className="text-gray-600">{notificacao.gabinete.municipio}</p>
+                )}
+              </div>
+            )}
 
-          {/* Texto da notificação */}
-          <div className="bg-gray-50 p-4 rounded-md">
-            <h3 className="text-sm font-medium mb-2 text-gray-700">Mensagem</h3>
-            <p className="whitespace-pre-wrap">{notificacao.informacao}</p>
-          </div>
-
-          {/* Arquivo anexado */}
-          {notificacao.arquivo_url && (
-            <div className="border rounded-md p-4">
-              <h3 className="text-sm font-medium mb-2 text-gray-700 flex items-center">
-                {getArquivoIcon()}
-                Arquivo anexado
-              </h3>
-              
-              {isImage ? (
-                <div className="flex justify-center">
-                  <img 
-                    src={notificacao.arquivo_url} 
-                    alt="Imagem anexada" 
-                    className="max-h-96 object-contain rounded-md"
-                  />
-                </div>
-              ) : (
-                <div className="flex justify-center">
-                  <a 
-                    href={notificacao.arquivo_url}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-blue-600 hover:text-blue-800 underline flex items-center"
-                  >
-                    {getArquivoIcon()}
-                    Abrir arquivo
-                  </a>
-                </div>
-              )}
+            {/* Número de destinatários */}
+            <div className="text-sm text-gray-600">
+              Enviada para {notificacao.telefones.length} contato(s)
             </div>
-          )}
-        </div>
+
+            {/* Texto da notificação */}
+            <div className="bg-gray-50 p-4 rounded-md">
+              <h3 className="text-sm font-medium mb-2 text-gray-700">Mensagem</h3>
+              <p className="whitespace-pre-wrap">{notificacao.informacao}</p>
+            </div>
+
+            {/* Arquivo anexado */}
+            {notificacao.arquivo_url && (
+              <div className="border rounded-md p-4">
+                <h3 className="text-sm font-medium mb-2 text-gray-700 flex items-center">
+                  {getArquivoIcon()}
+                  Arquivo anexado
+                </h3>
+                
+                {isImage ? (
+                  <div className="flex justify-center">
+                    <img 
+                      src={notificacao.arquivo_url} 
+                      alt="Imagem anexada" 
+                      className="max-h-64 max-w-full object-contain rounded-md"
+                    />
+                  </div>
+                ) : (
+                  <div className="flex justify-center">
+                    <a 
+                      href={notificacao.arquivo_url}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-blue-600 hover:text-blue-800 underline flex items-center"
+                    >
+                      {getArquivoIcon()}
+                      Abrir arquivo
+                    </a>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </ScrollArea>
       </DialogContent>
     </Dialog>
   );
