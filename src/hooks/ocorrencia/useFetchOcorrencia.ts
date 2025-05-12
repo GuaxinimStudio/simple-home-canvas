@@ -40,7 +40,7 @@ export const useFetchOcorrencia = (id: string | undefined, setState: (state: Par
         try {
           const { data: gabineteData, error: gabineteError } = await supabase
             .from('gabinetes')
-            .select('gabinete, municipio')
+            .select('id, gabinete, municipio')
             .eq('id', basicData.gabinete_id)
             .single();
             
@@ -49,6 +49,7 @@ export const useFetchOcorrencia = (id: string | undefined, setState: (state: Par
             fullData = {
               ...basicData,
               gabinete: {
+                id: gabineteData.id,
                 gabinete: gabineteData.gabinete
               }
             } as OcorrenciaData;
@@ -64,7 +65,7 @@ export const useFetchOcorrencia = (id: string | undefined, setState: (state: Par
       setState({
         problemData: fullData,
         currentStatus: fullData.status as OcorrenciaData['status'],
-        selectedDepartamento: fullData.gabinete?.gabinete || '',
+        selectedDepartamento: fullData.gabinete_id || '',
         prazoEstimado: fullData.prazo_estimado ? format(new Date(fullData.prazo_estimado), 'yyyy-MM-dd') : '',
         descricaoResolvido: fullData.descricao_resolvido || '',
         imagemResolvidoPreview: fullData.imagem_resolvido || null,

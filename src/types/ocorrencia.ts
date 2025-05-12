@@ -17,6 +17,7 @@ export interface OcorrenciaItem {
   foto_url: string | null;
   gabinete_id: string | null;
   gabinete?: {
+    id: string;
     gabinete: string;
   } | null;
   descricao_resolvido: string | null;

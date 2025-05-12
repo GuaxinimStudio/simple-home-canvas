@@ -15,7 +15,7 @@ interface OcorrenciaGerenciamentoProps {
   prazoEstimado: string;
   onPrazoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
   selectedDepartamento: string;
-  onDepartamentoChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onDepartamentoChange: (value: string) => void;
   onSalvar: () => void;
   descricaoResolvido: string;
   onDescricaoResolvidoChange: (e: React.ChangeEvent<HTMLTextAreaElement>) => void;
@@ -89,6 +89,7 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
         <OcorrenciaDepartamento 
           selectedDepartamento={selectedDepartamento}
           onDepartamentoChange={onDepartamentoChange}
+          isDisabled={isFormLocked}
         />
 
         {showAdditionalFields && (
