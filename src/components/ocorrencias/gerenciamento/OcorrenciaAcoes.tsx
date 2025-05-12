@@ -12,7 +12,7 @@ interface OcorrenciaAcoesProps {
   onEnviarRespostaCidadao?: () => void;
   respostaEnviada?: boolean;
   isFormValid?: boolean;
-  isPrazoDefinido: boolean; // Nova prop para verificar se o prazo foi definido
+  isPrazoDefinido: boolean;
 }
 
 export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
@@ -22,7 +22,7 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
   onEnviarRespostaCidadao,
   respostaEnviada = false,
   isFormValid = true,
-  isPrazoDefinido = false // Por padrão, consideramos que o prazo não está definido
+  isPrazoDefinido = false
 }) => {
   // Verifica se é um status que requer resposta (finalizado)
   const requiresResponse = isStatusRequireResponse(currentStatus);
@@ -30,14 +30,14 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
   // Verifica se deve mostrar o botão de enviar resposta
   // Somente mostra o botão se:
   // 1. O status requer resposta (está finalizado)
-  // 2. A ocorrência já foi salva com esse status
+  // 2. A ocorrência já foi salva com esse status no banco de dados
   // 3. Ainda não foi enviada resposta ao cidadão
   const showResponseButton = requiresResponse && isSalvo && !respostaEnviada;
 
   // Verifica se deve mostrar o botão de salvar alterações
-  // 1. Não mostra se o status requer resposta, já está salvo e ainda não foi enviada resposta
-  // 2. Agora também verifica se o prazo foi definido
-  const showSaveButton = !(requiresResponse && isSalvo && !respostaEnviada) && isPrazoDefinido;
+  // 1. Primeiro verifica se um prazo foi definido
+  // 2. Não mostra se o status requer resposta, já está salvo e ainda não foi enviada resposta
+  const showSaveButton = isPrazoDefinido && !(requiresResponse && isSalvo && !respostaEnviada);
   
   // Verifica se deve mostrar a mensagem de campos obrigatórios
   // Só mostra se não estiver salvo e o formulário for inválido

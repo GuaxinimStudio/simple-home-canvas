@@ -50,8 +50,9 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
   // Verifica se o status requer resposta
   const requiresResponse = isStatusRequireResponse(currentStatus);
   
-  // Verifica se o status requer resposta e está salvo para bloquear os campos
-  const isFormLocked = requiresResponse && isSaved;
+  // Verifica se o status requer resposta e já foi finalizado completamente (salvo E resposta enviada)
+  // Só desabilita os campos quando ambas as condições forem atendidas
+  const isFormLocked = requiresResponse && isSaved && respostaEnviada;
   
   // Verifica se devemos mostrar os campos adicionais
   const showAdditionalFields = requiresResponse;
