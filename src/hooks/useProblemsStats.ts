@@ -23,13 +23,19 @@ export const useProblemsStats = () => {
   const [isLoading, setIsLoading] = useState(true);
   const { user } = useAuth();
   const [userProfile, setUserProfile] = useState<{role: string, gabinete_id: string | null} | null>(null);
+  const [fetchingProfile, setFetchingProfile] = useState(true);
 
-  // Buscar o perfil do usuário para verificar seu papel e gabinete
+  // Buscar o perfil do usuário para verificar seu papel e gabinete - apenas uma vez
   useEffect(() => {
     const fetchUserProfile = async () => {
-      if (!user) return;
+      if (!user) {
+        setFetchingProfile(false);
+        return;
+      }
       
       try {
+        setFetchingProfile(true);
+        
         const { data, error } = await supabase
           .from('profiles')
           .select('role, gabinete_id')
@@ -40,46 +46,38 @@ export const useProblemsStats = () => {
         setUserProfile(data);
       } catch (error: any) {
         console.error('Erro ao buscar perfil do usuário:', error);
+      } finally {
+        setFetchingProfile(false);
       }
     };
     
     fetchUserProfile();
   }, [user]);
 
+  // Buscar estatísticas apenas quando o perfil do usuário for carregado ou quando não houver usuário
   useEffect(() => {
+    // Não fazer nada se ainda estamos buscando o perfil
+    if (fetchingProfile) return;
+    
     const fetchStats = async () => {
       try {
-        // Se o perfil do usuário ainda não foi carregado e o usuário existe, aguardar
-        if (!userProfile && user) return;
-        
         setIsLoading(true);
         
+        // Preparar a consulta básica para problemas
+        let problemasQuery = supabase.from('problemas');
+        
+        // Se o usuário for vereador e tiver um gabinete associado, filtrar os problemas desse gabinete
+        if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
+          problemasQuery = problemasQuery.eq('gabinete_id', userProfile.gabinete_id);
+        }
+        
         // Buscar total de problemas
-        let { count: total, error: totalError } = await supabase
-          .from('problemas')
-          .select('*', { count: 'exact', head: true })
-          .then(result => {
-            // Se há um filtro de gabinete a ser aplicado, fazer isso antes de finalizar a consulta
-            if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
-              return supabase
-                .from('problemas')
-                .select('*', { count: 'exact', head: true })
-                .eq('gabinete_id', userProfile.gabinete_id);
-            }
-            return result;
-          });
+        const { count: total, error: totalError } = await problemasQuery.select('*', { count: 'exact', head: true });
 
         if (totalError) throw totalError;
         
         // Buscar dados para contagem por status
-        let statusQuery = supabase.from('problemas').select('status');
-        
-        // Aplicar o filtro de gabinete se necessário
-        if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
-          statusQuery = statusQuery.eq('gabinete_id', userProfile.gabinete_id);
-        }
-        
-        const { data: statusData, error: statusError } = await statusQuery;
+        const { data: statusData, error: statusError } = await problemasQuery.select('status');
         
         if (statusError) throw statusError;
 
@@ -123,7 +121,7 @@ export const useProblemsStats = () => {
     };
 
     fetchStats();
-  }, [userProfile, user]);
+  }, [userProfile, fetchingProfile]); // Dependência apenas no userProfile e fetchingProfile
 
   return { stats, isLoading };
 };
