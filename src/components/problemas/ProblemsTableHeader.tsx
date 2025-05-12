@@ -13,6 +13,7 @@ export const ProblemsTableHeader: React.FC = () => {
         <TableHead>Prazo</TableHead>
         <TableHead>Data</TableHead>
         <TableHead>Gabinete</TableHead>
+        <TableHead>Secretaria</TableHead> {/* Nova coluna para secretaria */}
         <TableHead className="w-10">Ações</TableHead>
       </TableRow>
     </TableHeader>

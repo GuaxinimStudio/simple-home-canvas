@@ -53,7 +53,8 @@ export const useProblemData = () => {
             municipio,
             foto_url,
             resolvido_no_prazo,
-            gabinete_id
+            gabinete_id,
+            secretaria
           `);
           
         // Se o usuário for do tipo vereador e tiver um gabinete associado, filtrar os problemas desse gabinete
