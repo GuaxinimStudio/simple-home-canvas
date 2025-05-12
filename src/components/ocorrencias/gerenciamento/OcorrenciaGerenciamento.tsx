@@ -1,13 +1,13 @@
 
-import React, { useMemo } from 'react';
+import React from 'react';
 import { Card } from "@/components/ui/card";
 import { StatusType } from '@/types/ocorrencia';
-import { isStatusRequireResponse } from '@/hooks/ocorrencia/ocorrenciaTypes';
 import { OcorrenciaStatus } from './OcorrenciaStatus';
 import { OcorrenciaPrazo } from './OcorrenciaPrazo';
 import { OcorrenciaDepartamento } from './OcorrenciaDepartamento';
 import { OcorrenciaDetalhesAdicionais } from './OcorrenciaDetalhesAdicionais';
 import { OcorrenciaAcoes } from './OcorrenciaAcoes';
+import { isStatusRequireResponse } from '@/hooks/ocorrencia/ocorrenciaTypes';
 
 interface OcorrenciaGerenciamentoProps {
   currentStatus: StatusType;
@@ -47,26 +47,27 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
   // Verifica se um prazo foi definido
   const isPrazoDefinido = prazoEstimado !== '';
   
-  // Verifica se o status requer resposta e está salvo para bloquear os campos
+  // Verifica se o status requer resposta
   const requiresResponse = isStatusRequireResponse(currentStatus);
+  
+  // Verifica se o status requer resposta e está salvo para bloquear os campos
   const isFormLocked = requiresResponse && isSaved;
   
   // Verifica se devemos mostrar os campos adicionais
   const showAdditionalFields = requiresResponse;
   
-  // Valida se os campos obrigatórios estão preenchidos
-  const isDescricaoValida = !requiresResponse || (requiresResponse && descricaoResolvido.trim() !== '');
-  const isImagemValida = !requiresResponse || (requiresResponse && imagemResolvidoPreview !== null);
+  // Verifica se a descrição é válida (preenchida quando obrigatória)
+  const isDescricaoValida = !requiresResponse || (descricaoResolvido.trim() !== '');
   
-  // Calcula se o formulário é válido para permitir salvar
-  const isFormValid = useMemo(() => {
-    // Se não requer resposta, não precisa validar campos adicionais
-    if (!requiresResponse) return true;
-    
-    // Se requer resposta, verifica se os campos obrigatórios estão preenchidos
-    return isDescricaoValida && isImagemValida;
-  }, [requiresResponse, isDescricaoValida, isImagemValida]);
-
+  // Verifica se a imagem é válida (obrigatória apenas para status Resolvido)
+  const isImagemValida = currentStatus !== 'Resolvido' || imagemResolvidoPreview !== null;
+  
+  // Calcula se o formulário é válido para habilitar o botão de salvar
+  // Modificado: Garante que para status "Resolvido", tanto a descrição quanto a imagem são obrigatórias
+  const isFormValid = 
+    (!requiresResponse) || 
+    (currentStatus === 'Resolvido' ? (isDescricaoValida && isImagemValida) : isDescricaoValida);
+  
   return (
     <Card className="p-6">
       <h2 className="text-lg font-medium mb-4">Gerenciamento</h2>
@@ -126,6 +127,7 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
           onEnviarRespostaCidadao={onEnviarRespostaCidadao}
           respostaEnviada={respostaEnviada}
           isFormValid={isFormValid}
+          isPrazoDefinido={isPrazoDefinido}
         />
       </div>
     </Card>
