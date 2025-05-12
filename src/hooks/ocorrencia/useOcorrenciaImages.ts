@@ -30,26 +30,10 @@ export const useOcorrenciaImages = (initialPreview: string | null = null) => {
         return null;
       }
 
-      // Verificar se o bucket existe
-      const { data: buckets } = await supabase.storage.listBuckets();
-      
-      // Se o bucket 'resolucoes' não existir, tenta criar
-      if (!buckets?.find(b => b.name === 'resolucoes')) {
-        const { error: createError } = await supabase.storage.createBucket('resolucoes', { 
-          public: true,
-          fileSizeLimit: 5242880 // 5MB
-        });
-        
-        if (createError) {
-          console.error("Erro ao criar bucket:", createError);
-          toast.error(`Não foi possível criar o bucket: ${createError.message}`);
-        }
-      }
-
       const fileExt = imagemResolvido.name.split('.').pop();
       const fileName = `resolucao-${id}-${Date.now()}.${fileExt}`;
       
-      // Upload da imagem para o Storage
+      // Upload da imagem para o Storage - usando o bucket 'resolucoes' que já foi criado
       const { data, error } = await supabase.storage
         .from('resolucoes')
         .upload(fileName, imagemResolvido, {
