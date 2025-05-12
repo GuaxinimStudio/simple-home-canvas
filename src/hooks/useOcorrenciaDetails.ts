@@ -22,7 +22,8 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     imagemResolvidoPreview: null,
     imageModalOpen: false,
     isSaved: false,
-    respostaEnviada: false
+    respostaEnviada: false,
+    isEnviandoResposta: false // Inicializar a nova propriedade
   });
 
   // Função para atualizar o estado parcialmente
@@ -156,6 +157,6 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     handleImagemResolvidoChange: imageManager.handleImagemResolvidoChange,
     setImageModalOpen,
     handleEnviarRespostaCidadao,
-    isEnviandoResposta: isEnviando
+    isEnviandoResposta: isEnviando // Exportar a propriedade corretamente
   };
 };

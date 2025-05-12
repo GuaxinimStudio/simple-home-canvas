@@ -14,6 +14,7 @@ export interface OcorrenciaState {
   imageModalOpen: boolean;
   isSaved?: boolean; // Propriedade para controle de salvamento
   respostaEnviada?: boolean; // Propriedade para controle de resposta enviada
+  isEnviandoResposta?: boolean; // Nova propriedade para controlar estado de envio da resposta
 }
 
 export interface OcorrenciaActions {
