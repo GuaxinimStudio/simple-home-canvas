@@ -1,4 +1,3 @@
-
 import React from 'react';
 import StatusCard from './StatusCard';
 import DonutChart from './DonutChart';
@@ -7,6 +6,7 @@ import { useProblemsStats } from '@/hooks/useProblemsStats';
 import { useGabineteDistribution } from '@/hooks/useGabineteDistribution';
 import { useReportedProblems } from '@/hooks/useReportedProblems';
 import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/integrations/supabase/client';
 
 const StatusCardsSection: React.FC = () => {
   const { stats: problemsStats, isLoading: problemsStatsLoading } = useProblemsStats();
