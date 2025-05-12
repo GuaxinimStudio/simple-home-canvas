@@ -90,18 +90,23 @@ const NovoUsuarioForm = ({ onSuccess, onClose, gabinetes }: NovoUsuarioFormProps
 
       if (authError) throw authError;
 
-      // Atualizar manualmente o perfil já que o trigger pode não ser confiável em desenvolvimento
+      // Atualizar manualmente o perfil já que o trigger pode não ser confiável
+      // Criamos um registro na tabela profiles manualmente
       const { error: profileError } = await supabase
         .from('profiles')
-        .update({
+        .insert({
+          id: authUser.user!.id,
           nome: values.nome,
+          email: values.email,
           telefone: values.telefone,
           role: values.role,
           gabinete_id: values.gabinete_id || null
-        })
-        .eq('id', authUser.user!.id);
+        });
 
-      if (profileError) throw profileError;
+      if (profileError) {
+        console.error("Erro ao criar perfil:", profileError);
+        throw profileError;
+      }
 
       toast({
         title: "Usuário criado com sucesso!",

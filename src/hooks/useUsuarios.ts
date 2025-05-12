@@ -25,7 +25,7 @@ const useUsuarios = () => {
     queryKey: ['usuarios'],
     queryFn: async () => {
       try {
-        // Primeiro buscamos os IDs e dados básicos dos perfis
+        // Primeiro buscamos todos os perfis diretamente da tabela profiles
         const { data: profilesData, error: profilesError } = await supabase
           .from('profiles')
           .select(`
