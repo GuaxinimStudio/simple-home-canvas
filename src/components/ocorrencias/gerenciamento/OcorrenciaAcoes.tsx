@@ -13,6 +13,8 @@ interface OcorrenciaAcoesProps {
   respostaEnviada?: boolean;
   isFormValid?: boolean;
   isPrazoDefinido: boolean;
+  isDescricaoValida?: boolean;
+  isImagemValida?: boolean;
 }
 
 export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
@@ -22,17 +24,24 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
   onEnviarRespostaCidadao,
   respostaEnviada = false,
   isFormValid = true,
-  isPrazoDefinido = false
+  isPrazoDefinido = false,
+  isDescricaoValida = true,
+  isImagemValida = true
 }) => {
   // Verifica se é um status que requer resposta (finalizado)
   const requiresResponse = isStatusRequireResponse(currentStatus);
+  
+  // Verifica se todos os dados necessários para enviar a resposta estão preenchidos
+  const isRespostaReady = isDescricaoValida && 
+    (currentStatus !== 'Resolvido' || isImagemValida); // Imagem é obrigatória apenas para status Resolvido
   
   // Verifica se deve mostrar o botão de enviar resposta
   // Somente mostra o botão se:
   // 1. O status requer resposta (está finalizado)
   // 2. A ocorrência já foi salva com esse status no banco de dados
   // 3. Ainda não foi enviada resposta ao cidadão
-  const showResponseButton = requiresResponse && isSalvo && !respostaEnviada;
+  // 4. Todos os campos obrigatórios estão preenchidos
+  const showResponseButton = requiresResponse && isSalvo && !respostaEnviada && isRespostaReady;
 
   // Verifica se deve mostrar o botão de salvar alterações
   // 1. Primeiro verifica se um prazo foi definido
@@ -45,6 +54,9 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
 
   // Mensagem para quando o prazo não está definido
   const showPrazoMessage = !isPrazoDefinido && !isSalvo;
+  
+  // Mensagem quando faltam dados para enviar resposta ao cidadão
+  const showRespostaIncompleteMessage = requiresResponse && isSalvo && !respostaEnviada && !isRespostaReady;
   
   return (
     <div className="space-y-4">
@@ -81,6 +93,12 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
         {showPrazoMessage && (
           <p className="text-orange-500 text-sm">
             Defina um prazo estimado para habilitar o botão de salvar.
+          </p>
+        )}
+
+        {showRespostaIncompleteMessage && (
+          <p className="text-amber-600 text-sm">
+            Preencha todos os campos obrigatórios e salve as alterações antes de enviar a resposta ao cidadão.
           </p>
         )}
       </div>
