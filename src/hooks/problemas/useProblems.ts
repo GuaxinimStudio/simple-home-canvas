@@ -65,7 +65,8 @@ export const useProblems = (limit = 5, forceRefresh = false) => {
             municipio,
             foto_url,
             resolvido_no_prazo,
-            gabinete_id
+            gabinete_id,
+            gabinete:gabinete_id(gabinete)
           `);
           
         // Se o usuário for do tipo vereador e tiver um gabinete associado, filtrar os problemas desse gabinete
@@ -81,15 +82,8 @@ export const useProblems = (limit = 5, forceRefresh = false) => {
         if (!isMounted) return;
         
         console.log("Problemas carregados (filtrados por perfil):", data);
-
-        // Processamos os dados para manter a mesma estrutura, mas evitando a recursão infinita
-        // Adicionamos um objeto gabinete nulo temporariamente
-        const processedData = data?.map(problem => ({
-          ...problem,
-          gabinete: null
-        })) || [];
-
-        setProblems(processedData);
+        
+        setProblems(data || []);
       } catch (err: any) {
         console.error('Erro ao buscar problemas:', err);
         if (isMounted) {
