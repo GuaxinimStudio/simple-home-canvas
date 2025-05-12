@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useCallback } from 'react';
 import Sidebar from '../components/Sidebar';
 import { ProblemHeader } from '../components/problemas/ProblemHeader';
 import { ProblemFilters } from '../components/problemas/ProblemFilters';
@@ -7,6 +7,7 @@ import { ProblemTable } from '../components/problemas/ProblemTable';
 import { useProblemData } from '../hooks/problemas/useProblemData';
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
+import { useRealtimeProblems } from '@/hooks/problemas/useRealtimeProblems';
 
 const Problemas: React.FC = () => {
   const {
@@ -16,8 +17,17 @@ const Problemas: React.FC = () => {
     totalProblems,
     isLoading,
     error,
-    userProfile
+    userProfile,
+    refreshData
   } = useProblemData();
+  
+  // Função de atualização que será passada para o hook useRealtimeProblems
+  const handleRefresh = useCallback(() => {
+    refreshData();
+  }, [refreshData]);
+  
+  // Hook para atualização em tempo real e notificações
+  useRealtimeProblems(handleRefresh);
 
   return (
     <div className="flex h-screen bg-gray-50">

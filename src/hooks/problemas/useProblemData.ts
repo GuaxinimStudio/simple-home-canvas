@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { ProblemItem } from '@/components/problemas/types';
@@ -12,6 +12,12 @@ export const useProblemData = () => {
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
   const [userProfile, setUserProfile] = useState<{role: string, gabinete_id: string | null} | null>(null);
+  const [refreshTrigger, setRefreshTrigger] = useState<number>(0);
+
+  // Função para forçar o recarregamento dos dados
+  const refreshData = useCallback(() => {
+    setRefreshTrigger(prev => prev + 1);
+  }, []);
 
   // Buscar o perfil do usuário atual
   useEffect(() => {
@@ -82,7 +88,7 @@ export const useProblemData = () => {
     if (userProfile || !user) {
       fetchProblemas();
     }
-  }, [userProfile, user]);
+  }, [userProfile, user, refreshTrigger]); // Adicionando refreshTrigger como dependência
 
   const filteredProblems = selectedStatus === 'todos'
     ? problems
@@ -98,6 +104,7 @@ export const useProblemData = () => {
     totalProblems,
     isLoading,
     error,
-    userProfile
+    userProfile,
+    refreshData // Exportando a função de atualização
   };
 };
