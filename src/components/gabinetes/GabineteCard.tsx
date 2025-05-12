@@ -1,11 +1,12 @@
 
 import React, { useState } from 'react';
-import { Building, MapPin, Phone, PlusCircle, Eye, UserPlus, Trash2 } from 'lucide-react';
+import { Building, MapPin, Phone, PlusCircle, Eye, UserPlus, Trash2, Pencil } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import VerContatosModal from './VerContatosModal';
 import NovoContatoModal from './NovoContatoModal';
 import ExcluirGabineteDialog from './ExcluirGabineteDialog';
+import EditarGabineteModal from './EditarGabineteModal';
 
 interface GabineteCardProps {
   gabinete: {
@@ -18,12 +19,14 @@ interface GabineteCardProps {
     profiles: { id: string; nome: string | null }[] | null;
   };
   onDelete?: () => void;
+  onEdit?: () => void;
 }
 
-const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete }) => {
+const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete, onEdit }) => {
   const [isVerContatosModalOpen, setIsVerContatosModalOpen] = useState(false);
   const [isNovoContatoModalOpen, setIsNovoContatoModalOpen] = useState(false);
   const [isExcluirDialogOpen, setIsExcluirDialogOpen] = useState(false);
+  const [isEditarModalOpen, setIsEditarModalOpen] = useState(false);
 
   // Garantir que profiles seja sempre um array, mesmo se for null
   const profiles = gabinete.profiles || [];
@@ -32,7 +35,7 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete }) => {
     <Card className="bg-white overflow-hidden">
       <CardContent className="p-6">
         <div className="flex flex-col gap-3">
-          {/* Cabeçalho do Card com título e botão de exclusão */}
+          {/* Cabeçalho do Card com título e botões de ação */}
           <div className="flex justify-between items-start">
             <div className="flex items-start gap-3">
               <div className="bg-green-50 p-2 rounded-md">
@@ -46,15 +49,25 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete }) => {
               </div>
             </div>
             
-            {/* Botão de exclusão movido para o topo */}
-            <Button 
-              variant="ghost" 
-              size="icon" 
-              className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-              onClick={() => setIsExcluirDialogOpen(true)}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
+            {/* Botões de ação movidos para o topo */}
+            <div className="flex">
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-gray-500 hover:text-blue-700 hover:bg-blue-50"
+                onClick={() => setIsEditarModalOpen(true)}
+              >
+                <Pencil className="h-4 w-4" />
+              </Button>
+              <Button 
+                variant="ghost" 
+                size="icon" 
+                className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                onClick={() => setIsExcluirDialogOpen(true)}
+              >
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
           
           {/* Conteúdo do Card */}
@@ -124,8 +137,16 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete }) => {
         gabineteNome={gabinete.gabinete}
         onSuccess={onDelete || (() => {})}
       />
+
+      <EditarGabineteModal
+        isOpen={isEditarModalOpen}
+        onClose={() => setIsEditarModalOpen(false)}
+        gabinete={gabinete}
+        onSuccess={onEdit || (() => {})}
+      />
     </Card>
   );
 };
 
 export default GabineteCard;
+

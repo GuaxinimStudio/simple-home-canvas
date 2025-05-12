@@ -1,13 +1,14 @@
 
 import { useState, useEffect } from 'react';
-import { toast } from 'sonner';
 
+// Interface para estados
 interface Estado {
   id: number;
   sigla: string;
   nome: string;
 }
 
+// Interface para municípios
 interface Municipio {
   id: number;
   nome: string;
@@ -17,59 +18,55 @@ const useLocalizacao = () => {
   const [estados, setEstados] = useState<Estado[]>([]);
   const [municipios, setMunicipios] = useState<Municipio[]>([]);
   const [selectedEstado, setSelectedEstado] = useState<string>('');
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Carregar estados do Brasil via API do IBGE
   useEffect(() => {
     const fetchEstados = async () => {
       try {
-        const response = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados');
-        if (!response.ok) {
-          throw new Error('Falha ao carregar estados');
-        }
+        setIsLoading(true);
+        const response = await fetch('https://servicodados.ibge.gov.br/api/v1/localidades/estados?orderBy=nome');
         const data = await response.json();
-        // Ordenar estados por nome
-        const estadosOrdenados = data.sort((a: Estado, b: Estado) => a.nome.localeCompare(b.nome));
-        setEstados(estadosOrdenados);
+        setEstados(data);
       } catch (error) {
-        console.error('Erro ao buscar estados:', error);
-        toast.error('Não foi possível carregar a lista de estados.');
+        console.error('Erro ao carregar estados:', error);
+      } finally {
+        setIsLoading(false);
       }
     };
 
     fetchEstados();
   }, []);
 
-  // Carregar municípios quando um estado for selecionado
   useEffect(() => {
-    if (!selectedEstado) {
+    if (selectedEstado) {
+      fetchMunicipios(selectedEstado);
+    } else {
       setMunicipios([]);
-      return;
     }
-
-    const fetchMunicipios = async () => {
-      try {
-        const response = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${selectedEstado}/municipios`);
-        if (!response.ok) {
-          throw new Error('Falha ao carregar municípios');
-        }
-        const data = await response.json();
-        // Ordenar municípios por nome
-        const municipiosOrdenados = data.sort((a: Municipio, b: Municipio) => a.nome.localeCompare(b.nome));
-        setMunicipios(municipiosOrdenados);
-      } catch (error) {
-        console.error('Erro ao buscar municípios:', error);
-        toast.error('Não foi possível carregar a lista de municípios.');
-      }
-    };
-
-    fetchMunicipios();
   }, [selectedEstado]);
 
-  return {
-    estados,
-    municipios,
-    selectedEstado,
-    setSelectedEstado
+  const fetchMunicipios = async (estadoSigla: string) => {
+    if (!estadoSigla) return;
+    
+    try {
+      setIsLoading(true);
+      const response = await fetch(`https://servicodados.ibge.gov.br/api/v1/localidades/estados/${estadoSigla}/municipios?orderBy=nome`);
+      const data = await response.json();
+      setMunicipios(data);
+    } catch (error) {
+      console.error('Erro ao carregar municípios:', error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  return { 
+    estados, 
+    municipios, 
+    selectedEstado, 
+    setSelectedEstado, 
+    isLoading,
+    fetchMunicipios 
   };
 };
 

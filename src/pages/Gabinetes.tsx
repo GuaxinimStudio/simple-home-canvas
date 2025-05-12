@@ -72,6 +72,7 @@ const Gabinetes: React.FC = () => {
                     key={gabinete.id} 
                     gabinete={gabinete} 
                     onDelete={handleSuccess}
+                    onEdit={handleSuccess}
                   />
                 ))
               ) : (
