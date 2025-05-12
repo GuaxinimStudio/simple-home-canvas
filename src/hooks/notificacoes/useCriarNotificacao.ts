@@ -51,6 +51,7 @@ export const useCriarNotificacao = () => {
           novaNotificacao.informacao, 
           !!arquivoInfo, 
           arquivoInfo?.tipo || null
+          // Usando o valor padrão para o delay (não precisamos passar o parâmetro)
         );
       }
       

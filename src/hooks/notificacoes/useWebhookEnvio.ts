@@ -1,10 +1,15 @@
 
 export const useWebhookEnvio = () => {
+  // Constante configurável para o intervalo entre envios (em milissegundos)
+  // Valor padrão aumentado de 300ms para 1500ms (1,5 segundos)
+  const DEFAULT_DELAY_BETWEEN_SENDS_MS = 1500;
+  
   const enviarParaWebhook = async (
     telefones: string[], 
     texto: string, 
     temArquivo: boolean, 
-    tipoArquivo: string | null
+    tipoArquivo: string | null,
+    delayEntreEnvios: number = DEFAULT_DELAY_BETWEEN_SENDS_MS // Novo parâmetro opcional
   ) => {
     const webhookUrl = 'https://hook.us1.make.com/4ktz9s09wo5kt8a4fhhsb46pudkwan6u';
     
@@ -29,8 +34,8 @@ export const useWebhookEnvio = () => {
           })
         });
         
-        // Pequeno atraso para evitar sobrecarga do webhook
-        await new Promise(resolve => setTimeout(resolve, 300));
+        // Atraso configurável entre envios para evitar sobrecarga do webhook
+        await new Promise(resolve => setTimeout(resolve, delayEntreEnvios));
       }
       
       console.log('Notificação enviada com sucesso para o webhook');
