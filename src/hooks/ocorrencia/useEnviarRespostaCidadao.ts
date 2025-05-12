@@ -2,7 +2,7 @@
 import { useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { OcorrenciaData } from '@/types/ocorrencia';
+import { OcorrenciaData, StatusType } from '@/types/ocorrencia';
 import { useWebhookEnvio } from '../notificacoes/useWebhookEnvio';
 
 export const useEnviarRespostaCidadao = (
@@ -26,8 +26,16 @@ export const useEnviarRespostaCidadao = (
     try {
       setIsEnviando(true);
 
-      // Preparar o texto da resposta ao cidadão
-      const textoResposta = `Prezado cidadão, sua ocorrência "${problemData.descricao}" foi ${problemData.status.toLowerCase()}. ${problemData.descricao_resolvido}`;
+      // Preparar o texto da resposta ao cidadão com base no status
+      let textoResposta = '';
+      
+      if (problemData.status === 'Resolvido') {
+        textoResposta = `Prezado cidadão, sua ocorrência "${problemData.descricao}" foi resolvida. ${problemData.descricao_resolvido}`;
+      } else if (problemData.status === 'Informações Insuficientes') {
+        textoResposta = `Prezado cidadão, precisamos de mais informações sobre sua ocorrência "${problemData.descricao}". ${problemData.descricao_resolvido}`;
+      } else {
+        textoResposta = `Prezado cidadão, sua ocorrência "${problemData.descricao}" foi ${problemData.status.toLowerCase()}. ${problemData.descricao_resolvido}`;
+      }
       
       // Verificar se tem imagem de resolução
       const temImagem = !!problemData.imagem_resolvido;
