@@ -36,6 +36,10 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
   // Não mostra o botão se o status requer resposta, já está salvo e ainda não foi enviada resposta
   const showSaveButton = !(requiresResponse && isSalvo && !respostaEnviada);
   
+  // Verifica se deve mostrar a mensagem de campos obrigatórios
+  // Só mostra se não estiver salvo e o formulário for inválido
+  const showRequiredFieldsMessage = requiresResponse && !isSalvo && !isFormValid;
+  
   return (
     <div className="space-y-4">
       <div className="flex flex-col gap-3">
@@ -62,7 +66,7 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
           </Button>
         )}
 
-        {requiresResponse && !isFormValid && (
+        {showRequiredFieldsMessage && (
           <p className="text-red-500 text-sm">
             Preencha todos os campos obrigatórios para salvar as alterações.
           </p>
