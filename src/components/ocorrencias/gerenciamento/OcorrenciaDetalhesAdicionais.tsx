@@ -2,10 +2,9 @@
 import React from 'react';
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
-import { Upload, Send } from 'lucide-react';
+import { Upload } from 'lucide-react';
 import { toast } from "sonner";
 import { StatusType } from '@/types/ocorrencia';
-import { Button } from "@/components/ui/button";
 
 interface OcorrenciaDetalhesAdicionaisProps {
   currentStatus: StatusType;
@@ -17,8 +16,6 @@ interface OcorrenciaDetalhesAdicionaisProps {
   isRequired?: boolean;
   isDescricaoValida?: boolean;
   isImagemValida?: boolean;
-  onEnviarRespostaCidadao?: () => void;
-  showResponseButton?: boolean;
 }
 
 export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionaisProps> = ({
@@ -30,9 +27,7 @@ export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionais
   isResolvido,
   isRequired = false,
   isDescricaoValida = true,
-  isImagemValida = true,
-  onEnviarRespostaCidadao,
-  showResponseButton = false
+  isImagemValida = true
 }) => {
   // Manipulador de arquivo de imagem
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -152,21 +147,6 @@ export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionais
           </div>
         )}
       </div>
-
-      {/* Botão de enviar resposta ao cidadão agora está aqui, abaixo da imagem */}
-      {showResponseButton && onEnviarRespostaCidadao && (
-        <div className="mt-4">
-          <Button 
-            variant="outline" 
-            type="button"
-            className="w-full bg-green-50 border-green-200 text-green-700 hover:bg-green-100 hover:text-green-800 hover:border-green-300"
-            onClick={onEnviarRespostaCidadao}
-          >
-            <Send size={16} className="mr-2" />
-            Enviar Resposta ao Cidadão
-          </Button>
-        </div>
-      )}
     </>
   );
 };
