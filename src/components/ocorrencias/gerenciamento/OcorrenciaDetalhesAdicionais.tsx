@@ -85,7 +85,7 @@ export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionais
         </div>
         <Textarea 
           placeholder={titulos.placeholder}
-          className={`min-h-[120px] w-full ${!isDescricaoValida ? 'border-red-500' : ''}`}
+          className={`min-h-[120px] w-full ${!isDescricaoValida ? 'border-gray-300' : ''}`}
           value={descricaoResolvido}
           onChange={onDescricaoResolvidoChange}
           disabled={isResolvido}
@@ -123,7 +123,7 @@ export const OcorrenciaDetalhesAdicionais: React.FC<OcorrenciaDetalhesAdicionais
             )}
           </div>
         ) : (
-          <div className={`border-2 border-dashed ${!isImagemValida && isImagemObrigatoria ? 'border-red-500' : 'border-gray-300'} rounded-md p-6 text-center`}>
+          <div className={`border-2 border-dashed ${!isImagemValida && isImagemObrigatoria ? 'border-gray-300' : 'border-gray-300'} rounded-md p-6 text-center`}>
             <Input
               id="image-upload"
               type="file"
