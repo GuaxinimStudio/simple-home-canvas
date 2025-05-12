@@ -4,11 +4,13 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { Problema, FiltrosRelatorios } from './types';
 import { formatarData, aplicarFiltroPorData } from './utils';
+import { useAuth } from '@/contexts/AuthContext';
 
 export const useFetchProblemas = () => {
   const [isLoading, setIsLoading] = useState<boolean>(true);
-
-  const fetchProblemas = async (filtros: FiltrosRelatorios): Promise<Problema[]> => {
+  const { user } = useAuth();
+  
+  const fetchProblemas = async (filtros: FiltrosRelatorios, gabineteId?: string): Promise<Problema[]> => {
     try {
       setIsLoading(true);
       
@@ -16,6 +18,11 @@ export const useFetchProblemas = () => {
         .from('problemas')
         .select('*')
         .order('created_at', { ascending: false });
+      
+      // Aplicar filtro por gabinete se o ID for fornecido
+      if (gabineteId) {
+        query = query.eq('gabinete_id', gabineteId);
+      }
       
       // Aplicar filtros de texto
       if (filtros.textoBusca && filtros.textoBusca.trim() !== '') {
@@ -26,8 +33,6 @@ export const useFetchProblemas = () => {
       if (filtros.status) {
         query = query.eq('status', filtros.status);
       }
-      
-      // Removido filtro de secretaria conforme solicitado
       
       const { data, error } = await query;
       
