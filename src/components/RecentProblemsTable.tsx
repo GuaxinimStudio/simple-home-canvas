@@ -23,7 +23,7 @@ const RecentProblemsTable: React.FC<RecentProblemsTableProps> = ({ limit = 5 }) 
       
       return () => clearTimeout(timer);
     }
-  }, [location.pathname]);
+  }, [location.pathname, refreshData]);
   
   return (
     <ProblemsTableContainer 

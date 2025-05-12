@@ -18,10 +18,10 @@ const Index = () => {
             backgroundImage="https://images.unsplash.com/photo-1514924013411-cbf25faa35bb?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1740&q=80"
           />
 
-          {/* Status Summary Cards */}
+          {/* Status Summary Cards - garante que apenas problemas do gabinete do vereador sejam contabilizados */}
           <StatusCardsSection />
 
-          {/* Problemas Recentes Table - agora apenas passamos o limite */}
+          {/* Problemas Recentes Table - garante que apenas problemas do gabinete do vereador sejam exibidos */}
           <RecentProblemsTable limit={5} />
         </div>
       </div>
