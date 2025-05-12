@@ -17,6 +17,7 @@ import NotFound from "./pages/NotFound";
 import GerarToken from "./pages/GerarToken";
 import { AuthProvider } from "./contexts/AuthContext";
 import ProtectedRoute from "./components/ProtectedRoute";
+import RoleProtectedRoute from "./components/RoleProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -31,9 +32,9 @@ const App = () => (
             <Routes>
               <Route path="/login" element={<Login />} />
               <Route path="/gerar-token" element={
-                <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={['administrador']}>
                   <GerarToken />
-                </ProtectedRoute>
+                </RoleProtectedRoute>
               } />
               <Route path="/" element={
                 <ProtectedRoute>
@@ -66,9 +67,9 @@ const App = () => (
                 </ProtectedRoute>
               } />
               <Route path="/usuarios" element={
-                <ProtectedRoute>
+                <RoleProtectedRoute allowedRoles={['administrador']}>
                   <Usuarios />
-                </ProtectedRoute>
+                </RoleProtectedRoute>
               } />
               <Route path="*" element={<NotFound />} />
             </Routes>

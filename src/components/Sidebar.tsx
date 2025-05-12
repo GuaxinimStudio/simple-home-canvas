@@ -1,5 +1,6 @@
+
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, Navigate } from 'react-router-dom';
 import { Home, FileText, Building, FileBarChart, Bell, LogOut, Users, Key } from 'lucide-react';
 import { useAuth } from '@/contexts/AuthContext';
 import { useQuery } from '@tanstack/react-query';
@@ -11,6 +12,7 @@ type NavigationItem = {
     className?: string;
   }>;
   path: string;
+  requiredRole?: 'administrador' | 'vereador' | undefined;
 };
 
 const Sidebar: React.FC = () => {
@@ -58,7 +60,8 @@ const Sidebar: React.FC = () => {
     {
       title: "Usuários",
       icon: Users,
-      path: "/usuarios"
+      path: "/usuarios",
+      requiredRole: "administrador"
     },
     {
       title: "Relatórios",
@@ -73,13 +76,22 @@ const Sidebar: React.FC = () => {
     {
       title: "Gerar Token",
       icon: Key,
-      path: "/gerar-token"
+      path: "/gerar-token",
+      requiredRole: "administrador"
     }
   ];
   
   const handleSignOut = () => {
     signOut();
   };
+
+  // Filtra os itens de navegação com base no perfil do usuário
+  const filteredNavigationItems = navigationItems.filter(item => {
+    // Se não há restrição de perfil, mostra para todos
+    if (!item.requiredRole) return true;
+    // Se há restrição, verifica se o usuário tem o perfil necessário
+    return userProfile?.role === item.requiredRole;
+  });
 
   return (
     <div className="h-screen w-64 bg-white flex flex-col border-r">
@@ -116,7 +128,7 @@ const Sidebar: React.FC = () => {
       {/* Navigation */}
       <nav className="flex-1 overflow-y-auto py-4">
         <ul className="space-y-1 px-2">
-          {navigationItems.map(item => {
+          {filteredNavigationItems.map(item => {
             const isActive = currentPath === item.path || 
                             (item.path === "/" && currentPath === "/") || 
                             (item.path !== "/" && currentPath.startsWith(item.path));
