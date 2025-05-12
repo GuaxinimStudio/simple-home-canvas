@@ -39,7 +39,8 @@ export const useProblems = (limit = 5, forceRefresh = false) => {
             prazo_estimado,
             municipio,
             foto_url,
-            resolvido_no_prazo
+            resolvido_no_prazo,
+            gabinete_id
           `)
           .order('created_at', { ascending: false })
           .limit(limit);
@@ -51,10 +52,10 @@ export const useProblems = (limit = 5, forceRefresh = false) => {
         
         console.log("Problemas carregados:", data);
 
-        // Processamos os dados para manter a mesma estrutura, mas evitando a recursão infinita
-        // Adicionamos um objeto gabinete nulo temporariamente
+        // Processamos os dados para incluir gabinete_id
         const processedData = data?.map(problem => ({
           ...problem,
+          gabinete_id: problem.gabinete_id,
           gabinete: null
         })) || [];
 

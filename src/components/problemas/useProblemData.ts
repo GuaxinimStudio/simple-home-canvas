@@ -27,7 +27,8 @@ export const useProblemData = () => {
             prazo_estimado,
             municipio,
             foto_url,
-            resolvido_no_prazo
+            resolvido_no_prazo,
+            gabinete_id
           `)
           .order('created_at', { ascending: false });
           
@@ -35,9 +36,10 @@ export const useProblemData = () => {
         
         console.log("Todos os problemas carregados:", data);
 
-        // Processamos os dados para manter a mesma estrutura
+        // Processamos os dados para incluir gabinete_id
         const processedData = data?.map(problem => ({
           ...problem,
+          gabinete_id: problem.gabinete_id,
           gabinete: null
         })) || [];
 
