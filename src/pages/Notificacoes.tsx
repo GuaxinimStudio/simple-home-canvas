@@ -25,7 +25,7 @@ const Notificacoes: React.FC = () => {
   } = useNotificacoes();
   
   const { user } = useAuth();
-  const [userInfo, setUserInfo] = useState<{ role: string, gabineteNome?: string, municipio?: string } | null>(null);
+  const [userInfo, setUserInfo] = useState<{ role: string, nomeVereador?: string, municipio?: string } | null>(null);
   
   useEffect(() => {
     const buscarInformacaoUsuario = async () => {
@@ -34,7 +34,7 @@ const Notificacoes: React.FC = () => {
       try {
         const { data: perfilData, error: perfilError } = await supabase
           .from('profiles')
-          .select('role, gabinete_id')
+          .select('role, gabinete_id, nome')
           .eq('id', user?.id)
           .single();
           
@@ -45,14 +45,14 @@ const Notificacoes: React.FC = () => {
         } else if (perfilData.gabinete_id) {
           const { data: gabineteData, error: gabineteError } = await supabase
             .from('gabinetes')
-            .select('gabinete, municipio')
+            .select('municipio')
             .eq('id', perfilData.gabinete_id)
             .single();
             
           if (!gabineteError && gabineteData) {
             setUserInfo({
               role: perfilData.role,
-              gabineteNome: gabineteData.gabinete,
+              nomeVereador: perfilData.nome || 'Vereador',
               municipio: gabineteData.municipio || undefined
             });
           }
@@ -72,7 +72,7 @@ const Notificacoes: React.FC = () => {
       return "Notificações de Todos os Gabinetes";
     }
     
-    return `Notificações do Gabinete ${userInfo.gabineteNome || ''}`;
+    return `Notificações do Gabinete do Vereador ${userInfo.nomeVereador || ''}`;
   };
 
   return (
