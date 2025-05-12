@@ -20,9 +20,10 @@ interface GabineteCardProps {
   };
   onDelete?: () => void;
   onEdit?: () => void;
+  isAdmin?: boolean;
 }
 
-const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete, onEdit }) => {
+const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete, onEdit, isAdmin = false }) => {
   const [isVerContatosModalOpen, setIsVerContatosModalOpen] = useState(false);
   const [isNovoContatoModalOpen, setIsNovoContatoModalOpen] = useState(false);
   const [isExcluirDialogOpen, setIsExcluirDialogOpen] = useState(false);
@@ -49,25 +50,27 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete, onEdit 
               </div>
             </div>
             
-            {/* Botões de ação movidos para o topo */}
-            <div className="flex">
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 text-gray-500 hover:text-blue-700 hover:bg-blue-50"
-                onClick={() => setIsEditarModalOpen(true)}
-              >
-                <Pencil className="h-4 w-4" />
-              </Button>
-              <Button 
-                variant="ghost" 
-                size="icon" 
-                className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
-                onClick={() => setIsExcluirDialogOpen(true)}
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
+            {/* Botões de ação - apenas visíveis para administradores */}
+            {isAdmin && (
+              <div className="flex">
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 text-gray-500 hover:text-blue-700 hover:bg-blue-50"
+                  onClick={() => setIsEditarModalOpen(true)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button 
+                  variant="ghost" 
+                  size="icon" 
+                  className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                  onClick={() => setIsExcluirDialogOpen(true)}
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            )}
           </div>
           
           {/* Conteúdo do Card */}
@@ -130,23 +133,27 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete, onEdit 
         gabineteNome={gabinete.gabinete}
       />
 
-      <ExcluirGabineteDialog
-        isOpen={isExcluirDialogOpen}
-        onClose={() => setIsExcluirDialogOpen(false)}
-        gabineteId={gabinete.id}
-        gabineteNome={gabinete.gabinete}
-        onSuccess={onDelete || (() => {})}
-      />
+      {/* Modais de ação - disponíveis apenas para administradores */}
+      {isAdmin && (
+        <>
+          <ExcluirGabineteDialog
+            isOpen={isExcluirDialogOpen}
+            onClose={() => setIsExcluirDialogOpen(false)}
+            gabineteId={gabinete.id}
+            gabineteNome={gabinete.gabinete}
+            onSuccess={onDelete || (() => {})}
+          />
 
-      <EditarGabineteModal
-        isOpen={isEditarModalOpen}
-        onClose={() => setIsEditarModalOpen(false)}
-        gabinete={gabinete}
-        onSuccess={onEdit || (() => {})}
-      />
+          <EditarGabineteModal
+            isOpen={isEditarModalOpen}
+            onClose={() => setIsEditarModalOpen(false)}
+            gabinete={gabinete}
+            onSuccess={onEdit || (() => {})}
+          />
+        </>
+      )}
     </Card>
   );
 };
 
 export default GabineteCard;
-

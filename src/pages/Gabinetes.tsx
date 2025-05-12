@@ -11,12 +11,15 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 const Gabinetes: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const { gabinetes, isLoading, refetch, searchTerm, setSearchTerm } = useGabinetes();
+  const { gabinetes, isLoading, refetch, searchTerm, setSearchTerm, userProfile } = useGabinetes();
   const isMobile = useIsMobile();
   
   const handleSuccess = () => {
     refetch();
   };
+
+  // Determinar se o usuário pode adicionar novos gabinetes (apenas administradores)
+  const canAddGabinete = userProfile?.role === 'administrador';
 
   return (
     <div className="flex h-screen bg-gray-50">
@@ -29,35 +32,41 @@ const Gabinetes: React.FC = () => {
             <div>
               <h1 className="text-xl md:text-2xl font-semibold">Gabinetes</h1>
               <p className="text-gray-600">
-                Gerencie os gabinetes e suas demandas
+                {userProfile?.role === 'vereador' 
+                  ? 'Visualize informações sobre seu gabinete'
+                  : 'Gerencie os gabinetes e suas demandas'}
               </p>
             </div>
             
-            <Button 
-              className="bg-resolve-green hover:bg-green-700 w-full md:w-auto"
-              onClick={() => setIsModalOpen(true)}
-            >
-              <PlusCircle className="mr-2 h-4 w-4" />
-              Novo Gabinete
-            </Button>
+            {canAddGabinete && (
+              <Button 
+                className="bg-resolve-green hover:bg-green-700 w-full md:w-auto"
+                onClick={() => setIsModalOpen(true)}
+              >
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Novo Gabinete
+              </Button>
+            )}
           </div>
           
-          {/* Barra de pesquisa */}
-          <div className="mb-6">
-            <div className="relative">
-              <Input
-                placeholder="Pesquisar gabinetes..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-              <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                <svg className="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
-                </svg>
+          {/* Barra de pesquisa - mostrada apenas para administradores ou se houver mais de um gabinete */}
+          {(userProfile?.role === 'administrador' || (gabinetes && gabinetes.length > 1)) && (
+            <div className="mb-6">
+              <div className="relative">
+                <Input
+                  placeholder="Pesquisar gabinetes..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
+                  <svg className="w-4 h-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                    <path fillRule="evenodd" d="M9 3.5a5.5 5.5 0 100 11 5.5 5.5 0 000-11zM2 9a7 7 0 1112.452 4.391l3.328 3.329a.75.75 0 11-1.06 1.06l-3.329-3.328A7 7 0 012 9z" clipRule="evenodd" />
+                  </svg>
+                </div>
               </div>
             </div>
-          </div>
+          )}
           
           {/* Grid de cards */}
           {isLoading ? (
@@ -73,6 +82,7 @@ const Gabinetes: React.FC = () => {
                     gabinete={gabinete} 
                     onDelete={handleSuccess}
                     onEdit={handleSuccess}
+                    isAdmin={userProfile?.role === 'administrador'}
                   />
                 ))
               ) : (
@@ -80,7 +90,9 @@ const Gabinetes: React.FC = () => {
                   <p className="text-gray-500">
                     {searchTerm 
                       ? `Nenhum gabinete encontrado com o termo "${searchTerm}"`
-                      : "Nenhum gabinete cadastrado. Crie um novo gabinete clicando no botão acima."}
+                      : userProfile?.role === 'vereador'
+                        ? "Você não está vinculado a nenhum gabinete. Entre em contato com um administrador."
+                        : "Nenhum gabinete cadastrado. Crie um novo gabinete clicando no botão acima."}
                   </p>
                 </div>
               )}
@@ -89,12 +101,14 @@ const Gabinetes: React.FC = () => {
         </div>
       </div>
 
-      {/* Modal para criar novo gabinete */}
-      <NovoGabineteModal 
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-        onSuccess={handleSuccess}
-      />
+      {/* Modal para criar novo gabinete - disponível apenas para administradores */}
+      {canAddGabinete && (
+        <NovoGabineteModal 
+          isOpen={isModalOpen}
+          onClose={() => setIsModalOpen(false)}
+          onSuccess={handleSuccess}
+        />
+      )}
     </div>
   );
 };
