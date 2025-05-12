@@ -1,6 +1,6 @@
 
 import { useState } from 'react';
-import { useToast } from '@/components/ui/use-toast';
+import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
 const useExcluirGabinete = (onSuccess?: () => void) => {
@@ -46,6 +46,26 @@ const useExcluirGabinete = (onSuccess?: () => void) => {
         toast({
           title: 'Não é possível excluir',
           description: 'Este gabinete possui usuários vinculados e não pode ser excluído.',
+          variant: 'destructive'
+        });
+        return false;
+      }
+      
+      // Verificar se existem notificações vinculadas ao gabinete
+      const { data: notificacoes, error: notificacoesError } = await supabase
+        .from('notificacao')
+        .select('id')
+        .eq('gabinete_id', id)
+        .limit(1);
+        
+      if (notificacoesError) {
+        throw new Error('Erro ao verificar notificações vinculadas');
+      }
+      
+      if (notificacoes && notificacoes.length > 0) {
+        toast({
+          title: 'Não é possível excluir',
+          description: 'Este gabinete possui notificações vinculadas e não pode ser excluído.',
           variant: 'destructive'
         });
         return false;
