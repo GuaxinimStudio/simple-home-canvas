@@ -55,26 +55,31 @@ export const useProblemsStats = () => {
         setIsLoading(true);
         
         // Buscar total de problemas
-        let totalQuery = supabase.from('problemas');
-        
-        // Se o usuário for vereador e tiver um gabinete associado, filtrar os problemas desse gabinete
-        if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
-          totalQuery = totalQuery.eq('gabinete_id', userProfile.gabinete_id);
-        }
-        
-        const { count: total, error: totalError } = await totalQuery.count();
+        let { count: total, error: totalError } = await supabase
+          .from('problemas')
+          .select('*', { count: 'exact', head: true })
+          .then(result => {
+            // Se há um filtro de gabinete a ser aplicado, fazer isso antes de finalizar a consulta
+            if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
+              return supabase
+                .from('problemas')
+                .select('*', { count: 'exact', head: true })
+                .eq('gabinete_id', userProfile.gabinete_id);
+            }
+            return result;
+          });
 
         if (totalError) throw totalError;
         
-        // Buscar contagem por status
-        let statusQuery = supabase.from('problemas');
+        // Buscar dados para contagem por status
+        let statusQuery = supabase.from('problemas').select('status');
         
-        // Aplicar o mesmo filtro de gabinete
+        // Aplicar o filtro de gabinete se necessário
         if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
           statusQuery = statusQuery.eq('gabinete_id', userProfile.gabinete_id);
         }
         
-        const { data: statusData, error: statusError } = await statusQuery.select('status');
+        const { data: statusData, error: statusError } = await statusQuery;
         
         if (statusError) throw statusError;
 
