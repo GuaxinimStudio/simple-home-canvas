@@ -184,23 +184,32 @@ async function enviarImagemParaBucket(supabaseClient: any, imageData: Uint8Array
  * @returns O ID do gabinete validado ou null se inválido
  */
 async function verificarGabinete(supabaseClient: any, gabineteId?: string): Promise<string | null> {
+  // Se não tiver gabineteId, retorna null diretamente
   if (!gabineteId) {
+    console.log("Nenhum gabinete_id fornecido na requisição");
     return null;
   }
   
   try {
+    console.log(`Verificando existência do gabinete com ID: ${gabineteId}`);
+    
     const { data: gabineteData, error: gabineteError } = await supabaseClient
       .from('gabinetes')
-      .select('id')
+      .select('id, gabinete')
       .eq('id', gabineteId)
       .single();
       
-    if (gabineteError || !gabineteData) {
-      console.warn("Gabinete não encontrado, ignorando:", gabineteId);
+    if (gabineteError) {
+      console.error("Erro ao verificar gabinete:", gabineteError);
       return null;
     }
     
-    console.log("Gabinete encontrado, associando ao problema:", gabineteData.id);
+    if (!gabineteData) {
+      console.warn("Gabinete não encontrado:", gabineteId);
+      return null;
+    }
+    
+    console.log("Gabinete encontrado, associando ao problema:", gabineteData.id, gabineteData.gabinete);
     return gabineteData.id;
   } catch (gabErr) {
     console.warn("Erro ao verificar gabinete:", gabErr);
@@ -265,7 +274,7 @@ async function processarProblema(req: Request) {
     foto_url = await processarImagemBase64(supabaseClient, problemaData.foto_base64);
   }
   
-  // Verificação do gabinete
+  // Verificação do gabinete - Agora passando diretamente o ID do gabinete da requisição
   const gabineteId = await verificarGabinete(supabaseClient, problemaData.gabinete_id);
   
   // Preparando o objeto para inserção
