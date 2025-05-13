@@ -11,7 +11,7 @@ interface GabineteProps {
   municipio: string | null;
   telefone: string | null;
   responsavel: string | null;
-  profiles: { id: string; nome: string | null }[];
+  profiles: { id: string; nome: string | null; role: string }[];
 }
 
 const useGabinetes = () => {
@@ -47,7 +47,7 @@ const useGabinetes = () => {
       try {
         let query = supabase
           .from('gabinetes')
-          .select('*, profiles(id, nome)')
+          .select('*, profiles(id, nome, role)')
           .order('gabinete');
         
         // Se o usuário for vereador, filtrar apenas pelo gabinete ao qual está vinculado

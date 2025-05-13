@@ -1,13 +1,13 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { User } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 
 interface VerMembrosModalProps {
   isOpen: boolean;
   onClose: () => void;
-  profiles: { id: string; nome: string | null }[];
+  profiles: { id: string; nome: string | null; role?: string }[];
   gabineteNome: string;
 }
 
@@ -17,14 +17,20 @@ const VerMembrosModal: React.FC<VerMembrosModalProps> = ({
   profiles,
   gabineteNome
 }) => {
+  // Filtra os membros para não incluir vereadores (que são os donos dos gabinetes)
+  const membrosVinculados = profiles.filter(profile => profile.role !== 'vereador');
+  
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Membros do {gabineteNome}</DialogTitle>
+          <DialogDescription>
+            Usuários vinculados a este gabinete
+          </DialogDescription>
         </DialogHeader>
 
-        {profiles.length > 0 ? (
+        {membrosVinculados.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow>
@@ -32,7 +38,7 @@ const VerMembrosModal: React.FC<VerMembrosModalProps> = ({
               </TableRow>
             </TableHeader>
             <TableBody>
-              {profiles.map((profile) => (
+              {membrosVinculados.map((profile) => (
                 <TableRow key={profile.id}>
                   <TableCell className="flex items-center">
                     <User className="h-4 w-4 mr-2 text-gray-500" />

@@ -30,7 +30,7 @@ export const useContatos = (gabineteId: string) => {
           return [];
         }
 
-        console.log('Contatos encontrados:', data?.length || 0);
+        console.log('Contatos encontrados:', data?.length || 0, data);
         return data as Contato[] || [];
       } catch (err) {
         console.error('Erro inesperado ao buscar contatos:', err);

@@ -34,7 +34,7 @@ const VerContatosModal: React.FC<VerContatosModalProps> = ({
           <div className="flex justify-center py-8">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-resolve-green"></div>
           </div>
-        ) : contatos.length > 0 ? (
+        ) : contatos && contatos.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow>
