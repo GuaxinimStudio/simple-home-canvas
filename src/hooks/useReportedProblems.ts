@@ -68,26 +68,39 @@ export const useReportedProblems = () => {
       // Início do mês (30 dias atrás)
       const monthStart = formatISO(startOfDay(subDays(now, 30)));
 
-      // Preparamos as consultas base que serão usadas para todas as contagens
-      let baseQuery = supabase.from('problemas').select('*', { count: 'exact', head: true });
+      // Definir queries baseadas no papel do usuário
+      let totalQuery = supabase.from('problemas').select('*', { count: 'exact', head: true });
+      let todayQuery = supabase.from('problemas')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', todayStart)
+        .lte('created_at', todayEnd);
+      let weekQuery = supabase.from('problemas')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', weekStart);
+      let monthQuery = supabase.from('problemas')
+        .select('*', { count: 'exact', head: true })
+        .gte('created_at', monthStart);
       
       // Apenas para vereadores (não administradores) filtramos por gabinete
       if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
-        baseQuery = baseQuery.eq('gabinete_id', userProfile.gabinete_id);
-        console.log('Filtrando problemas pelo gabinete:', userProfile.gabinete_id);
+        totalQuery = totalQuery.eq('gabinete_id', userProfile.gabinete_id);
+        todayQuery = todayQuery.eq('gabinete_id', userProfile.gabinete_id);
+        weekQuery = weekQuery.eq('gabinete_id', userProfile.gabinete_id);
+        monthQuery = monthQuery.eq('gabinete_id', userProfile.gabinete_id);
+        console.log('Filtrando estatísticas pelo gabinete:', userProfile.gabinete_id);
       } else {
-        console.log('Não filtrando por gabinete, papel do usuário:', userProfile?.role);
+        console.log('Não filtrando estatísticas por gabinete, papel do usuário:', userProfile?.role);
       }
 
-      // Fazemos quatro consultas em paralelo para melhor performance
+      // Executamos as queries em paralelo para melhor performance
       const [totalResult, todayResult, weekResult, monthResult] = await Promise.all([
-        baseQuery, // Total sem filtro adicional
-        baseQuery.gte('created_at', todayStart).lte('created_at', todayEnd), // Hoje
-        baseQuery.gte('created_at', weekStart), // Semana
-        baseQuery.gte('created_at', monthStart) // Mês
+        totalQuery,
+        todayQuery,
+        weekQuery,
+        monthQuery
       ]);
 
-      // Verificamos erros em qualquer uma das consultas
+      // Verificamos erros em qualquer uma das queries
       if (totalResult.error) throw totalResult.error;
       if (todayResult.error) throw todayResult.error;
       if (weekResult.error) throw weekResult.error;
