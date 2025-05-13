@@ -220,6 +220,7 @@ const NovoUsuarioForm = ({ onSuccess, onClose, gabinetes }: NovoUsuarioFormProps
               <Select
                 onValueChange={field.onChange}
                 defaultValue={field.value}
+                value={field.value}
               >
                 <FormControl>
                   <SelectTrigger>
@@ -246,7 +247,7 @@ const NovoUsuarioForm = ({ onSuccess, onClose, gabinetes }: NovoUsuarioFormProps
                 <FormLabel>Gabinete</FormLabel>
                 <Select
                   onValueChange={field.onChange}
-                  defaultValue={field.value}
+                  value={field.value}
                 >
                   <FormControl>
                     <SelectTrigger>

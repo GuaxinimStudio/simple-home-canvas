@@ -3,7 +3,7 @@ import React from 'react';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import * as z from 'zod';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -58,6 +58,9 @@ const NovoContatoModal: React.FC<NovoContatoModalProps> = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>Adicionar novo contato ao gabinete</DialogTitle>
+          <DialogDescription>
+            Os contatos cadastrados serão vinculados ao gabinete {gabineteNome}
+          </DialogDescription>
         </DialogHeader>
 
         <Form {...form}>
