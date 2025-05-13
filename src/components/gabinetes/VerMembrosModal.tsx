@@ -13,6 +13,14 @@ interface VerMembrosModalProps {
   gabineteId: string; // Adicionado o ID do gabinete para buscar os contatos
 }
 
+// Vamos estender a interface de perfil para adicionar o tipo de membro
+interface MembroCombinado {
+  id: string;
+  nome: string | null;
+  role?: string;
+  tipoMembro?: 'contato' | 'usuario';
+}
+
 const VerMembrosModal: React.FC<VerMembrosModalProps> = ({
   isOpen,
   onClose,
@@ -27,11 +35,14 @@ const VerMembrosModal: React.FC<VerMembrosModalProps> = ({
   const { contatos, isLoading: isLoadingContatos } = useContatos(gabineteId);
   
   // Estado para armazenar todos os membros (profiles + contatos)
-  const [todosMembrosCombinados, setTodosMembrosCombinados] = useState<any[]>([]);
+  const [todosMembrosCombinados, setTodosMembrosCombinados] = useState<MembroCombinado[]>([]);
   
   // Combina os membros dos profiles com os contatos
   useEffect(() => {
-    const membrosCombinados = [...membrosVinculados];
+    const membrosCombinados: MembroCombinado[] = [...membrosVinculados.map(m => ({
+      ...m, 
+      tipoMembro: 'usuario'
+    }))];
     
     // Adiciona os contatos como membros
     if (contatos && contatos.length > 0) {

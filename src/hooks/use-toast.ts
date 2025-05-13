@@ -1,3 +1,4 @@
+
 import * as React from "react"
 
 import type {
@@ -123,6 +124,8 @@ export const reducer = (state: State, action: Action): State => {
         ...state,
         toasts: state.toasts.filter((t) => t.id !== action.toastId),
       }
+    default:
+      return state
   }
 }
 
