@@ -40,6 +40,7 @@ export const useReportedProblems = () => {
           
         if (error) throw error;
         setUserProfile(data);
+        console.log('Perfil do usuário carregado:', data);
       } catch (err: any) {
         console.error('Erro ao buscar perfil do usuário:', err);
       }
@@ -73,6 +74,9 @@ export const useReportedProblems = () => {
       // Apenas para vereadores (não administradores) filtramos por gabinete
       if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
         baseQuery = baseQuery.eq('gabinete_id', userProfile.gabinete_id);
+        console.log('Filtrando problemas pelo gabinete:', userProfile.gabinete_id);
+      } else {
+        console.log('Não filtrando por gabinete, papel do usuário:', userProfile?.role);
       }
 
       // Fazemos quatro consultas em paralelo para melhor performance
@@ -88,6 +92,13 @@ export const useReportedProblems = () => {
       if (todayResult.error) throw todayResult.error;
       if (weekResult.error) throw weekResult.error;
       if (monthResult.error) throw monthResult.error;
+
+      console.log('Estatísticas de problemas:', {
+        total: totalResult.count,
+        hoje: todayResult.count,
+        semana: weekResult.count,
+        mes: monthResult.count
+      });
 
       setStats({
         today: todayResult.count || 0,
