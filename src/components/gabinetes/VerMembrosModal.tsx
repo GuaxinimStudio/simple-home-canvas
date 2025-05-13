@@ -18,7 +18,7 @@ interface MembroCombinado {
   id: string;
   nome: string | null;
   role?: string;
-  tipoMembro?: 'contato' | 'usuario';
+  tipoMembro: 'contato' | 'usuario';
 }
 
 const VerMembrosModal: React.FC<VerMembrosModalProps> = ({
@@ -41,7 +41,7 @@ const VerMembrosModal: React.FC<VerMembrosModalProps> = ({
   useEffect(() => {
     const membrosCombinados: MembroCombinado[] = [...membrosVinculados.map(m => ({
       ...m, 
-      tipoMembro: 'usuario'
+      tipoMembro: 'usuario' as const
     }))];
     
     // Adiciona os contatos como membros
@@ -50,7 +50,7 @@ const VerMembrosModal: React.FC<VerMembrosModalProps> = ({
         membrosCombinados.push({
           id: contato.id,
           nome: contato.nome,
-          tipoMembro: 'contato'
+          tipoMembro: 'contato' as const
         });
       });
     }
