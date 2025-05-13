@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Problema, RelatoriosStats } from '@/hooks/useRelatoriosData';
+import { Problema, RelatoriosStats } from '@/hooks/relatorios/types';
 import { FiltrosRelatorios } from '@/components/relatorios/types';
 
 interface RelatorioImpressaoProps {
@@ -61,6 +61,7 @@ const RelatorioImpressao = ({ problemas, stats, filtros, dataGeracao }: Relatori
   return `
     <div class="header">
       <h1>Relatório de Problemas</h1>
+      <p>Período: ${obterTextoPeriodo()}</p>
       <p class="date">Gerado em: ${dataGeracao}</p>
     </div>
 

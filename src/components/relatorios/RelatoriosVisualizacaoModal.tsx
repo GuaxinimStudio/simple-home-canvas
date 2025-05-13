@@ -22,6 +22,12 @@ const RelatoriosVisualizacaoModal: React.FC<RelatoriosVisualizacaoModalProps> = 
   filtros 
 }) => {
   const handleGerarRelatorio = () => {
+    // Verificar se há dados antes de gerar o relatório
+    if (problemas.length === 0) {
+      toast.warning("Não há dados para gerar o relatório");
+      return;
+    }
+
     toast.success("Gerando relatório...");
     
     try {
@@ -30,12 +36,9 @@ const RelatoriosVisualizacaoModal: React.FC<RelatoriosVisualizacaoModalProps> = 
       
       // Criar elemento temporário para conter o HTML do relatório
       const tempDiv = document.createElement('div');
-      tempDiv.style.position = 'absolute';
-      tempDiv.style.left = '-9999px';
-      tempDiv.style.top = '-9999px';
       
       // Adicionar estilos essenciais inline
-      tempDiv.innerHTML = `
+      const estilosCSS = `
         <style>
           body {
             font-family: Arial, sans-serif;
@@ -65,7 +68,7 @@ const RelatoriosVisualizacaoModal: React.FC<RelatoriosVisualizacaoModalProps> = 
             border: 1px solid #ddd;
             border-radius: 8px;
             padding: 15px;
-            width: calc(25% - 15px);
+            width: 22%;
             box-sizing: border-box;
             position: relative;
           }
@@ -197,39 +200,50 @@ const RelatoriosVisualizacaoModal: React.FC<RelatoriosVisualizacaoModalProps> = 
         </style>
       `;
       
-      // Adicionar o conteúdo do relatório ao div temporário
-      tempDiv.innerHTML += RelatorioImpressao({ 
+      // Obter o conteúdo HTML do relatório
+      const conteudoHTML = RelatorioImpressao({ 
         problemas, 
         stats, 
         filtros,
         dataGeracao: dataAtual
       });
       
+      // Combinar estilos e conteúdo
+      tempDiv.innerHTML = estilosCSS + conteudoHTML;
+      
       // Adicionar ao corpo do documento temporariamente
       document.body.appendChild(tempDiv);
       
       // Configurações do PDF
       const options = {
-        margin: 15,
+        margin: 10,
         filename: `Relatório_${dataAtual.replace(/\//g, '-')}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
+        html2canvas: { scale: 2, useCORS: true, logging: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
       
+      console.log("Iniciando geração do PDF...");
+      console.log("Conteúdo HTML:", tempDiv.innerHTML.substring(0, 500) + "...");
+      
       // Gerar o PDF e fazer download
-      html2pdf().from(tempDiv).set(options).save().then(() => {
-        // Remover o elemento temporário após gerar o PDF
-        document.body.removeChild(tempDiv);
-        
-        // Fechar o modal e mostrar mensagem de sucesso
-        onOpenChange(false);
-        toast.success("Relatório baixado com sucesso!");
-      }).catch((error) => {
-        console.error("Erro ao gerar PDF:", error);
-        document.body.removeChild(tempDiv);
-        toast.error("Erro ao gerar o relatório. Tente novamente.");
-      });
+      html2pdf()
+        .from(tempDiv)
+        .set(options)
+        .save()
+        .then(() => {
+          // Remover o elemento temporário após gerar o PDF
+          document.body.removeChild(tempDiv);
+          
+          // Fechar o modal e mostrar mensagem de sucesso
+          onOpenChange(false);
+          toast.success("Relatório baixado com sucesso!");
+        })
+        .catch((error) => {
+          console.error("Erro ao gerar PDF:", error);
+          document.body.removeChild(tempDiv);
+          toast.error("Erro ao gerar o relatório: " + error.message);
+        });
       
     } catch (error) {
       console.error("Erro ao gerar relatório:", error);
