@@ -7,6 +7,7 @@ import VerContatosModal from './VerContatosModal';
 import NovoContatoModal from './NovoContatoModal';
 import ExcluirGabineteDialog from './ExcluirGabineteDialog';
 import EditarGabineteModal from './EditarGabineteModal';
+import VerMembrosModal from './VerMembrosModal';
 
 interface GabineteCardProps {
   gabinete: {
@@ -16,7 +17,7 @@ interface GabineteCardProps {
     municipio: string | null;
     telefone: string | null;
     responsavel: string | null;
-    profiles: { id: string; nome: string | null }[] | null;
+    profiles: { id: string; nome: string | null }[];
   };
   onDelete?: () => void;
   onEdit?: () => void;
@@ -28,6 +29,7 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete, onEdit,
   const [isNovoContatoModalOpen, setIsNovoContatoModalOpen] = useState(false);
   const [isExcluirDialogOpen, setIsExcluirDialogOpen] = useState(false);
   const [isEditarModalOpen, setIsEditarModalOpen] = useState(false);
+  const [isVerMembrosModalOpen, setIsVerMembrosModalOpen] = useState(false);
 
   // Garantir que profiles seja sempre um array, mesmo se for null
   const profiles = gabinete.profiles || [];
@@ -90,7 +92,7 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete, onEdit,
             <div className="flex items-center justify-between flex-wrap gap-2 pt-2">
               <div className="flex items-center text-gray-500 text-sm">
                 <UserPlus className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span>{profiles.length} membros vinculados</span>
+                <span>{profiles.length} {profiles.length === 1 ? 'membro vinculado' : 'membros vinculados'}</span>
               </div>
               
               <div className="flex gap-2">
@@ -98,8 +100,8 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete, onEdit,
                   variant="ghost" 
                   size="icon" 
                   className="h-8 w-8"
-                  onClick={() => setIsVerContatosModalOpen(true)}
-                  title="Ver contatos"
+                  onClick={() => setIsVerMembrosModalOpen(true)}
+                  title="Ver membros"
                 >
                   <Eye className="h-4 w-4 text-gray-500" />
                 </Button>
@@ -119,6 +121,7 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete, onEdit,
         </div>
       </CardContent>
 
+      {/* Modal para Ver Contatos */}
       <VerContatosModal
         isOpen={isVerContatosModalOpen}
         onClose={() => setIsVerContatosModalOpen(false)}
@@ -126,10 +129,19 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete, onEdit,
         gabineteNome={gabinete.gabinete}
       />
 
+      {/* Modal para Novo Contato */}
       <NovoContatoModal
         isOpen={isNovoContatoModalOpen}
         onClose={() => setIsNovoContatoModalOpen(false)}
         gabineteId={gabinete.id}
+        gabineteNome={gabinete.gabinete}
+      />
+
+      {/* Modal para Ver Membros vinculados */}
+      <VerMembrosModal
+        isOpen={isVerMembrosModalOpen}
+        onClose={() => setIsVerMembrosModalOpen(false)}
+        profiles={profiles}
         gabineteNome={gabinete.gabinete}
       />
 

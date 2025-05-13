@@ -68,7 +68,11 @@ const useGabinetes = () => {
           return [];
         }
         
-        return data || [];
+        // Processar os dados para garantir que profiles seja sempre um array
+        return data?.map(gabinete => ({
+          ...gabinete,
+          profiles: gabinete.profiles || []
+        })) || [];
       } catch (err) {
         console.error('Erro inesperado ao carregar gabinetes:', err);
         return [];
