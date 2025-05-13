@@ -19,6 +19,7 @@ export const useContatos = (gabineteId: string) => {
     queryKey: ['contatos', gabineteId],
     queryFn: async () => {
       try {
+        console.log('Buscando contatos para o gabinete:', gabineteId);
         const { data, error } = await supabase
           .from('contatos_cidadaos')
           .select('*')
@@ -29,6 +30,7 @@ export const useContatos = (gabineteId: string) => {
           return [];
         }
 
+        console.log('Contatos encontrados:', data?.length || 0);
         return data as Contato[] || [];
       } catch (err) {
         console.error('Erro inesperado ao buscar contatos:', err);

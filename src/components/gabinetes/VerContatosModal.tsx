@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Phone, User } from 'lucide-react';
 import { useContatos } from '@/hooks/useContatos';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
@@ -25,6 +25,9 @@ const VerContatosModal: React.FC<VerContatosModalProps> = ({
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle>{gabineteNome}</DialogTitle>
+          <DialogDescription>
+            Contatos cidadãos vinculados a este gabinete
+          </DialogDescription>
         </DialogHeader>
 
         {isLoading ? (
