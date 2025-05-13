@@ -70,7 +70,7 @@ export const useReportedProblems = () => {
       // Preparamos as consultas base que serão usadas para todas as contagens
       let baseQuery = supabase.from('problemas').select('*', { count: 'exact', head: true });
       
-      // Se for vereador e tiver gabinete_id, filtramos por esse gabinete
+      // Apenas para vereadores (não administradores) filtramos por gabinete
       if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
         baseQuery = baseQuery.eq('gabinete_id', userProfile.gabinete_id);
       }

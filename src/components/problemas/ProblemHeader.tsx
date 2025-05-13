@@ -18,7 +18,7 @@ export const ProblemHeader: React.FC<ProblemHeaderProps> = ({ totalProblems }) =
       
       const { data: profile, error: profileError } = await supabase
         .from('profiles')
-        .select('*, gabinetes(municipio, estado)')
+        .select('*, gabinetes(municipio, estado), role')
         .eq('id', user.id)
         .single();
         
@@ -33,9 +33,11 @@ export const ProblemHeader: React.FC<ProblemHeaderProps> = ({ totalProblems }) =
   });
 
   // Determinar a localização com base nos dados do perfil do usuário
-  const location = userProfile?.gabinetes 
-    ? `${userProfile.gabinetes.municipio || ''}, ${userProfile.gabinetes.estado || ''}`
-    : 'sua cidade';
+  const location = userProfile?.role === 'administrador' 
+    ? 'todas as cidades'
+    : userProfile?.gabinetes 
+      ? `${userProfile.gabinetes.municipio || ''}, ${userProfile.gabinetes.estado || ''}`
+      : 'sua cidade';
 
   return (
     <div className="bg-green-50 p-6 rounded-lg">

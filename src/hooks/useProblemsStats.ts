@@ -69,7 +69,7 @@ export const useProblemsStats = () => {
       // Preparar query base
       let query = supabase.from('problemas').select('status');
       
-      // Se for vereador com gabinete_id, filtrar por gabinete
+      // Apenas para vereadores (não administradores) filtramos por gabinete
       if (userProfile?.role === 'vereador' && userProfile?.gabinete_id) {
         query = query.eq('gabinete_id', userProfile.gabinete_id);
       }

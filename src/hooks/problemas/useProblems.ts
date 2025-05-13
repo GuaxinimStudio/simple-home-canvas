@@ -69,7 +69,7 @@ export const useProblems = (limit = 5, forceRefresh = false) => {
             gabinete:gabinete_id(gabinete)
           `);
           
-        // Se o usuário for do tipo vereador e tiver um gabinete associado, filtrar os problemas desse gabinete
+        // Apenas para vereadores (não administradores) filtramos por gabinete
         if (userProfile?.role === 'vereador' && userProfile.gabinete_id) {
           query = query.eq('gabinete_id', userProfile.gabinete_id);
         }
