@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Building, MapPin, Phone, PlusCircle, Eye, UserPlus, Trash2, Pencil } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
@@ -143,6 +142,7 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete, onEdit,
         onClose={() => setIsVerMembrosModalOpen(false)}
         profiles={profiles}
         gabineteNome={gabinete.gabinete}
+        gabineteId={gabinete.id} // Adicionado o ID do gabinete
       />
 
       {/* Modais de ação - disponíveis apenas para administradores */}

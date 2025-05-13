@@ -23,7 +23,7 @@ export const useContatos = (gabineteId: string) => {
         const { data, error } = await supabase
           .from('contatos_cidadaos')
           .select('*')
-          .contains('gabinetes_ids', [gabineteId]);
+          .filter('gabinetes_ids', 'cs', `{${gabineteId}}`);
 
         if (error) {
           console.error('Erro ao buscar contatos:', error);
@@ -48,7 +48,7 @@ export const useContatos = (gabineteId: string) => {
       const { data: contatosExistentes, error: errorBusca } = await supabase
         .from('contatos_cidadaos')
         .select('*')
-        .contains('gabinetes_ids', [gabineteId])
+        .filter('gabinetes_ids', 'cs', `{${gabineteId}}`)
         .eq('telefone', telefone);
 
       if (errorBusca) {
