@@ -112,10 +112,65 @@ export const useContatos = (gabineteId: string) => {
     }
   };
 
+  // Excluir contato do gabinete
+  const excluirContato = async (contatoId: string) => {
+    setIsLoading(true);
+    
+    try {
+      // Primeiro busca o contato para obter seus gabinetes_ids
+      const { data: contatoAtual, error: errorBusca } = await supabase
+        .from('contatos_cidadaos')
+        .select('*')
+        .eq('id', contatoId)
+        .single();
+        
+      if (errorBusca || !contatoAtual) {
+        console.error('Erro ao buscar contato:', errorBusca);
+        return false;
+      }
+      
+      // Remove o gabineteId atual da lista de gabinetes_ids
+      const novosGabinetesIds = (contatoAtual.gabinetes_ids as string[]).filter(id => id !== gabineteId);
+      
+      // Se não restar nenhum gabinete vinculado, exclui o contato completamente
+      if (novosGabinetesIds.length === 0) {
+        const { error } = await supabase
+          .from('contatos_cidadaos')
+          .delete()
+          .eq('id', contatoId);
+          
+        if (error) {
+          console.error('Erro ao excluir contato:', error);
+          return false;
+        }
+      } else {
+        // Caso contrário, atualiza a lista de gabinetes_ids
+        const { error } = await supabase
+          .from('contatos_cidadaos')
+          .update({ gabinetes_ids: novosGabinetesIds })
+          .eq('id', contatoId);
+          
+        if (error) {
+          console.error('Erro ao atualizar contato:', error);
+          return false;
+        }
+      }
+      
+      refetch();
+      return true;
+    } catch (err) {
+      console.error('Erro inesperado ao excluir contato:', err);
+      return false;
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return {
     contatos: contatos || [],
     isLoading,
     criarContato,
-    refetch
+    refetch,
+    excluirContato
   };
 };

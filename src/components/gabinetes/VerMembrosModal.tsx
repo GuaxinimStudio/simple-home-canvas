@@ -1,9 +1,11 @@
 
 import React, { useEffect, useState } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
-import { User } from 'lucide-react';
+import { User, Trash2 } from 'lucide-react';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { useContatos } from '@/hooks/useContatos';
+import { toast } from '@/components/ui/use-toast';
+import { Button } from '@/components/ui/button';
 
 interface VerMembrosModalProps {
   isOpen: boolean;
@@ -19,6 +21,7 @@ interface MembroCombinado {
   nome: string | null;
   role?: string;
   tipoMembro: 'contato' | 'usuario';
+  telefone?: string | null;
 }
 
 const VerMembrosModal: React.FC<VerMembrosModalProps> = ({
@@ -32,7 +35,7 @@ const VerMembrosModal: React.FC<VerMembrosModalProps> = ({
   const membrosVinculados = profiles.filter(profile => profile.role !== 'vereador');
   
   // Busca os contatos do gabinete
-  const { contatos, isLoading: isLoadingContatos } = useContatos(gabineteId);
+  const { contatos, isLoading: isLoadingContatos, excluirContato } = useContatos(gabineteId);
   
   // Estado para armazenar todos os membros (profiles + contatos)
   const [todosMembrosCombinados, setTodosMembrosCombinados] = useState<MembroCombinado[]>([]);
@@ -50,6 +53,7 @@ const VerMembrosModal: React.FC<VerMembrosModalProps> = ({
         membrosCombinados.push({
           id: contato.id,
           nome: contato.nome,
+          telefone: contato.telefone,
           tipoMembro: 'contato' as const
         });
       });
@@ -57,6 +61,22 @@ const VerMembrosModal: React.FC<VerMembrosModalProps> = ({
     
     setTodosMembrosCombinados(membrosCombinados);
   }, [membrosVinculados, contatos]);
+
+  const handleExcluirContato = async (contatoId: string) => {
+    try {
+      await excluirContato(contatoId);
+      toast({
+        title: "Contato excluído com sucesso",
+        description: "O contato foi removido do gabinete."
+      });
+    } catch (error) {
+      toast({
+        variant: "destructive",
+        title: "Erro ao excluir contato",
+        description: "Não foi possível excluir o contato. Tente novamente."
+      });
+    }
+  };
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
@@ -77,7 +97,8 @@ const VerMembrosModal: React.FC<VerMembrosModalProps> = ({
             <TableHeader>
               <TableRow>
                 <TableHead>Nome</TableHead>
-                <TableHead>Tipo</TableHead>
+                <TableHead>Telefone</TableHead>
+                <TableHead></TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -88,7 +109,19 @@ const VerMembrosModal: React.FC<VerMembrosModalProps> = ({
                     {membro.nome || 'Sem nome definido'}
                   </TableCell>
                   <TableCell>
-                    {membro.tipoMembro === 'contato' ? 'Contato' : (membro.role === 'administrador' ? 'Administrador' : 'Usuário')}
+                    {membro.telefone || '-'}
+                  </TableCell>
+                  <TableCell>
+                    {membro.tipoMembro === 'contato' && (
+                      <Button 
+                        variant="ghost" 
+                        size="icon" 
+                        className="h-8 w-8 text-red-500 hover:text-red-700 hover:bg-red-50"
+                        onClick={() => handleExcluirContato(membro.id)}
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    )}
                   </TableCell>
                 </TableRow>
               ))}
