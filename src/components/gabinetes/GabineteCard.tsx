@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+
+import React, { useState, useEffect } from 'react';
 import { Building, MapPin, Phone, PlusCircle, Eye, UserPlus, Trash2, Pencil } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,6 +8,7 @@ import NovoContatoModal from './NovoContatoModal';
 import ExcluirGabineteDialog from './ExcluirGabineteDialog';
 import EditarGabineteModal from './EditarGabineteModal';
 import VerMembrosModal from './VerMembrosModal';
+import { useContatos } from '@/hooks/useContatos';
 
 interface GabineteCardProps {
   gabinete: {
@@ -29,6 +31,7 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete, onEdit,
   const [isExcluirDialogOpen, setIsExcluirDialogOpen] = useState(false);
   const [isEditarModalOpen, setIsEditarModalOpen] = useState(false);
   const [isVerMembrosModalOpen, setIsVerMembrosModalOpen] = useState(false);
+  const { contatos } = useContatos(gabinete.id);
 
   // Garantir que profiles seja sempre um array, mesmo se for null
   const profiles = gabinete.profiles || [];
@@ -91,7 +94,7 @@ const GabineteCard: React.FC<GabineteCardProps> = ({ gabinete, onDelete, onEdit,
             <div className="flex items-center justify-between flex-wrap gap-2 pt-2">
               <div className="flex items-center text-gray-500 text-sm">
                 <UserPlus className="w-4 h-4 mr-2 flex-shrink-0" />
-                <span>{profiles.length} {profiles.length === 1 ? 'membro vinculado' : 'membros vinculados'}</span>
+                <span>{contatos.length} {contatos.length === 1 ? 'contato cadastrado' : 'contatos cadastrados'}</span>
               </div>
               
               <div className="flex gap-2">
