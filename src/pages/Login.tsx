@@ -18,8 +18,14 @@ const Login: React.FC = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (session) {
-      navigate('/');
+    // Verificamos o estado da sessão apenas uma vez após o carregamento
+    // e usamos uma flag para evitar chamadas redundantes
+    let redirectExecuted = false;
+    
+    if (session && !redirectExecuted) {
+      redirectExecuted = true;
+      console.log("Redirecionando para home após detectar sessão");
+      navigate('/', { replace: true });
     }
   }, [session, navigate]);
 
@@ -59,12 +65,18 @@ const Login: React.FC = () => {
     }
   };
 
+  // Se a página estiver carregando, exibimos o indicador de carregamento
   if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-resolve-green"></div>
       </div>
     );
+  }
+
+  // Se o usuário já está autenticado, não renderizamos o formulário de login
+  if (session) {
+    return null; // Não renderiza nada enquanto o redirecionamento ocorre
   }
 
   return (

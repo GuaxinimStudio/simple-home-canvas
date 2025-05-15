@@ -23,23 +23,35 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Configurar o listener de autenticação ANTES de verificar a sessão existente
+    // Configuração para evitar loops de redirecionamento
+    let isActive = true;
+    
+    // Configurar o listener de autenticação
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, currentSession) => {
-        setSession(currentSession);
-        setUser(currentSession?.user ?? null);
-        setIsLoading(false);
+        // Verificar se o componente ainda está montado
+        if (isActive) {
+          console.log("Evento de autenticação:", event);
+          setSession(currentSession);
+          setUser(currentSession?.user ?? null);
+          setIsLoading(false);
+        }
       }
     );
 
     // Verificar se há uma sessão existente
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
-      setSession(currentSession);
-      setUser(currentSession?.user ?? null);
-      setIsLoading(false);
+      // Verificar se o componente ainda está montado
+      if (isActive) {
+        console.log("Sessão inicial:", currentSession ? "Existe" : "Não existe");
+        setSession(currentSession);
+        setUser(currentSession?.user ?? null);
+        setIsLoading(false);
+      }
     });
 
     return () => {
+      isActive = false;
       subscription.unsubscribe();
     };
   }, []);
@@ -58,7 +70,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error };
       } else {
         toast.success('Login realizado com sucesso!');
-        navigate('/');
+        // Não fazemos o redirecionamento aqui, deixamos o useEffect perceber a mudança
         return { error: null };
       }
     } catch (error: any) {
@@ -100,7 +112,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const signOut = async () => {
     try {
       await supabase.auth.signOut();
-      navigate('/login');
+      // Não fazemos o redirecionamento aqui, deixamos o useEffect perceber a mudança
     } catch (error) {
       console.error('Erro ao fazer logout:', error);
     }

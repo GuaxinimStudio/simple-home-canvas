@@ -1,6 +1,6 @@
 
-import React from 'react';
-import { Navigate } from 'react-router-dom';
+import React, { useEffect } from 'react';
+import { Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 interface ProtectedRouteProps {
@@ -9,6 +9,13 @@ interface ProtectedRouteProps {
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   const { session, isLoading } = useAuth();
+  const location = useLocation();
+  
+  useEffect(() => {
+    // Log para debugging
+    console.log("ProtectedRoute - Estado da sessão:", session ? "Autenticado" : "Não autenticado");
+    console.log("ProtectedRoute - Caminho atual:", location.pathname);
+  }, [session, location]);
 
   if (isLoading) {
     return (
@@ -19,6 +26,7 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({ children }) => {
   }
 
   if (!session) {
+    console.log("ProtectedRoute - Redirecionando para login");
     return <Navigate to="/login" replace />;
   }
 
