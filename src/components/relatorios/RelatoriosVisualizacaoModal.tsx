@@ -1,10 +1,12 @@
 
 import React from 'react';
-import { Problema, RelatoriosStats, FiltrosRelatorios } from '@/hooks/relatorios/types';
+import { Problema, RelatoriosStats } from '@/hooks/relatorios/types';
 import VisualizacaoRelatorio from './visualizacao/VisualizacaoRelatorio';
 import { toast } from 'sonner';
 import RelatorioImpressao from './RelatorioImpressao';
-import html2pdf from 'html2pdf.js';
+import jsPDF from 'jspdf';
+import 'jspdf-autotable';
+import { FiltrosRelatorios } from '@/hooks/relatorios/types';
 
 interface RelatoriosVisualizacaoModalProps {
   isOpen: boolean;
@@ -34,220 +36,238 @@ const RelatoriosVisualizacaoModal: React.FC<RelatoriosVisualizacaoModalProps> = 
       // Preparar dados para exportação
       const dataAtual = new Date().toLocaleDateString('pt-BR');
       
-      // Criar elemento temporário para conter o HTML do relatório
-      const tempDiv = document.createElement('div');
-      
-      // Adicionar estilos essenciais inline
-      const estilosCSS = `
-        <style>
-          body {
-            font-family: Arial, sans-serif;
-            line-height: 1.5;
-            color: #333;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-          }
-          .header {
-            text-align: center;
-            margin-bottom: 30px;
-            border-bottom: 1px solid #ddd;
-            padding-bottom: 10px;
-          }
-          .date {
-            color: #666;
-            font-size: 14px;
-          }
-          .status-cards {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-            flex-wrap: wrap;
-          }
-          .status-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            width: 22%;
-            box-sizing: border-box;
-            position: relative;
-          }
-          .status-card.pendente { border-left: 4px solid #fbbf24; }
-          .status-card.andamento { border-left: 4px solid #3b82f6; }
-          .status-card.resolvido { border-left: 4px solid #34d399; }
-          .status-card.insuficiente { border-left: 4px solid #a855f7; }
-          .status-title {
-            font-size: 14px;
-            font-weight: normal;
-            color: #555;
-            margin: 0 0 10px 0;
-          }
-          .status-count {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 0;
-          }
-          .status-percent {
-            font-size: 12px;
-            color: #666;
-            margin: 5px 0 0 0;
-          }
-          h2 {
-            font-size: 18px;
-            margin: 30px 0 15px 0;
-            color: #444;
-          }
-          .metrics {
-            display: flex;
-            justify-content: space-between;
-            margin-bottom: 30px;
-          }
-          .metric-card {
-            border: 1px solid #ddd;
-            border-radius: 8px;
-            padding: 15px;
-            width: calc(50% - 10px);
-          }
-          .metric-title {
-            font-size: 14px;
-            margin: 0 0 10px 0;
-            color: #555;
-          }
-          .metric-value {
-            font-size: 24px;
-            font-weight: bold;
-            margin: 0;
-            color: #22c55e;
-          }
-          .metric-info {
-            font-size: 12px;
-            color: #666;
-            margin: 5px 0 0 0;
-          }
-          .problema-title {
-            background-color: #e6f7ef;
-            padding: 10px 15px;
-            border-radius: 6px 6px 0 0;
-            margin: 40px 0 0 0;
-            font-size: 16px;
-            font-weight: 500;
-            color: #166534;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-          }
-          .problema-status {
-            font-size: 12px;
-            padding: 3px 10px;
-            border-radius: 12px;
-            background-color: #dcfce7;
-            color: #166534;
-          }
-          .problema-data {
-            color: #666;
-            font-size: 12px;
-            font-weight: normal;
-          }
-          .problema-content {
-            border: 1px solid #ddd;
-            border-radius: 0 0 6px 6px;
-            padding: 15px;
-            margin-top: 0;
-          }
-          .problema-row {
-            display: flex;
-            margin-bottom: 10px;
-          }
-          .problema-label {
-            width: 150px;
-            color: #666;
-            font-size: 14px;
-          }
-          .problema-value {
-            flex: 1;
-            font-size: 14px;
-          }
-          .problema-descricao {
-            margin-top: 15px;
-            font-size: 14px;
-          }
-          .problema-descricao-label {
-            color: #666;
-            margin-bottom: 5px;
-          }
-          .footer {
-            margin-top: 40px;
-            text-align: center;
-            font-size: 12px;
-            color: #666;
-            border-top: 1px solid #ddd;
-            padding-top: 15px;
-          }
-          .solucao-box {
-            border: 1px solid #22c55e;
-            border-radius: 6px;
-            padding: 15px;
-            margin-top: 15px;
-          }
-          .solucao-titulo {
-            color: #22c55e;
-            font-weight: bold;
-            margin-bottom: 5px;
-          }
-          .page-break {
-            page-break-after: always;
-          }
-        </style>
-      `;
-      
-      // Obter o conteúdo HTML do relatório
-      const conteudoHTML = RelatorioImpressao({ 
-        problemas, 
-        stats, 
-        filtros,
-        dataGeracao: dataAtual
+      // Criar instância do jsPDF
+      const doc = new jsPDF({
+        orientation: 'portrait',
+        unit: 'mm',
+        format: 'a4'
       });
       
-      // Combinar estilos e conteúdo
-      tempDiv.innerHTML = estilosCSS + conteudoHTML;
+      // Adicionar título
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(16);
+      doc.text('Relatório de Problemas', 105, 20, { align: 'center' });
       
-      // Adicionar ao corpo do documento temporariamente
-      document.body.appendChild(tempDiv);
+      // Obter texto do período
+      const textoPeriodo = obterTextoPeriodo(filtros);
+      doc.setFontSize(12);
+      doc.text(`Período: ${textoPeriodo}`, 105, 30, { align: 'center' });
+      doc.text(`Gerado em: ${dataAtual}`, 105, 35, { align: 'center' });
       
-      // Configurações do PDF
-      const options = {
-        margin: 10,
-        filename: `Relatório_${dataAtual.replace(/\//g, '-')}.pdf`,
-        image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: true },
-        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-      };
+      // Adicionar estatísticas de status
+      doc.setFontSize(14);
+      doc.text('Estatísticas por Status', 20, 45);
       
-      console.log("Iniciando geração do PDF...");
-      console.log("Conteúdo HTML:", tempDiv.innerHTML.substring(0, 500) + "...");
+      // Tabela de estatísticas
+      const statusHeaders = [['Status', 'Quantidade', 'Porcentagem']];
+      const statusRows = [
+        ['Pendentes', stats.pendentes.toString(), calculaPorcentagem(stats.pendentes, stats.total)],
+        ['Em Andamento', stats.emAndamento.toString(), calculaPorcentagem(stats.emAndamento, stats.total)],
+        ['Resolvidos', stats.resolvidos.toString(), calculaPorcentagem(stats.resolvidos, stats.total)],
+        ['Info. Insuficientes', stats.informacoesInsuficientes.toString(), calculaPorcentagem(stats.informacoesInsuficientes, stats.total)],
+        ['Total', stats.total.toString(), '100%']
+      ];
       
-      // Gerar o PDF e fazer download
-      html2pdf()
-        .from(tempDiv)
-        .set(options)
-        .save()
-        .then(() => {
-          // Remover o elemento temporário após gerar o PDF
-          document.body.removeChild(tempDiv);
-          
-          // Fechar o modal e mostrar mensagem de sucesso
-          onOpenChange(false);
-          toast.success("Relatório baixado com sucesso!");
-        })
-        .catch((error) => {
-          console.error("Erro ao gerar PDF:", error);
-          document.body.removeChild(tempDiv);
-          toast.error("Erro ao gerar o relatório: " + error.message);
+      (doc as any).autoTable({
+        head: statusHeaders,
+        body: statusRows,
+        startY: 50,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [76, 175, 80],
+          textColor: 255
+        },
+        alternateRowStyles: {
+          fillColor: [240, 240, 240]
+        }
+      });
+      
+      // Métricas de desempenho
+      const lastY = (doc as any).lastAutoTable.finalY || 50;
+      doc.text('Métricas de Desempenho', 20, lastY + 15);
+      
+      // Calcular métricas
+      const resolvidosNoPrazoPercent = stats.totalResolvidos > 0 
+        ? Math.round((stats.resolvidosNoPrazo / stats.totalResolvidos) * 100)
+        : 0;
+      
+      const mediaAtraso = calculaMediaAtraso(problemas);
+      
+      const metricsHeaders = [['Métrica', 'Valor']];
+      const metricsRows = [
+        ['Resolvidos no Prazo', `${resolvidosNoPrazoPercent}% (${stats.resolvidosNoPrazo} de ${stats.totalResolvidos})`],
+        ['Média de Atraso', `${mediaAtraso} dias`]
+      ];
+      
+      (doc as any).autoTable({
+        head: metricsHeaders,
+        body: metricsRows,
+        startY: lastY + 20,
+        theme: 'grid',
+        headStyles: {
+          fillColor: [63, 81, 181],
+          textColor: 255
+        }
+      });
+      
+      // Detalhes dos problemas - um por página
+      doc.addPage();
+      doc.setFontSize(14);
+      doc.text('Detalhes dos Problemas', 105, 20, { align: 'center' });
+      
+      // Adicionar cada problema em páginas separadas
+      let currentY = 30;
+      let problemIndex = 1;
+      
+      for (const problema of problemas) {
+        // Se não há espaço suficiente para o problema atual, adicionar nova página
+        if (currentY > 250) {
+          doc.addPage();
+          currentY = 20;
+        }
+        
+        doc.setFontSize(12);
+        doc.setFont('helvetica', 'bold');
+        doc.setTextColor(22, 101, 52); // Verde escuro
+        doc.text(`Problema #${problemIndex} - ${problema.status}`, 20, currentY);
+        currentY += 7;
+        
+        doc.setFont('helvetica', 'normal');
+        doc.setTextColor(0, 0, 0);
+        doc.setFontSize(10);
+        doc.text(`Data de registro: ${problema.data}`, 20, currentY);
+        currentY += 10;
+        
+        // Tabela com os detalhes do problema
+        const problemData = [
+          ['Município', problema.municipio || '-'],
+          ['Telefone', problema.telefone || '-'],
+          ['Prazo estimado', problema.prazo_estimado 
+            ? new Date(problema.prazo_estimado).toLocaleDateString('pt-BR') 
+            : '-']
+        ];
+        
+        if (problema.status === 'Resolvido') {
+          problemData.push(
+            ['Última atualização', problema.updated_at ? new Date(problema.updated_at).toLocaleDateString('pt-BR') : '-'],
+            ['Resolvido no prazo', problema.resolvido_no_prazo ? 'Sim' : 'Não']
+          );
+        }
+        
+        (doc as any).autoTable({
+          body: problemData,
+          startY: currentY,
+          theme: 'plain',
+          styles: {
+            cellPadding: 3,
+            fontSize: 10
+          },
+          columnStyles: {
+            0: { fontStyle: 'bold', cellWidth: 40 },
+            1: { cellWidth: 140 }
+          }
         });
+        
+        currentY = (doc as any).lastAutoTable.finalY + 10;
+        
+        // Descrição do problema
+        doc.setFont('helvetica', 'bold');
+        doc.text('Descrição:', 20, currentY);
+        currentY += 7;
+        
+        doc.setFont('helvetica', 'normal');
+        const descricaoSplit = doc.splitTextToSize(problema.descricao || 'Sem descrição', 170);
+        doc.text(descricaoSplit, 20, currentY);
+        currentY += descricaoSplit.length * 5 + 10;
+        
+        // Solução (se resolvido)
+        if (problema.status === 'Resolvido' && problema.descricao_resolvido) {
+          doc.setFont('helvetica', 'bold');
+          doc.setTextColor(34, 197, 94); // Verde
+          doc.text('Solução Implementada:', 20, currentY);
+          currentY += 7;
+          
+          doc.setFont('helvetica', 'normal');
+          doc.setTextColor(0, 0, 0);
+          const solucaoSplit = doc.splitTextToSize(problema.descricao_resolvido, 170);
+          doc.text(solucaoSplit, 20, currentY);
+          currentY += solucaoSplit.length * 5 + 15;
+        }
+        
+        // Adicionar espaço ou nova página entre problemas
+        if (problemIndex < problemas.length) {
+          if (currentY > 250) {
+            doc.addPage();
+            currentY = 20;
+          } else {
+            doc.line(20, currentY, 190, currentY);
+            currentY += 15;
+          }
+        }
+        
+        problemIndex++;
+      }
       
-    } catch (error) {
+      // Adicionar rodapé
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      doc.text(`Relatório gerado automaticamente pelo sistema de gestão de problemas em ${dataAtual}`, 105, 285, { align: 'center' });
+      
+      // Salvar o PDF
+      doc.save(`Relatório_${dataAtual.replace(/\//g, '-')}.pdf`);
+      
+      // Fechar o modal e mostrar mensagem de sucesso
+      onOpenChange(false);
+      toast.success("Relatório baixado com sucesso!");
+      
+    } catch (error: any) {
       console.error("Erro ao gerar relatório:", error);
-      toast.error("Erro ao gerar relatório. Tente novamente.");
+      toast.error("Erro ao gerar relatório: " + error.message);
+    }
+  };
+
+  // Função para calcular porcentagens
+  const calculaPorcentagem = (valor: number, total: number) => {
+    if (total === 0) return '0%';
+    return `${Math.round((valor / total) * 100)}%`;
+  };
+
+  // Calcular média de atraso
+  const calculaMediaAtraso = (problemas: Problema[]) => {
+    const problemasComAtraso = problemas.filter(p => p.dias_atraso_resolucao !== null && p.dias_atraso_resolucao > 0);
+    
+    if (problemasComAtraso.length === 0) return 0;
+    
+    const somaAtrasos = problemasComAtraso.reduce((soma, p) => soma + (p.dias_atraso_resolucao || 0), 0);
+    return Math.round(somaAtrasos / problemasComAtraso.length);
+  };
+
+  // Formatar texto de período para exibição
+  const obterTextoPeriodo = (filtros: FiltrosRelatorios) => {
+    if (filtros.tipoFiltro === 'mes_ano') {
+      if (!filtros.mes || !filtros.ano) return 'Todo o período';
+      
+      const meses = [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+      ];
+      
+      const mesIndex = parseInt(filtros.mes, 10) - 1;
+      const nomeMes = meses[mesIndex];
+      
+      return `${nomeMes} de ${filtros.ano}`;
+    } else {
+      if (!filtros.dataInicio && !filtros.dataFim) return 'Todo o período';
+      
+      if (filtros.dataInicio && !filtros.dataFim) {
+        return `A partir de ${filtros.dataInicio.toLocaleDateString('pt-BR')}`;
+      }
+      
+      if (!filtros.dataInicio && filtros.dataFim) {
+        return `Até ${filtros.dataFim.toLocaleDateString('pt-BR')}`;
+      }
+      
+      return `De ${filtros.dataInicio?.toLocaleDateString('pt-BR')} até ${filtros.dataFim?.toLocaleDateString('pt-BR')}`;
     }
   };
 
