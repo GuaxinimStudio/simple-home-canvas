@@ -3,7 +3,7 @@ import React from 'react';
 import { Problema, RelatoriosStats } from '@/hooks/relatorios/types';
 import VisualizacaoRelatorio from './visualizacao/VisualizacaoRelatorio';
 import { toast } from 'sonner';
-import { jsPDF } from 'jspdf'; // Importação correta usando { jsPDF }
+import { jsPDF } from 'jspdf';
 import 'jspdf-autotable';
 import { FiltrosRelatorios } from '@/hooks/relatorios/types';
 
