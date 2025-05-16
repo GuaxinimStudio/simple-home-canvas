@@ -57,19 +57,17 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
   
   // Verifica se a imagem é válida
   // Para status "Resolvido", a imagem é obrigatória
-  // Para "Informações Insuficientes", a imagem não é obrigatória, mas o botão de salvar só é habilitado quando anexada
   const isImagemObrigatoria = currentStatus === 'Resolvido';
   const isImagemValida = !isImagemObrigatoria || imagemResolvidoPreview !== null;
   
-  // Para "Informações Insuficientes", consideramos o formulário válido se tiver descrição preenchida
-  // E se tiver imagem anexada (mesmo não sendo obrigatória)
+  // Calcula se o formulário é válido para habilitar o botão de salvar
   const isFormValid = 
     (!requiresResponse) || 
-    (isDescricaoValida && (currentStatus === 'Informações Insuficientes' ? imagemResolvidoPreview !== null : isImagemValida));
+    (isDescricaoValida && (currentStatus === 'Informações Insuficientes' ? true : isImagemValida));
   
-  // Determina se os campos devem ser bloqueados
-  const shouldBlockFields = requiresResponse && isSaved && isDescricaoValida && 
-    (currentStatus !== 'Resolvido' || isImagemValida) && !respostaEnviada;
+  // MODIFICADO: Só bloqueamos os campos se o status requer resposta E já foi salvo no banco
+  // E a resposta já foi enviada. Não bloqueamos mais simplesmente por mudar o status no dropdown
+  const shouldBlockFields = respostaEnviada;
   
   return (
     <Card className="p-6">
@@ -93,20 +91,20 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
           currentStatus={currentStatus}
           onStatusChange={onStatusChange}
           isPrazoDefinido={isPrazoDefinido}
-          isResolvido={respostaEnviada || shouldBlockFields}
+          isResolvido={shouldBlockFields}
         />
 
         <OcorrenciaPrazo 
           prazoEstimado={prazoEstimado}
           onPrazoChange={onPrazoChange}
-          isResolvido={respostaEnviada || shouldBlockFields}
+          isResolvido={shouldBlockFields}
           resolvidoNoPrazo={resolvidoNoPrazo}
         />
 
         <OcorrenciaDepartamento 
           selectedDepartamento={selectedDepartamento}
           onDepartamentoChange={onDepartamentoChange}
-          isDisabled={respostaEnviada || shouldBlockFields}
+          isDisabled={shouldBlockFields}
         />
 
         {requiresResponse && (
@@ -116,7 +114,7 @@ export const OcorrenciaGerenciamento: React.FC<OcorrenciaGerenciamentoProps> = (
             onDescricaoResolvidoChange={onDescricaoResolvidoChange}
             imagemResolvidoPreview={imagemResolvidoPreview}
             onImagemResolvidoChange={onImagemResolvidoChange}
-            isResolvido={respostaEnviada || shouldBlockFields}
+            isResolvido={shouldBlockFields}
             isRequired={true}
             isDescricaoValida={isDescricaoValida}
             isImagemValida={isImagemValida}

@@ -23,7 +23,7 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     imageModalOpen: false,
     isSaved: false,
     respostaEnviada: false,
-    isEnviandoResposta: false // Inicializar a nova propriedade
+    isEnviandoResposta: false
   });
 
   // Função para atualizar o estado parcialmente
@@ -61,12 +61,15 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
   // Gerenciar salvamento de alterações
   const { saveProblema, isSaving, isSaved, resetSavedState } = useOcorrenciaSave(id || '');
 
-  // Verificar se já está salvo como resolvido e se a resposta já foi enviada quando carregar os dados
+  // MODIFICADO: Verificar estado inicial baseado nos dados do banco
   useEffect(() => {
     if (state.problemData) {
-      if (isStatusRequireResponse(state.problemData.status as StatusType)) {
+      // Verificar se já está salvo com status que requer resposta
+      if (isStatusRequireResponse(state.problemData.status as StatusType) && 
+          state.problemData.descricao_resolvido) {
         updateState({ isSaved: true });
       }
+      // Verificar se a resposta já foi enviada
       if (state.problemData.resposta_enviada) {
         updateState({ respostaEnviada: true });
       }
@@ -117,10 +120,11 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
       prazoEstimado,
       state.selectedDepartamento,
       state.descricaoResolvido,
-      imagemResolvidoUrl
+      imagemResolvidoUrl || state.imagemResolvidoPreview
     );
     
-    // Atualizar dados
+    // Atualizar dados após salvar
+    updateState({ isSaved: true });
     refetchOcorrencia();
   };
 
@@ -147,7 +151,9 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     prazoEstimado,
     imagemResolvido: imageManager.imagemResolvido,
     imagemResolvidoPreview: imageManager.imagemResolvidoPreview,
-    isSaved: isSaved || (state.problemData && isStatusRequireResponse(state.problemData.status as StatusType)), 
+    isSaved: isSaved || (state.problemData && 
+              isStatusRequireResponse(state.problemData.status as StatusType) && 
+              state.problemData.descricao_resolvido !== null), 
     respostaEnviada: state.respostaEnviada || (state.problemData?.resposta_enviada === true),
     handleStatusChange,
     handlePrazoChange,
@@ -157,6 +163,6 @@ export const useOcorrenciaDetails = (id: string | undefined): OcorrenciaState & 
     handleImagemResolvidoChange: imageManager.handleImagemResolvidoChange,
     setImageModalOpen,
     handleEnviarRespostaCidadao,
-    isEnviandoResposta: isEnviando // Exportar a propriedade corretamente
+    isEnviandoResposta: isEnviando
   };
 };

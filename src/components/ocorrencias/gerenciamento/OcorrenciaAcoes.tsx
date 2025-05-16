@@ -34,48 +34,36 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
   // Verifica se é um status que requer resposta (finalizado)
   const requiresResponse = isStatusRequireResponse(currentStatus);
   
-  // Verifica se todos os dados necessários para enviar a resposta estão preenchidos
-  const isRespostaReady = isDescricaoValida && isImagemValida;
+  // MODIFICADO: Verifica se todos os dados necessários para enviar a resposta estão preenchidos
+  // E se já foi salvo com esse status
+  const isRespostaReady = isDescricaoValida && 
+    (currentStatus !== 'Resolvido' || isImagemValida) && 
+    isSalvo && 
+    !respostaEnviada;
   
-  // Verifica se deve mostrar o botão de enviar resposta
-  // Somente mostra o botão se:
-  // 1. O status requer resposta (está finalizado)
-  // 2. A ocorrência já foi salva com esse status no banco de dados
-  // 3. Ainda não foi enviada resposta ao cidadão
-  // 4. Todos os campos obrigatórios estão preenchidos
-  const showResponseButton = requiresResponse && isSalvo && !respostaEnviada && isRespostaReady;
+  // MODIFICADO: Mostrar o botão de enviar resposta somente após salvar as alterações
+  const showResponseButton = requiresResponse && isRespostaReady;
 
-  // Verifica se deve mostrar o botão de salvar alterações
-  // 1. Primeiro verifica se um prazo foi definido
-  // 2. Não mostra se o status requer resposta, já está salvo e ainda não foi enviada resposta
-  // 3. NOVA CONDIÇÃO: Não mostra se a resposta já foi enviada
-  const showSaveButton = isPrazoDefinido && 
-    !(requiresResponse && isSalvo && (!respostaEnviada || respostaEnviada));
+  // Mostrar o botão de salvar quando o prazo estiver definido
+  // E não mostrar se a resposta já foi enviada
+  const showSaveButton = isPrazoDefinido && !respostaEnviada;
   
-  // Verifica se deve mostrar a mensagem de campos obrigatórios
-  // Só mostra se não estiver salvo e o formulário for inválido
-  const showRequiredFieldsMessage = requiresResponse && !isSalvo && !isFormValid;
-
-  // Mensagem para quando o prazo não está definido
-  const showPrazoMessage = !isPrazoDefinido && !isSalvo;
+  // Mensagem para dados obrigatórios faltando
+  const showRequiredFieldsMessage = requiresResponse && !isFormValid;
+  
+  // Mensagem para prazo não definido
+  const showPrazoMessage = !isPrazoDefinido;
   
   // Mensagem quando faltam dados para enviar resposta ao cidadão
-  const showRespostaIncompleteMessage = requiresResponse && isSalvo && !respostaEnviada && !isRespostaReady;
+  const showRespostaIncompleteMessage = requiresResponse && isSalvo && 
+    (!isDescricaoValida || (currentStatus === 'Resolvido' && !isImagemValida));
   
-  // NOVA LÓGICA: Define quando os campos devem ser bloqueados
-  // Bloqueia os campos quando:
-  // 1. O status requer resposta (está finalizado)
-  // 2. Já está salvo no banco de dados
-  // 3. Todos os campos necessários estão preenchidos (a resposta está pronta para ser enviada)
-  // 4. A resposta ainda não foi enviada
-  const shouldBlockFields = requiresResponse && isSalvo && isRespostaReady && !respostaEnviada;
-  
-  // Verifica se deve mostrar o card de confirmação de resposta enviada
+  // Verificar se deve mostrar o card de confirmação de resposta enviada
   const showResponseSentCard = requiresResponse && respostaEnviada;
   
   return (
     <div className="space-y-4">
-      {/* Card de confirmação - NOVO */}
+      {/* Card de confirmação quando a resposta foi enviada */}
       {showResponseSentCard && (
         <Alert className="bg-green-50 border-green-200">
           <MailCheck className="h-5 w-5 text-green-600" />
@@ -118,12 +106,6 @@ export const OcorrenciaAcoes: React.FC<OcorrenciaAcoesProps> = ({
               </>
             )}
           </Button>
-        )}
-
-        {shouldBlockFields && (
-          <p className="text-blue-600 text-sm">
-            Campos bloqueados. Envie a resposta ao cidadão para finalizar o processo.
-          </p>
         )}
 
         {showRequiredFieldsMessage && (
